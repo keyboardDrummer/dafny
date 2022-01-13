@@ -3953,7 +3953,7 @@ namespace Microsoft.Dafny {
 
     public List<Include> Includes;
 
-    public readonly List<TopLevelDecl> TopLevelDecls = new List<TopLevelDecl>();  // filled in by the parser; readonly after that, except for the addition of prefix-named modules, which happens in the resolver
+    public readonly List<TopLevelDecl> TopLevelDecls;  // filled in by the parser; readonly after that, except for the addition of prefix-named modules, which happens in the resolver
     public readonly List<Tuple<List<IToken>, LiteralModuleDecl>> PrefixNamedModules = new List<Tuple<List<IToken>, LiteralModuleDecl>>();  // filled in by the parser; emptied by the resolver
     public readonly Graph<ICallable> CallGraph = new Graph<ICallable>();  // filled in during resolution
     public int Height;  // height in the topological sorting of modules; filled in during resolution
@@ -3973,7 +3973,7 @@ namespace Microsoft.Dafny {
 
     public ModuleDefinition(IToken tok, string name, List<IToken> prefixIds, bool isAbstract, bool isFacade,
       ModuleQualifiedId refinementQId, ModuleDefinition parent, Attributes attributes, bool isBuiltinName,
-      bool isToBeVerified, bool isToBeCompiled) {
+      bool isToBeVerified, bool isToBeCompiled, List<TopLevelDecl> TopLevelDecls = null) {
       Contract.Requires(tok != null);
       Contract.Requires(name != null);
       this.tok = tok;
@@ -3989,6 +3989,7 @@ namespace Microsoft.Dafny {
       this.IsBuiltinName = isBuiltinName;
       this.IsToBeVerified = isToBeVerified;
       this.IsToBeCompiled = isToBeCompiled;
+      this.TopLevelDecls = TopLevelDecls ?? new List<TopLevelDecl>();
     }
 
     VisibilityScope visibilityScope;
@@ -7586,6 +7587,17 @@ namespace Microsoft.Dafny {
       Contract.Invariant(cce.NonNullElements(Lhss));
       Contract.Invariant(cce.NonNullElements(Rhss));
     }
+    public UpdateStmt(IToken tok, IToken endTok, List<Expression> Lhss, List<AssignmentRhs> rhss, bool mutate)
+      : base(tok, endTok, Lhss) {
+      Contract.Requires(tok != null);
+      Contract.Requires(endTok != null);
+      Contract.Requires(cce.NonNullElements(Lhss));
+      Contract.Requires(cce.NonNullElements(rhss));
+      Contract.Requires(Lhss.Count != 0 || rhss.Count == 1);
+      Rhss = rhss;
+      CanMutateKnownState = mutate;
+    }
+    
     public UpdateStmt(IToken tok, IToken endTok, List<Expression> lhss, List<AssignmentRhs> rhss)
       : base(tok, endTok, lhss) {
       Contract.Requires(tok != null);
@@ -7595,16 +7607,6 @@ namespace Microsoft.Dafny {
       Contract.Requires(lhss.Count != 0 || rhss.Count == 1);
       Rhss = rhss;
       CanMutateKnownState = false;
-    }
-    public UpdateStmt(IToken tok, IToken endTok, List<Expression> lhss, List<AssignmentRhs> rhss, bool mutate)
-      : base(tok, endTok, lhss) {
-      Contract.Requires(tok != null);
-      Contract.Requires(endTok != null);
-      Contract.Requires(cce.NonNullElements(lhss));
-      Contract.Requires(cce.NonNullElements(rhss));
-      Contract.Requires(lhss.Count != 0 || rhss.Count == 1);
-      Rhss = rhss;
-      CanMutateKnownState = mutate;
     }
   }
 
@@ -10032,12 +10034,11 @@ namespace Microsoft.Dafny {
       }
     }
 
-    public Resolver_IdentifierExpr(IToken tok, TopLevelDecl decl, List<Type> typeArgs)
+    public Resolver_IdentifierExpr(IToken tok, object decl, List<Type> typeArgs)
       : base(tok) {
       Contract.Requires(tok != null);
       Contract.Requires(decl != null);
-      Contract.Requires(typeArgs != null && typeArgs.Count == decl.TypeArgs.Count);
-      Decl = decl;
+      Decl = (TopLevelDecl)decl;
       TypeArgs = typeArgs;
       Type = decl is ModuleDecl ? (Type)new ResolverType_Module() : new ResolverType_Type();
     }
@@ -11888,12 +11889,12 @@ namespace Microsoft.Dafny {
       Contract.Invariant(E != null);
     }
 
-    public StmtExpr(IToken tok, Statement stmt, Expression expr)
+    public StmtExpr(IToken tok, object stmt, Expression expr)
       : base(tok) {
       Contract.Requires(tok != null);
       Contract.Requires(stmt != null);
       Contract.Requires(expr != null);
-      S = stmt;
+      //S = stmt;
       E = expr;
     }
     public override IEnumerable<Expression> SubExpressions {
