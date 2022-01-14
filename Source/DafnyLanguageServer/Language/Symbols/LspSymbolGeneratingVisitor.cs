@@ -37,27 +37,27 @@ namespace Microsoft.Dafny.LanguageServer.Language.Symbols {
     }
 
     public IEnumerable<DocumentSymbol> Visit(ClassSymbol classSymbol) {
-      return CreateSymbolsOfEntryDocument(classSymbol, classSymbol.Declaration.tok, SymbolKind.Class);
+      return CreateSymbolsOfEntryDocument(classSymbol, classSymbol.Declaration.Tok, SymbolKind.Class);
     }
 
     public IEnumerable<DocumentSymbol> Visit(DataTypeSymbol dataTypeSymbol) {
-      return CreateSymbolsOfEntryDocument(dataTypeSymbol, dataTypeSymbol.Declaration.tok, SymbolKind.Class);
+      return CreateSymbolsOfEntryDocument(dataTypeSymbol, dataTypeSymbol.Declaration.Tok, SymbolKind.Class);
     }
 
     public IEnumerable<DocumentSymbol> Visit(ValueTypeSymbol valueTypeSymbol) {
-      return CreateSymbolsOfEntryDocument(valueTypeSymbol, valueTypeSymbol.Declaration.tok, SymbolKind.Struct);
+      return CreateSymbolsOfEntryDocument(valueTypeSymbol, valueTypeSymbol.Declaration.Tok, SymbolKind.Struct);
     }
 
     public IEnumerable<DocumentSymbol> Visit(FieldSymbol fieldSymbol) {
-      return CreateSymbolsOfEntryDocument(fieldSymbol, fieldSymbol.Declaration.tok, SymbolKind.Field);
+      return CreateSymbolsOfEntryDocument(fieldSymbol, fieldSymbol.Declaration.Tok, SymbolKind.Field);
     }
 
     public IEnumerable<DocumentSymbol> Visit(FunctionSymbol functionSymbol) {
-      return CreateSymbolsOfEntryDocument(functionSymbol, functionSymbol.Declaration.tok, SymbolKind.Function);
+      return CreateSymbolsOfEntryDocument(functionSymbol, functionSymbol.Declaration.Tok, SymbolKind.Function);
     }
 
     public IEnumerable<DocumentSymbol> Visit(MethodSymbol methodSymbol) {
-      return CreateSymbolsOfEntryDocument(methodSymbol, methodSymbol.Declaration.tok, SymbolKind.Method);
+      return CreateSymbolsOfEntryDocument(methodSymbol, methodSymbol.Declaration.Tok, SymbolKind.Method);
     }
 
     public IEnumerable<DocumentSymbol> Visit(VariableSymbol variableSymbol) {

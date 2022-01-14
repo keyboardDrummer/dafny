@@ -220,7 +220,7 @@ namespace Microsoft.Dafny {
           }
           builder.Add(TrAssumeCmd(stmt.Tok, yeEtran.TrExpr(p.E)));
         }
-        YieldHavoc(iter.tok, iter, builder, etran);
+        YieldHavoc(iter.Tok, iter, builder, etran);
         builder.AddCaptureState(s);
 
       } else if (stmt is AssignSuchThatStmt) {
@@ -378,7 +378,7 @@ namespace Microsoft.Dafny {
         var fields = Concat(cl.InheritedMembers, cl.Members).ConvertAll(member =>
           member is Field && !member.IsStatic && !member.IsInstanceIndependentConstant ? (Field)member : null);
         fields.RemoveAll(f => f == null);
-        var localSurrogates = fields.ConvertAll(f => new Bpl.LocalVariable(f.tok, new TypedIdent(f.tok, SurrogateName(f), TrType(f.Type))));
+        var localSurrogates = fields.ConvertAll(f => new Bpl.LocalVariable(f.Tok, new TypedIdent(f.Tok, SurrogateName(f), TrType(f.Type))));
         locals.AddRange(localSurrogates);
         fields.Iter(f => AddDefiniteAssignmentTrackerSurrogate(f, cl, locals, codeContext is Constructor && codeContext.IsGhost));
 
@@ -810,7 +810,7 @@ namespace Microsoft.Dafny {
             foreach (Variable local in newLocals) {
               havocIds.Add(new Bpl.IdentifierExpr(local.tok, local));
             }
-            builder.Add(new Bpl.HavocCmd(mc.tok, havocIds));
+            builder.Add(new Bpl.HavocCmd(mc.Tok, havocIds));
           }
 
           // translate the body into b
@@ -819,7 +819,7 @@ namespace Microsoft.Dafny {
           RemoveDefiniteAssignmentTrackers(mc.Body, prevDefiniteAssignmentTrackerCount);
 
           Bpl.Expr guard = Bpl.Expr.Eq(source, r);
-          ifCmd = new Bpl.IfCmd(mc.tok, guard, b.Collect(mc.tok), ifCmd, els);
+          ifCmd = new Bpl.IfCmd(mc.Tok, guard, b.Collect(mc.Tok), ifCmd, els);
           els = null;
           CurrentIdGenerator.Pop();
         }
@@ -1454,7 +1454,7 @@ namespace Microsoft.Dafny {
             havocIds.Add(new Boogie.IdentifierExpr(local.tok, local));
           }
 
-          builder.Add(new Boogie.HavocCmd(mc.tok, havocIds));
+          builder.Add(new Boogie.HavocCmd(mc.Tok, havocIds));
         }
 
         // translate the body into b
@@ -1463,7 +1463,7 @@ namespace Microsoft.Dafny {
         RemoveDefiniteAssignmentTrackers(mc.Body, prevDefiniteAssignmentTrackerCount);
 
         Boogie.Expr guard = Boogie.Expr.Eq(source, r);
-        ifCmd = new Boogie.IfCmd(mc.tok, guard, b.Collect(mc.tok), ifCmd, els);
+        ifCmd = new Boogie.IfCmd(mc.Tok, guard, b.Collect(mc.Tok), ifCmd, els);
         els = null;
         CurrentIdGenerator.Pop();
       }
@@ -2464,18 +2464,18 @@ namespace Microsoft.Dafny {
       Contract.Requires(locals != null);
       Contract.Requires(etran != null);
       // Add all newly allocated objects to the set this._new
-      var updatedSet = new Bpl.LocalVariable(iter.tok, new Bpl.TypedIdent(iter.tok, CurrentIdGenerator.FreshId("$iter_newUpdate"), predef.SetType(iter.tok, true, predef.BoxType)));
+      var updatedSet = new Bpl.LocalVariable(iter.Tok, new Bpl.TypedIdent(iter.Tok, CurrentIdGenerator.FreshId("$iter_newUpdate"), predef.SetType(iter.Tok, true, predef.BoxType)));
       locals.Add(updatedSet);
-      var updatedSetIE = new Bpl.IdentifierExpr(iter.tok, updatedSet);
+      var updatedSetIE = new Bpl.IdentifierExpr(iter.Tok, updatedSet);
       // call $iter_newUpdate := $IterCollectNewObjects(initHeap, $Heap, this, _new);
-      var th = new Bpl.IdentifierExpr(iter.tok, etran.This, predef.RefType);
+      var th = new Bpl.IdentifierExpr(iter.Tok, etran.This, predef.RefType);
       var nwField = new Bpl.IdentifierExpr(tok, GetField(iter.Member_New));
-      Bpl.Cmd cmd = new CallCmd(iter.tok, "$IterCollectNewObjects",
+      Bpl.Cmd cmd = new CallCmd(iter.Tok, "$IterCollectNewObjects",
         new List<Bpl.Expr>() { initHeap, etran.HeapExpr, th, nwField },
         new List<Bpl.IdentifierExpr>() { updatedSetIE });
       builder.Add(cmd);
       // $Heap[this, _new] := $iter_newUpdate;
-      cmd = Bpl.Cmd.SimpleAssign(iter.tok, currentHeap, ExpressionTranslator.UpdateHeap(iter.tok, currentHeap, th, nwField, updatedSetIE));
+      cmd = Bpl.Cmd.SimpleAssign(iter.Tok, currentHeap, ExpressionTranslator.UpdateHeap(iter.Tok, currentHeap, th, nwField, updatedSetIE));
       builder.Add(cmd);
       // assume $IsGoodHeap($Heap)
       builder.Add(AssumeGoodHeap(tok, etran));

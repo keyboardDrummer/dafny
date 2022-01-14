@@ -345,7 +345,7 @@ namespace Microsoft.Dafny {
       var nmodules = Translator.VerifiableModules(dafnyProgram).Count();
 
 
-      foreach (var prog in Translator.Translate(dafnyProgram, dafnyProgram.reporter)) {
+      foreach (var prog in Translator.Translate(dafnyProgram, dafnyProgram.Reporter)) {
 
         if (CommandLineOptions.Clo.PrintFile != null) {
 
@@ -667,27 +667,27 @@ namespace Microsoft.Dafny {
       }
 
       // Compile the Dafny program into a string that contains the target program
-      var oldErrorCount = dafnyProgram.reporter.Count(ErrorLevel.Error);
+      var oldErrorCount = dafnyProgram.Reporter.Count(ErrorLevel.Error);
       Dafny.Compiler compiler;
       switch (DafnyOptions.O.CompileTarget) {
         case DafnyOptions.CompilationTarget.Csharp:
         default:
-          compiler = new Dafny.CsharpCompiler(dafnyProgram.reporter);
+          compiler = new Dafny.CsharpCompiler(dafnyProgram.Reporter);
           break;
         case DafnyOptions.CompilationTarget.JavaScript:
-          compiler = new Dafny.JavaScriptCompiler(dafnyProgram.reporter);
+          compiler = new Dafny.JavaScriptCompiler(dafnyProgram.Reporter);
           break;
         case DafnyOptions.CompilationTarget.Go:
-          compiler = new Dafny.GoCompiler(dafnyProgram.reporter);
+          compiler = new Dafny.GoCompiler(dafnyProgram.Reporter);
           break;
         case DafnyOptions.CompilationTarget.Java:
-          compiler = new Dafny.JavaCompiler(dafnyProgram.reporter);
+          compiler = new Dafny.JavaCompiler(dafnyProgram.Reporter);
           break;
         case DafnyOptions.CompilationTarget.Cpp:
-          compiler = new Dafny.CppCompiler(dafnyProgram.reporter, otherFileNames);
+          compiler = new Dafny.CppCompiler(dafnyProgram.Reporter, otherFileNames);
           break;
         case DafnyOptions.CompilationTarget.Python:
-          compiler = new Dafny.PythonCompiler(dafnyProgram.reporter);
+          compiler = new Dafny.PythonCompiler(dafnyProgram.Reporter);
           break;
       }
 
@@ -723,7 +723,7 @@ namespace Microsoft.Dafny {
         callToMain = callToMainTree.ToString(); // assume there aren't multiple files just to call main
       }
       Contract.Assert(hasMain == (callToMain != null));
-      bool targetProgramHasErrors = dafnyProgram.reporter.Count(ErrorLevel.Error) != oldErrorCount;
+      bool targetProgramHasErrors = dafnyProgram.Reporter.Count(ErrorLevel.Error) != oldErrorCount;
 
       compiler.Coverage.WriteLegendFile();
 

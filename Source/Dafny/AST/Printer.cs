@@ -221,7 +221,7 @@ namespace Microsoft.Dafny {
       int i = 0;
       foreach (TopLevelDecl d in decls) {
         Contract.Assert(d != null);
-        if (PrintModeSkipGeneral(d.tok, fileBeingPrinted)) { continue; }
+        if (PrintModeSkipGeneral(d.Tok, fileBeingPrinted)) { continue; }
         if (d is OpaqueTypeDecl) {
           var at = (OpaqueTypeDecl)d;
           if (i++ != 0) { wr.WriteLine(); }
@@ -273,8 +273,8 @@ namespace Microsoft.Dafny {
           Indent(indent);
           PrintClassMethodHelper("type", dd.Attributes, dd.Name + TPCharacteristicsSuffix(dd.Characteristics), dd.TypeArgs);
           wr.Write(" = ");
-          wr.Write(dd.Var.DisplayName);
-          if (ShowType(dd.Var.Type)) {
+          wr.Write(dd.BoundVar.DisplayName);
+          if (ShowType(dd.BoundVar.Type)) {
             wr.Write(": ");
             PrintType(dd.Rhs);
           }
@@ -636,7 +636,7 @@ namespace Microsoft.Dafny {
 
       int state = 0;  // 0 - no members yet; 1 - previous member was a field; 2 - previous member was non-field
       foreach (MemberDecl m in members) {
-        if (PrintModeSkipGeneral(m.tok, fileBeingPrinted)) { continue; }
+        if (PrintModeSkipGeneral(m.Tok, fileBeingPrinted)) { continue; }
         if (printMode == DafnyOptions.PrintModes.DllEmbed && Attributes.Contains(m.Attributes, "auto_generated")) {
           // omit this declaration
         } else if (m is Method) {

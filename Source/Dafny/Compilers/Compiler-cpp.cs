@@ -350,7 +350,7 @@ namespace Microsoft.Dafny {
         owr.WriteLine("size_t seed = 0;");
         foreach (var arg in ctor.Formals) {
           if (!arg.IsGhost) {
-            owr.WriteLine("hash_combine<{0}>(seed, x.{1});", TypeName(arg.Type, owr, dt.tok), arg.CompileName);
+            owr.WriteLine("hash_combine<{0}>(seed, x.{1});", TypeName(arg.Type, owr, dt.Tok), arg.CompileName);
           }
         }
         owr.WriteLine("return seed;");
@@ -410,9 +410,9 @@ namespace Microsoft.Dafny {
             if (!arg.IsGhost) {
               if (arg.Type is UserDefinedType udt && udt.ResolvedClass == dt) {
                 // Recursive destructor needs to use a pointer
-                owr.WriteLine("hash_combine<std::shared_ptr<{0}>>(seed, x.{1});", TypeName(arg.Type, owr, dt.tok), arg.CompileName);
+                owr.WriteLine("hash_combine<std::shared_ptr<{0}>>(seed, x.{1});", TypeName(arg.Type, owr, dt.Tok), arg.CompileName);
               } else {
-                owr.WriteLine("hash_combine<{0}>(seed, x.{1});", TypeName(arg.Type, owr, dt.tok), arg.CompileName);
+                owr.WriteLine("hash_combine<{0}>(seed, x.{1});", TypeName(arg.Type, owr, dt.Tok), arg.CompileName);
               }
               argCount++;
             }
@@ -584,15 +584,15 @@ namespace Microsoft.Dafny {
           TrParenExpr(nt.Witness, witness, false);
           witness.Write(".toNumber()");
         }
-        DeclareField(className, nt.TypeArgs, "Witness", true, true, nt.BaseType, nt.tok, witness.ToString(), w, wr);
+        DeclareField(className, nt.TypeArgs, "Witness", true, true, nt.BaseType, nt.Tok, witness.ToString(), w, wr);
       }
 
       string nt_name, literalSuffice;
       bool needsCastAfterArithmetic;
       GetNativeInfo(nt.NativeType.Sel, out nt_name, out literalSuffice, out needsCastAfterArithmetic);
       var wDefault = w.NewBlock(string.Format("static {0} get_Default()", nt_name));
-      var udt = new UserDefinedType(nt.tok, nt.Name, nt, new List<Type>());
-      var d = TypeInitializationValue(udt, wr, nt.tok, false, false);
+      var udt = new UserDefinedType(nt.Tok, nt.Name, nt, new List<Type>());
+      var d = TypeInitializationValue(udt, wr, nt.Tok, false, false);
       wDefault.WriteLine("return {0};", d);
 
       return cw;
@@ -604,13 +604,13 @@ namespace Microsoft.Dafny {
       }
 
       string templateDecl = "";
-      if (sst.Var.Type is SeqType s) {
+      if (sst.BoundVar.Type is SeqType s) {
         templateDecl = DeclareTemplate(s.TypeArgs[0].TypeArgs);  // We want the type args (if any) for the seq-elt type, not the seq
       } else {
-        templateDecl = DeclareTemplate(sst.Var.Type.TypeArgs);
+        templateDecl = DeclareTemplate(sst.BoundVar.Type.TypeArgs);
       }
 
-      this.modDeclWr.WriteLine("{0} using {1} = {2};", templateDecl, IdName(sst), TypeName(sst.Var.Type, wr, sst.tok));
+      this.modDeclWr.WriteLine("{0} using {1} = {2};", templateDecl, IdName(sst), TypeName(sst.BoundVar.Type, wr, sst.Tok));
 
       var className = "class_" + IdName(sst);
       var cw = CreateClass(sst.EnclosingModuleDefinition.CompileName, className, sst, wr) as CppCompiler.ClassWriter;
@@ -619,13 +619,13 @@ namespace Microsoft.Dafny {
       if (sst.WitnessKind == SubsetTypeDecl.WKind.Compiled) {
         var witness = new ConcreteSyntaxTree(w.RelativeIndentLevel);
         TrExpr(sst.Witness, witness, false);
-        DeclareField(className, sst.TypeArgs, "Witness", true, true, sst.Rhs, sst.tok, witness.ToString(), w, wr);
+        DeclareField(className, sst.TypeArgs, "Witness", true, true, sst.Rhs, sst.Tok, witness.ToString(), w, wr);
       }
 
       var wDefault = w.NewBlock(String.Format("static {0}{1} get_Default()", IdName(sst), InstantiateTemplate(sst.TypeArgs)));
-      var udt = new UserDefinedType(sst.tok, sst.Name, sst,
+      var udt = new UserDefinedType(sst.Tok, sst.Name, sst,
         sst.TypeArgs.ConvertAll(tp => (Type)new UserDefinedType(tp)));
-      var d = TypeInitializationValue(udt, wr, sst.tok, false, false);
+      var d = TypeInitializationValue(udt, wr, sst.Tok, false, false);
       wDefault.WriteLine("return {0};", d);
     }
 
@@ -1017,9 +1017,9 @@ namespace Microsoft.Dafny {
             var rangeDefaultValue = TypeInitializationValue(udt.TypeArgs.Last(), wr, tok, usePlaceboValue, constructTypeParameterDefaultsFromTypeDescriptors);
             // return the lambda expression ((Ty0 x0, Ty1 x1, Ty2 x2) => rangeDefaultValue)
             return string.Format("function () {{ return {0}; }}", rangeDefaultValue);
-          } else if (((NonNullTypeDecl)td).Class is ArrayClassDecl) {
+          } else if (((NonNullTypeDecl)td).ClassDecl is ArrayClassDecl) {
             // non-null array type; we know how to initialize them
-            var arrayClass = (ArrayClassDecl)((NonNullTypeDecl)td).Class;
+            var arrayClass = (ArrayClassDecl)((NonNullTypeDecl)td).ClassDecl;
             Type elType = UserDefinedType.ArrayElementType(xType);
             if (arrayClass.Dims == 1) {
               return string.Format("DafnyArray<{0}>::Null()", TypeName(elType, wr, tok));
@@ -1087,7 +1087,7 @@ namespace Microsoft.Dafny {
       if (compileTypeHint.AsStringLiteral() == "struct") {
         modDeclWr.WriteLine("// Extern declaration of {1}\n{0} struct {1};", DeclareTemplate(d.TypeArgs), d.Name);
       } else {
-        Error(d.tok, "Opaque type ('{0}') with unrecognized extern attribute {1} cannot be compiled.  Expected {{:extern compile_type_hint}}, e.g., 'struct'.", wr, d.FullName, compileTypeHint.AsStringLiteral());
+        Error(d.Tok, "Opaque type ('{0}') with unrecognized extern attribute {1} cannot be compiled.  Expected {{:extern compile_type_hint}}, e.g., 'struct'.", wr, d.FullName, compileTypeHint.AsStringLiteral());
       }
     }
 
@@ -1700,13 +1700,13 @@ namespace Microsoft.Dafny {
           if (dtor2.EnclosingCtors.Count > 1) {
             NotSupported(
               String.Format("Using the same destructor {0} with multiple constructors is ambiguous", member.Name),
-              dtor2.tok);
+              dtor2.Tok);
           }
 
           if (!(dtor2.EnclosingClass is IndDatatypeDecl)) {
             NotSupported(
               String.Format("Unexpected use of a destructor {0} that isn't for an inductive datatype.  Panic!",
-                member.Name), dtor2.tok);
+                member.Name), dtor2.Tok);
           }
 
           var dt = dtor2.EnclosingClass as IndDatatypeDecl;

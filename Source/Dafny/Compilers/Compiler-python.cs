@@ -77,7 +77,7 @@ namespace Microsoft.Dafny {
 
     protected override void DeclareSubsetType(SubsetTypeDecl sst, ConcreteSyntaxTree wr) {
 
-      var udt = UserDefinedType.FromTopLevelDecl(sst.tok, sst);
+      var udt = UserDefinedType.FromTopLevelDecl(sst.Tok, sst);
       string d;
       d = TypeName_UDT(FullTypeName(udt), udt, wr, udt.tok) + ".Witness";
     }
@@ -171,8 +171,8 @@ namespace Microsoft.Dafny {
         tp => $"rtd$_{tp.CompileName}");
       if (customReceiver) {
         var nt = m.EnclosingClass;
-        var receiverType = UserDefinedType.FromTopLevelDecl(m.tok, nt);
-        DeclareFormal(sep, "_this", receiverType, m.tok, true, wr);
+        var receiverType = UserDefinedType.FromTopLevelDecl(m.Tok, nt);
+        DeclareFormal(sep, "_this", receiverType, m.Tok, true, wr);
         sep = ", ";
       }
 

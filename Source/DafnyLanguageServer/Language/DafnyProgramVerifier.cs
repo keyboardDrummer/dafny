@@ -67,7 +67,7 @@ namespace Microsoft.Dafny.LanguageServer.Language {
       mutex.Wait(cancellationToken);
       try {
         // The printer is responsible for two things: It logs boogie errors and captures the counter example model.
-        var errorReporter = (DiagnosticErrorReporter)program.reporter;
+        var errorReporter = (DiagnosticErrorReporter)program.Reporter;
         var printer = new ModelCapturingOutputPrinter(logger, errorReporter, progressReporter);
         ExecutionEngine.printer = printer;
         // Do not set these settings within the object's construction. It will break some tests within

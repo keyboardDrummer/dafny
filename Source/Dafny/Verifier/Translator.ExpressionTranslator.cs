@@ -1552,8 +1552,8 @@ BplBoundVar(varNameGen.FreshId(string.Format("#{0}#", bv.Name)), predef.BoxType,
           if (r == null) {
             r = c;
           } else {
-            var test = new MemberSelectExpr(mc.tok, e.Source, mc.Ctor.QueryField);
-            var ite = new ITEExpr(mc.tok, false, test, c, r);
+            var test = new MemberSelectExpr(mc.Tok, e.Source, mc.Ctor.QueryField);
+            var ite = new ITEExpr(mc.Tok, false, test, c, r);
             ite.Type = e.Type;
             r = ite;
           }

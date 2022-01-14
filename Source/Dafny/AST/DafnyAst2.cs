@@ -4,7 +4,7 @@ namespace Microsoft.Dafny.V2
     using System.Linq;
     using Microsoft.Dafny;
     using System.Collections.Generic;
-    using Microsoft.Boogie;
+    using IToken = Microsoft.Boogie.IToken;
 
     record UpdateStmt(IToken tok, IToken endTok, List<AssignmentRhs> rhss, Boolean mutate, IReadOnlyList<AssignmentRhs> Lhss2) : ConcreteUpdateStatement;
 
@@ -94,7 +94,7 @@ namespace Microsoft.Dafny.V2
               Microsoft.Dafny.InternalTypeSynonymDecl subType => Transform(subType),
           };
 
-        public virtual TypeSynonymDecl TransformUnion(TypeSynonymDecl value) =>
+        public virtual Dafny.TypeSynonymDecl TransformUnion(Dafny.TypeSynonymDecl value) =>
           value switch
           {
               Microsoft.Dafny.SubsetTypeDecl subType => TransformUnion(subType),
@@ -198,22 +198,22 @@ namespace Microsoft.Dafny.V2
 
         public virtual LiteralModuleDecl Transform(LiteralModuleDecl value)
         {
-            return new LiteralModuleDecl(TransformUnion(value.Module), TransformUnion(value.Parent));
+            return new LiteralModuleDecl(TransformUnion(value.ModuleDef), TransformUnion(value.EnclosingModuleDefinition));
         }
 
         public virtual ModuleDefinition Transform(ModuleDefinition value)
         {
-            return new ModuleDefinition(value.Tok, value.Name, value.PrefixIds, value.IsAbstract, value.IsFacade, value.RefinementQId, TransformUnion(value.Parent), value.Attributes, value.IsBuiltinName, value.IsToBeVerified, value.IsToBeCompiled, value.TopLevelDecls.Select(TransformUnion).ToList());
+            return new ModuleDefinition(value.Tok, value.Name, value.PrefixIds, value.IsAbstract, value.IsFacade, value.RefinementQId, TransformUnion(value.EnclosingModule), value.Attributes, value.IsBuiltinName, value.IsToBeVerified, value.IsToBeCompiled, value.TopLevelDecls.Select(TransformUnion).ToList());
         }
 
         public virtual ClassDecl Transform(ClassDecl value)
         {
-            return new ClassDecl(value.Tok, value.Name, TransformUnion(value.Module), value.TypeArgs, value.Members.Select(TransformUnion).ToList(), value.Attributes, value.IsRefining, value.Traits);
+            return new ClassDecl(value.Tok, value.Name, TransformUnion(value.EnclosingModuleDefinition), value.TypeArgs, value.Members.Select(TransformUnion).ToList(), value.Attributes, value.IsRefining, value.ParentTraits);
         }
 
-        public virtual Function Transform(Function value)
+        public virtual Dafny.Function Transform(Dafny.Function value)
         {
-            return new Function(value.Tok, value.Name, value.HasStaticKeyword, value.IsGhost, value.TypeArgs, value.Formals, value.Result, value.ResultType, value.Req, value.Reads, value.Ens, value.Decreases, value.Body, value.ByMethodTok, TransformUnion(value.ByMethodBody), value.Attributes, value.SignatureEllipsis);
+            return new Dafny.Function(value.Tok, value.Name, value.HasStaticKeyword, value.IsGhost, value.TypeArgs, value.Formals, value.Result, value.ResultType, value.Req, value.Reads, value.Ens, value.Decreases, value.Body, value.ByMethodTok, TransformUnion(value.ByMethodBody), value.Attributes, value.SignatureEllipsis);
         }
 
         public virtual BlockStmt Transform(BlockStmt value)
@@ -223,7 +223,7 @@ namespace Microsoft.Dafny.V2
 
         public virtual AssertStmt Transform(AssertStmt value)
         {
-            return new AssertStmt(value.Tok, value.EndTok, value.Expr, TransformUnion(value.Proof), value.Label, value.Attrs);
+            return new AssertStmt(value.Tok, value.EndTok, value.Expr, TransformUnion(value.Proof), value.Label, value.Attributes);
         }
 
         public virtual VarDeclStmt Transform(VarDeclStmt value)
@@ -263,7 +263,7 @@ namespace Microsoft.Dafny.V2
 
         public virtual ForLoopStmt Transform(ForLoopStmt value)
         {
-            return new ForLoopStmt(value.Tok, value.EndTok, value.LoopIndexVariable, value.Start, value.End, value.GoingUp, value.Invariants, value.Decreases, value.Mod, TransformUnion(value.Body), value.Attrs);
+            return new ForLoopStmt(value.Tok, value.EndTok, value.LoopIndex, value.Start, value.End, value.GoingUp, value.Invariants, value.Decreases, value.Mod, TransformUnion(value.Body), value.Attributes);
         }
 
         public virtual AlternativeLoopStmt Transform(AlternativeLoopStmt value)
@@ -273,17 +273,17 @@ namespace Microsoft.Dafny.V2
 
         public virtual ForallStmt Transform(ForallStmt value)
         {
-            return new ForallStmt(value.Tok, value.EndTok, value.BoundVars, value.Attrs, value.Range, value.Ens, TransformUnion(value.Body));
+            return new ForallStmt(value.Tok, value.EndTok, value.BoundVars, value.Attributes, value.Range, value.Ens, TransformUnion(value.Body));
         }
 
         public virtual ModifyStmt Transform(ModifyStmt value)
         {
-            return new ModifyStmt(value.Tok, value.EndTok, value.Mod, value.Attrs, TransformUnion(value.Body));
+            return new ModifyStmt(value.Tok, value.EndTok, value.Mod, value.Attributes, TransformUnion(value.Body));
         }
 
         public virtual CalcStmt Transform(CalcStmt value)
         {
-            return new CalcStmt(value.Tok, value.EndTok, value.UserSuppliedOp, value.Lines, value.Hints.Select(TransformUnion).ToList(), value.StepOps, value.Attrs);
+            return new CalcStmt(value.Tok, value.EndTok, value.UserSuppliedOp, value.Lines, value.Hints.Select(TransformUnion).ToList(), value.StepOps, value.Attributes);
         }
 
         public virtual MatchStmt Transform(MatchStmt value)
@@ -293,12 +293,12 @@ namespace Microsoft.Dafny.V2
 
         public virtual MatchCaseStmt Transform(MatchCaseStmt value)
         {
-            return new MatchCaseStmt(value.Tok, value.Ctor, value.Arguments, value.Body.Select(TransformUnion).ToList(), value.Attrs);
+            return new MatchCaseStmt(value.Tok, value.Ctor, value.Arguments, value.Body.Select(TransformUnion).ToList(), value.Attributes);
         }
 
         public virtual NestedMatchStmt Transform(NestedMatchStmt value)
         {
-            return new NestedMatchStmt(value.Tok, value.EndTok, value.Source, value.Cases.Select(Transform).ToList(), value.UsesOptionalBraces, value.Attrs);
+            return new NestedMatchStmt(value.Tok, value.EndTok, value.Source, value.Cases.Select(Transform).ToList(), value.UsesOptionalBraces, value.Attributes);
         }
 
         public virtual NestedMatchCaseStmt Transform(NestedMatchCaseStmt value)
@@ -358,72 +358,72 @@ namespace Microsoft.Dafny.V2
 
         public virtual TraitDecl Transform(TraitDecl value)
         {
-            return new TraitDecl(value.Tok, value.Name, TransformUnion(value.Module), value.TypeArgs, value.Members.Select(TransformUnion).ToList(), value.Attributes, value.IsRefining, value.Traits);
+            return new TraitDecl(value.Tok, value.Name, TransformUnion(value.EnclosingModuleDefinition), value.TypeArgs, value.Members.Select(TransformUnion).ToList(), value.Attributes, value.IsRefining, value.Traits);
         }
 
         public virtual DefaultClassDecl Transform(DefaultClassDecl value)
         {
-            return new DefaultClassDecl(TransformUnion(value.Module), value.Members.Select(TransformUnion).ToList());
+            return new DefaultClassDecl(TransformUnion(value.EnclosingModuleDefinition), value.Members.Select(TransformUnion).ToList());
         }
 
         public virtual ArrayClassDecl Transform(ArrayClassDecl value)
         {
-            return new ArrayClassDecl(value.Dims, TransformUnion(value.Module), value.Attrs);
+            return new ArrayClassDecl(value.Dims, TransformUnion(value.EnclosingModuleDefinition), value.Attributes);
         }
 
         public virtual ArrowTypeDecl Transform(ArrowTypeDecl value)
         {
-            return new ArrowTypeDecl(value.Tps, TransformUnion(value.Req), TransformUnion(value.Reads), TransformUnion(value.Module), value.Attributes);
+            return new ArrowTypeDecl(value.TypeArgs, TransformUnion(value.Requires), TransformUnion(value.Reads), TransformUnion(value.EnclosingModuleDefinition), value.Attributes);
         }
 
         public virtual IteratorDecl Transform(IteratorDecl value)
         {
-            return new IteratorDecl(value.Tok, value.Name, TransformUnion(value.Module), value.TypeArgs, value.Ins, value.Outs, value.Reads, value.Mod, value.Decreases, value.Requires, value.Ensures, value.YieldRequires, value.YieldEnsures, TransformUnion(value.Body), value.Attributes, value.SignatureEllipsis);
+            return new IteratorDecl(value.Tok, value.Name, TransformUnion(value.EnclosingModuleDefinition), value.TypeArgs, value.Ins, value.Outs, value.Reads, value.Mod, value.Decreases, value.Requires, value.Ensures, value.YieldRequires, value.YieldEnsures, TransformUnion(value.Body), value.Attributes, value.SignatureEllipsis);
         }
 
         public virtual IndDatatypeDecl Transform(IndDatatypeDecl value)
         {
-            return new IndDatatypeDecl(value.Tok, value.Name, TransformUnion(value.Module), value.TypeArgs, value.Ctors, value.Members.Select(TransformUnion).ToList(), value.Attributes, value.IsRefining);
+            return new IndDatatypeDecl(value.Tok, value.Name, TransformUnion(value.EnclosingModuleDefinition), value.TypeArgs, value.Ctors, value.Members.Select(TransformUnion).ToList(), value.Attributes, value.IsRefining);
         }
 
         public virtual TupleTypeDecl Transform(TupleTypeDecl value)
         {
-            return new TupleTypeDecl(value.ArgumentGhostness, TransformUnion(value.SystemModule), value.Attributes);
+            return new TupleTypeDecl(value.ArgumentGhostness, TransformUnion(value.EnclosingModuleDefinition), value.Attributes);
         }
 
         public virtual CoDatatypeDecl Transform(CoDatatypeDecl value)
         {
-            return new CoDatatypeDecl(value.Tok, value.Name, TransformUnion(value.Module), value.TypeArgs, value.Ctors, value.Members.Select(TransformUnion).ToList(), value.Attributes, value.IsRefining);
+            return new CoDatatypeDecl(value.Tok, value.Name, TransformUnion(value.EnclosingModuleDefinition), value.TypeArgs, value.Ctors, value.Members.Select(TransformUnion).ToList(), value.Attributes, value.IsRefining);
         }
 
         public virtual OpaqueTypeDecl Transform(OpaqueTypeDecl value)
         {
-            return new OpaqueTypeDecl(value.Tok, value.Name, TransformUnion(value.Module), value.Characteristics, value.TypeArgs, value.Members.Select(TransformUnion).ToList(), value.Attributes, value.IsRefining);
+            return new OpaqueTypeDecl(value.Tok, value.Name, TransformUnion(value.EnclosingModuleDefinition), value.Characteristics, value.TypeArgs, value.Members.Select(TransformUnion).ToList(), value.Attributes, value.IsRefining);
         }
 
         public virtual NewtypeDecl Transform(NewtypeDecl value)
         {
-            return new NewtypeDecl(value.Tok, value.Name, TransformUnion(value.Module), value.BaseType, value.Members.Select(TransformUnion).ToList(), value.Attributes, value.IsRefining);
+            return new NewtypeDecl(value.Tok, value.Name, TransformUnion(value.EnclosingModuleDefinition), value.BaseType, value.Members.Select(TransformUnion).ToList(), value.Attributes, value.IsRefining);
         }
 
         public virtual ValuetypeDecl Transform(ValuetypeDecl value)
         {
-            return new ValuetypeDecl(value.Name, TransformUnion(value.Module), value.TypeParameterCount, value.TypeTester, value.TypeCreator);
+            return new ValuetypeDecl(value.Name, TransformUnion(value.EnclosingModuleDefinition), value.TypeParameterCount, value.TypeTester, value.TypeCreator);
         }
 
-        public virtual TypeSynonymDecl Transform(TypeSynonymDecl value)
+        public virtual Dafny.TypeSynonymDecl Transform(Dafny.TypeSynonymDecl value)
         {
-            return new TypeSynonymDecl(value.Tok, value.Name, value.Characteristics, value.TypeArgs, TransformUnion(value.Module), value.Rhs, value.Attributes);
+            return new Dafny.TypeSynonymDecl(value.Tok, value.Name, value.Characteristics, value.TypeArgs, TransformUnion(value.Module), value.Rhs, value.Attributes);
         }
 
         public virtual SubsetTypeDecl Transform(SubsetTypeDecl value)
         {
-            return new SubsetTypeDecl(value.Tok, value.Name, value.Characteristics, value.TypeArgs, TransformUnion(value.Module), value.Id, value.Constraint, value.WitnessKind, value.Witness, value.Attributes);
+            return new SubsetTypeDecl(value.Tok, value.Name, value.Characteristics, value.TypeArgs, TransformUnion(value.Module), value.BoundVar, value.Constraint, value.WitnessKind, value.Witness, value.Attributes);
         }
 
         public virtual NonNullTypeDecl Transform(NonNullTypeDecl value)
         {
-            return new NonNullTypeDecl(TransformUnion(value.Cl));
+            return new NonNullTypeDecl(TransformUnion(value.ClassDecl));
         }
 
         public virtual InternalTypeSynonymDecl Transform(InternalTypeSynonymDecl value)
@@ -433,22 +433,22 @@ namespace Microsoft.Dafny.V2
 
         public virtual AliasModuleDecl Transform(AliasModuleDecl value)
         {
-            return new AliasModuleDecl(value.Path, value.Name, TransformUnion(value.Parent), value.Opened, value.Exports);
+            return new AliasModuleDecl(value.TargetQId, value.Tok, TransformUnion(value.EnclosingModuleDefinition), value.Opened, value.Exports);
         }
 
         public virtual AbstractModuleDecl Transform(AbstractModuleDecl value)
         {
-            return new AbstractModuleDecl(value.Qid, value.Name, TransformUnion(value.Parent), value.Opened, value.Exports);
+            return new AbstractModuleDecl(value.QId, value.Tok, TransformUnion(value.EnclosingModuleDefinition), value.Opened, value.Exports);
         }
 
         public virtual ModuleExportDecl Transform(ModuleExportDecl value)
         {
-            return new ModuleExportDecl(value.Tok, TransformUnion(value.Parent), value.Exports, value.Extends, value.ProvideAll, value.RevealAll, value.IsDefault, value.IsRefining);
+            return new ModuleExportDecl(value.Tok, TransformUnion(value.EnclosingModuleDefinition), value.Exports, value.Extends, value.ProvideAll, value.RevealAll, value.IsDefault, value.IsRefining);
         }
 
-        public virtual Program Transform(Program value)
+        public virtual Dafny.Program Transform(Dafny.Program value)
         {
-            return new Program(value.Name, TransformUnion(value.Module), value.BuiltIns, value.Reporter);
+            return new Dafny.Program(value.Name, TransformUnion(value.DefaultModule), value.BuiltIns, value.Reporter);
         }
     }
 }

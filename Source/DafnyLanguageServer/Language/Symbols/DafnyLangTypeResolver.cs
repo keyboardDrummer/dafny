@@ -24,7 +24,7 @@ namespace Microsoft.Dafny.LanguageServer.Language.Symbols {
 
     private ISymbol? GetTypeSymbol(UserDefinedType userDefinedType) {
       return userDefinedType.ResolvedClass switch {
-        NonNullTypeDecl nonNullTypeDeclaration => GetSymbolByDeclaration(nonNullTypeDeclaration.Class),
+        NonNullTypeDecl nonNullTypeDeclaration => GetSymbolByDeclaration(nonNullTypeDeclaration.ClassDecl),
         IndDatatypeDecl dataTypeDeclaration => GetSymbolByDeclaration(dataTypeDeclaration),
         _ => null
       };

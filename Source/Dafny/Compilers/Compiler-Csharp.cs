@@ -184,13 +184,13 @@ namespace Microsoft.Dafny {
             foreach (var ta in TypeArgumentInstantiation.ListFromFormals(typeParameters)) {
               if (NeedsTypeDescriptor(ta.Formal)) {
                 var fieldName = FormatTypeDescriptorVariable(ta.Formal.CompileName);
-                var decl = $"{DafnyTypeDescriptor}<{TypeName(ta.Actual, wTypeFields, ta.Formal.tok)}> {fieldName}";
+                var decl = $"{DafnyTypeDescriptor}<{TypeName(ta.Actual, wTypeFields, ta.Formal.Tok)}> {fieldName}";
                 wTypeFields.WriteLine($"private {decl};");
                 if (ta.Formal.Parent == cls) {
                   wCtorParams.Write($"{sep}{decl}");
                 }
 
-                wCtorBody.WriteLine($"this.{fieldName} = {TypeDescriptor(ta.Actual, wCtorBody, ta.Formal.tok)};");
+                wCtorBody.WriteLine($"this.{fieldName} = {TypeDescriptor(ta.Actual, wCtorBody, ta.Formal.Tok)};");
                 sep = ", ";
               }
             }
@@ -208,10 +208,10 @@ namespace Microsoft.Dafny {
       Contract.Requires(enclosingTypeDecl != null);
       Contract.Requires(wr != null);
 
-      var type = UserDefinedType.FromTopLevelDecl(enclosingTypeDecl.tok, enclosingTypeDecl);
-      var initializer = TypeInitializationValue(type, wr, enclosingTypeDecl.tok, false, true);
+      var type = UserDefinedType.FromTopLevelDecl(enclosingTypeDecl.Tok, enclosingTypeDecl);
+      var initializer = TypeInitializationValue(type, wr, enclosingTypeDecl.Tok, false, true);
 
-      var targetTypeName = TypeName(type, wr, enclosingTypeDecl.tok);
+      var targetTypeName = TypeName(type, wr, enclosingTypeDecl.Tok);
       var typeDescriptorExpr = $"new {DafnyTypeDescriptor}<{targetTypeName}>({initializer})";
 
       if (enclosingTypeDecl.TypeArgs.Count == 0) {
@@ -287,7 +287,7 @@ namespace Microsoft.Dafny {
 
       foreach (var member in iter.Members) {
         if (member is Field f && !f.IsGhost) {
-          cw.DeclareField(IdName(f), iter, false, false, f.Type, f.tok, DefaultValue(f.Type, w, f.tok, true), f);
+          cw.DeclareField(IdName(f), iter, false, false, f.Type, f.Tok, DefaultValue(f.Type, w, f.Tok, true), f);
         }
       }
 
@@ -526,7 +526,7 @@ namespace Microsoft.Dafny {
         if (nonGhostTypeArgs.Exists(ty => ContainsTyVar(ty, type))) {
           var map = nonGhostTypeArgs.ToDictionary(
             tp => tp,
-            tp => (Type)new UserDefinedType(tp.tok, new TypeParameter(tp.tok, $"_{tp.Name}", tp.VarianceSyntax)));
+            tp => (Type)new UserDefinedType(tp.Tok, new TypeParameter(tp.Tok, $"_{tp.Name}", tp.VarianceSyntax)));
           var to = Resolver.SubstType(type, map);
           var downcast = new ConcreteSyntaxTree();
           EmitDowncast(type, to, null, downcast).Write(name);
@@ -603,7 +603,7 @@ namespace Microsoft.Dafny {
       foreach (var member in dt.Members) {
         if (member.IsGhost || member.IsStatic) { continue; }
         if (member is Function fn && !NeedsCustomReceiver(member)) {
-          CreateFunction(IdName(fn), CombineAllTypeArguments(fn), fn.Formals, fn.ResultType, fn.tok, fn.IsStatic,
+          CreateFunction(IdName(fn), CombineAllTypeArguments(fn), fn.Formals, fn.ResultType, fn.Tok, fn.IsStatic,
             false, fn, interfaceTree, false, false);
         } else if (member is Method m && !NeedsCustomReceiver(member)) {
           CreateMethod(m, CombineAllTypeArguments(m), false, interfaceTree, false, false);
@@ -856,7 +856,7 @@ namespace Microsoft.Dafny {
 
       var s = DtCtorName(ctor);
       if (typeArgs != null && typeArgs.Count != 0) {
-        s += $"<{TypeNames(typeArgs, wr, ctor.tok)}>";
+        s += $"<{TypeNames(typeArgs, wr, ctor.Tok)}>";
       }
 
       return s;
@@ -895,7 +895,7 @@ namespace Microsoft.Dafny {
         var witness = wrWitness.ToString();
         string typeName;
         if (nt.NativeType == null) {
-          typeName = TypeName(nt.BaseType, cw.StaticMemberWriter, nt.tok);
+          typeName = TypeName(nt.BaseType, cw.StaticMemberWriter, nt.Tok);
         } else {
           typeName = GetNativeTypeName(nt.NativeType);
           witness = $"({typeName})({witness})";
@@ -912,7 +912,7 @@ namespace Microsoft.Dafny {
         var sw = new ConcreteSyntaxTree(cw.InstanceMemberWriter.RelativeIndentLevel);
         TrExpr(sst.Witness, sw, false);
         var witness = sw.ToString();
-        var typeName = TypeName(sst.Rhs, cw.StaticMemberWriter, sst.tok);
+        var typeName = TypeName(sst.Rhs, cw.StaticMemberWriter, sst.Tok);
         if (sst.TypeArgs.Count == 0) {
           DeclareField("Witness", false, true, true, typeName, witness, cw);
           witness = "Witness";
@@ -1075,8 +1075,8 @@ namespace Microsoft.Dafny {
         tp => $"{DafnyTypeDescriptor}<{tp.CompileName}> {FormatTypeDescriptorVariable(tp)}");
       if (customReceiver) {
         var nt = m.EnclosingClass;
-        var receiverType = UserDefinedType.FromTopLevelDecl(m.tok, nt);
-        DeclareFormal(sep, "_this", receiverType, m.tok, true, parameters);
+        var receiverType = UserDefinedType.FromTopLevelDecl(m.Tok, nt);
+        DeclareFormal(sep, "_this", receiverType, m.Tok, true, parameters);
         sep = ", ";
       }
 
@@ -1162,14 +1162,14 @@ namespace Microsoft.Dafny {
         } else if (dllimportsArgs.Count == 1) {
           libName = dllimportsArgs[0] as StringLiteralExpr;
           // use the given name, not the .CompileName (if user needs something else, the user can supply it as a second argument to :dllimport)
-          entryPoint = new StringLiteralExpr(decl.tok, decl.Name, false);
+          entryPoint = new StringLiteralExpr(decl.Tok, decl.Name, false);
         }
         if (libName == null || entryPoint == null) {
-          Error(decl.tok, "Expected arguments are {{:dllimport dllName}} or {{:dllimport dllName, entryPoint}} where dllName and entryPoint are strings: {0}", wr, decl.FullName);
+          Error(decl.Tok, "Expected arguments are {{:dllimport dllName}} or {{:dllimport dllName, entryPoint}} where dllName and entryPoint are strings: {0}", wr, decl.FullName);
         } else if ((decl is Method m && m.Body != null) || (decl is Function f && f.Body != null)) {
-          Error(decl.tok, "A {0} declared with :dllimport is not allowed a body: {1}", wr, decl.WhatKind, decl.FullName);
+          Error(decl.Tok, "A {0} declared with :dllimport is not allowed a body: {1}", wr, decl.WhatKind, decl.FullName);
         } else if (!decl.IsStatic) {
-          Error(decl.tok, "A {0} declared with :dllimport must be static: {1}", wr, decl.WhatKind, decl.FullName);
+          Error(decl.Tok, "A {0} declared with :dllimport must be static: {1}", wr, decl.WhatKind, decl.FullName);
         } else {
           wr.Write("[System.Runtime.InteropServices.DllImport(");
           TrStringLiteral(libName, wr);
@@ -1350,9 +1350,9 @@ namespace Microsoft.Dafny {
             // return the lambda expression ((Ty0 x0, Ty1 x1, Ty2 x2) => rangeDefaultValue)
             var arguments = Util.Comma(udt.TypeArgs.Count - 1, i => $"{TypeName(udt.TypeArgs[i], wr, udt.tok)} x{i}");
             return $"(({arguments}) => {rangeDefaultValue})";
-          } else if (((NonNullTypeDecl)td).Class is ArrayClassDecl) {
+          } else if (((NonNullTypeDecl)td).ClassDecl is ArrayClassDecl) {
             // non-null array type; we know how to initialize them
-            var arrayClass = (ArrayClassDecl)((NonNullTypeDecl)td).Class;
+            var arrayClass = (ArrayClassDecl)((NonNullTypeDecl)td).ClassDecl;
             TypeName_SplitArrayName(udt.TypeArgs[0], wr, udt.tok, out string typeNameSansBrackets, out string brackets);
             return $"new {typeNameSansBrackets}[{Util.Comma(arrayClass.Dims, _ => "0")}]{brackets}";
           } else {
@@ -2236,7 +2236,7 @@ namespace Microsoft.Dafny {
         }
       } else if (member is Function fn) {
         var wr = new ConcreteSyntaxTree();
-        EmitNameAndActualTypeArgs(IdName(member), TypeArgumentInstantiation.ToActuals(ForTypeParameters(typeArgs, member, false)), member.tok, wr);
+        EmitNameAndActualTypeArgs(IdName(member), TypeArgumentInstantiation.ToActuals(ForTypeParameters(typeArgs, member, false)), member.Tok, wr);
         if (typeArgs.Count == 0 && additionalCustomParameter == null) {
           var nameAndTypeArgs = wr.ToString();
           return SuffixLvalue(obj, $".{nameAndTypeArgs}");
@@ -2245,7 +2245,7 @@ namespace Microsoft.Dafny {
           // (T0 a0, T1 a1, ...) => obj.F(additionalCustomParameter, a0, a1, ...)
           var callArguments = wr.ForkInParens();
           var sep = "";
-          EmitTypeDescriptorsActuals(ForTypeDescriptors(typeArgs, member, false), fn.tok, callArguments, ref sep);
+          EmitTypeDescriptorsActuals(ForTypeDescriptors(typeArgs, member, false), fn.Tok, callArguments, ref sep);
           if (additionalCustomParameter != null) {
             callArguments.Write($"{sep}{additionalCustomParameter}");
             sep = ", ";
@@ -2271,9 +2271,9 @@ namespace Microsoft.Dafny {
         Contract.Assert(member is Field);
         if (member.IsStatic) {
           return SimpleLvalue(w => {
-            w.Write("{0}.{1}", TypeName_Companion(objType, w, member.tok, member), IdName(member));
+            w.Write("{0}.{1}", TypeName_Companion(objType, w, member.Tok, member), IdName(member));
             var sep = "(";
-            EmitTypeDescriptorsActuals(ForTypeDescriptors(typeArgs, member, false), member.tok, w, ref sep);
+            EmitTypeDescriptorsActuals(ForTypeDescriptors(typeArgs, member, false), member.Tok, w, ref sep);
             if (sep != "(") {
               w.Write(")");
             }
@@ -2282,7 +2282,7 @@ namespace Microsoft.Dafny {
           // instance const in a newtype or belongs to a datatype
           Contract.Assert(typeArgs.Count == 0 || member.EnclosingClass is DatatypeDecl);
           return SimpleLvalue(w => {
-            w.Write("{0}.{1}(", TypeName_Companion(objType, w, member.tok, member), IdName(member));
+            w.Write("{0}.{1}(", TypeName_Companion(objType, w, member.Tok, member), IdName(member));
             obj(w);
             w.Write(")");
           });
@@ -2293,7 +2293,7 @@ namespace Microsoft.Dafny {
             obj(w);
             w.Write(".{0}", IdName(member));
             var sep = "(";
-            EmitTypeDescriptorsActuals(ForTypeDescriptors(typeArgs, member, false), member.tok, w, ref sep);
+            EmitTypeDescriptorsActuals(ForTypeDescriptors(typeArgs, member, false), member.Tok, w, ref sep);
             if (sep != "(") {
               w.Write(")");
             }
@@ -3107,7 +3107,7 @@ namespace Microsoft.Dafny {
     }
 
     public override void EmitCallToMain(Method mainMethod, string baseName, ConcreteSyntaxTree wr) {
-      var companion = TypeName_Companion(UserDefinedType.FromTopLevelDeclWithAllBooleanTypeParameters(mainMethod.EnclosingClass), wr, mainMethod.tok, mainMethod);
+      var companion = TypeName_Companion(UserDefinedType.FromTopLevelDeclWithAllBooleanTypeParameters(mainMethod.EnclosingClass), wr, mainMethod.Tok, mainMethod);
       var wClass = wr.NewNamedBlock("class __CallToMain");
       var wBody = wClass.NewNamedBlock("public static void Main(string[] args)");
       var modName = mainMethod.EnclosingClass.EnclosingModuleDefinition.CompileName == "_module" ? "_module." : "";

@@ -71,7 +71,7 @@ namespace Microsoft.Dafny {
       Contract.Requires(d != null);
       Contract.Requires(msg != null);
       Contract.Requires(args != null);
-      Error(source, d.tok, msg, args);
+      Error(source, d.Tok, msg, args);
     }
 
     public void Error(MessageSource source, Statement s, string msg, params object[] args) {
