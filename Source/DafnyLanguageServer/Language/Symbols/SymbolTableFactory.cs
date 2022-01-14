@@ -88,7 +88,7 @@ namespace Microsoft.Dafny.LanguageServer.Language.Symbols {
 
       public override void Visit(ModuleDefinition moduleDefinition) {
         cancellationToken.ThrowIfCancellationRequested();
-        ProcessNestedScope(moduleDefinition, moduleDefinition.tok, () => base.Visit(moduleDefinition));
+        ProcessNestedScope(moduleDefinition, moduleDefinition.Tok, () => base.Visit(moduleDefinition));
       }
 
       public override void Visit(ClassDecl classDeclaration) {
@@ -289,9 +289,9 @@ namespace Microsoft.Dafny.LanguageServer.Language.Symbols {
         cancellationToken.ThrowIfCancellationRequested();
         RegisterLocation(
           moduleSymbol,
-          moduleSymbol.Declaration.tok,
-          moduleSymbol.Declaration.tok.GetLspRange(),
-          new Range(moduleSymbol.Declaration.tok.GetLspPosition(), moduleSymbol.Declaration.BodyEndTok.GetLspPosition())
+          moduleSymbol.Declaration.Tok,
+          moduleSymbol.Declaration.Tok.GetLspRange(),
+          new Range(moduleSymbol.Declaration.Tok.GetLspPosition(), moduleSymbol.Declaration.BodyEndTok.GetLspPosition())
         );
         VisitChildren(moduleSymbol);
         return Unit.Value;

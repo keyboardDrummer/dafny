@@ -183,7 +183,7 @@ namespace Microsoft.Dafny {
                     string message = mdecl.Opened
                       ? "{0} in {1} cannot be imported with \"opened\" because it does not match the corresponding import in the refinement base {2}."
                       : "{0} in {1} must be imported with \"opened\"  to match the corresponding import in its refinement base {2}.";
-                    reporter.Error(MessageSource.RefinementTransformer, m.tok, message, im.Name, m.Name,
+                    reporter.Error(MessageSource.RefinementTransformer, m.Tok, message, im.Name, m.Name,
                       m.RefinementQId.ToString());
                   }
                 }

@@ -371,9 +371,9 @@ namespace Microsoft.Dafny {
         string compileName = m.CompileName;
         ModuleDefinition priorModDef;
         if (compileNameMap.TryGetValue(compileName, out priorModDef)) {
-          reporter.Error(MessageSource.Resolver, m.tok,
+          reporter.Error(MessageSource.Resolver, m.Tok,
             "Modules '{0}' and '{1}' both have CompileName '{2}'.",
-            priorModDef.tok.val, m.tok.val, compileName);
+            priorModDef.Tok.val, m.Tok.val, compileName);
         } else {
           compileNameMap.Add(compileName, m);
         }
@@ -660,7 +660,7 @@ namespace Microsoft.Dafny {
 
       // Determine, for each function, whether someone tries to adjust its fuel parameter
       foreach (var module in prog.Modules()) {
-        CheckForFuelAdjustments(module.tok, module.Attributes, module);
+        CheckForFuelAdjustments(module.Tok, module.Attributes, module);
         foreach (var clbl in ModuleDefinition.AllItersAndCallables(module.TopLevelDecls)) {
           Statement body = null;
           if (clbl is Method) {
@@ -1185,7 +1185,7 @@ namespace Microsoft.Dafny {
           if (defaultExport == null) {
             defaultExport = decl;
           } else {
-            reporter.Error(MessageSource.Resolver, m.tok, "more than one default export set declared in module {0}",
+            reporter.Error(MessageSource.Resolver, m.Tok, "more than one default export set declared in module {0}",
               m.Name);
           }
         }

@@ -33,7 +33,7 @@ namespace Microsoft.Dafny.LanguageServer.Language.Symbols {
     }
 
     public IEnumerable<DocumentSymbol> Visit(ModuleSymbol moduleSymbol) {
-      return CreateSymbolsOfEntryDocument(moduleSymbol, moduleSymbol.Declaration.tok, SymbolKind.Module);
+      return CreateSymbolsOfEntryDocument(moduleSymbol, moduleSymbol.Declaration.Tok, SymbolKind.Module);
     }
 
     public IEnumerable<DocumentSymbol> Visit(ClassSymbol classSymbol) {

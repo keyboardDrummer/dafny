@@ -3649,8 +3649,8 @@ namespace Microsoft.Dafny {
 
     public readonly bool Opened;
 
-    public ModuleDecl(IToken tok, string name, ModuleDefinition parent, bool opened, bool isRefining)
-      : base(tok, name, parent, new List<TypeParameter>(), null, isRefining) {
+    public ModuleDecl(IToken tok, string name, ModuleDefinition enclosingModuleDefinition, bool opened, bool isRefining)
+      : base(tok, name, enclosingModuleDefinition, new List<TypeParameter>(), null, isRefining) {
       Height = -1;
       Signature = null;
       Opened = opened;
@@ -3681,9 +3681,9 @@ namespace Microsoft.Dafny {
       return DefaultExport;
     }
 
-    public LiteralModuleDecl(ModuleDefinition module, ModuleDefinition parent)
-      : base(module.tok, module.Name, parent, false, false) {
-      ModuleDef = module;
+    public LiteralModuleDecl(ModuleDefinition moduleDef, ModuleDefinition enclosingModuleDefinition)
+      : base(moduleDef.Tok, moduleDef.Name, enclosingModuleDefinition, false, false) {
+      ModuleDef = moduleDef;
     }
     public override object Dereference() { return ModuleDef; }
   }
@@ -3917,7 +3917,7 @@ namespace Microsoft.Dafny {
   }
 
   public class ModuleDefinition : INamedRegion, IAttributeBearingDeclaration {
-    public readonly IToken tok;
+    public readonly IToken Tok;
     public IToken BodyStartTok = Token.NoToken;
     public IToken BodyEndTok = Token.NoToken;
     public readonly string DafnyName; // The (not-qualified) name as seen in Dafny source code
@@ -3959,7 +3959,7 @@ namespace Microsoft.Dafny {
     public int Height;  // height in the topological sorting of modules; filled in during resolution
     public readonly bool IsAbstract;
     public readonly bool IsFacade; // True iff this module represents a module facade (that is, an abstract interface)
-    private readonly bool IsBuiltinName; // true if this is something like _System that shouldn't have it's name mangled.
+    public readonly bool IsBuiltinName; // true if this is something like _System that shouldn't have it's name mangled.
     public readonly bool IsToBeVerified;
     public readonly bool IsToBeCompiled;
 
@@ -3976,7 +3976,7 @@ namespace Microsoft.Dafny {
       bool isToBeVerified, bool isToBeCompiled, List<TopLevelDecl> TopLevelDecls = null) {
       Contract.Requires(tok != null);
       Contract.Requires(name != null);
-      this.tok = tok;
+      this.Tok = tok;
       this.DafnyName = tok.val;
       this.Name = name;
       this.PrefixIds = prefixIds;
@@ -4243,12 +4243,12 @@ namespace Microsoft.Dafny {
       Contract.Invariant(cce.NonNullElements(TypeArgs));
     }
 
-    public TopLevelDecl(IToken tok, string name, ModuleDefinition enclosingModule, List<TypeParameter> typeArgs, Attributes attributes, bool isRefining)
+    public TopLevelDecl(IToken tok, string name, ModuleDefinition enclosingModuleDefinition, List<TypeParameter> typeArgs, Attributes attributes, bool isRefining)
       : base(tok, name, attributes, isRefining) {
       Contract.Requires(tok != null);
       Contract.Requires(name != null);
       Contract.Requires(cce.NonNullElements(typeArgs));
-      EnclosingModuleDefinition = enclosingModule;
+      EnclosingModuleDefinition = enclosingModuleDefinition;
       TypeArgs = typeArgs;
     }
 

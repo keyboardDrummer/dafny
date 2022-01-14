@@ -198,37 +198,37 @@ namespace Microsoft.Dafny.V2
 
         public virtual LiteralModuleDecl Transform(LiteralModuleDecl value)
         {
-            return new LiteralModuleDecl(TransformUnion(value.module), TransformUnion(value.parent));
+            return new LiteralModuleDecl(TransformUnion(value.Module), TransformUnion(value.Parent));
         }
 
         public virtual ModuleDefinition Transform(ModuleDefinition value)
         {
-            return new ModuleDefinition(value.tok, value.name, value.prefixIds, value.isAbstract, value.isFacade, value.refinementQId, TransformUnion(value.parent), value.attributes, value.isBuiltinName, value.isToBeVerified, value.isToBeCompiled, value.TopLevelDecls.Select(TransformUnion).ToList());
+            return new ModuleDefinition(value.Tok, value.Name, value.PrefixIds, value.IsAbstract, value.IsFacade, value.RefinementQId, TransformUnion(value.Parent), value.Attributes, value.IsBuiltinName, value.IsToBeVerified, value.IsToBeCompiled, value.TopLevelDecls.Select(TransformUnion).ToList());
         }
 
         public virtual ClassDecl Transform(ClassDecl value)
         {
-            return new ClassDecl(value.tok, value.name, TransformUnion(value.module), value.typeArgs, value.members.Select(TransformUnion).ToList(), value.attributes, value.isRefining, value.traits);
+            return new ClassDecl(value.Tok, value.Name, TransformUnion(value.Module), value.TypeArgs, value.Members.Select(TransformUnion).ToList(), value.Attributes, value.IsRefining, value.Traits);
         }
 
         public virtual Function Transform(Function value)
         {
-            return new Function(value.tok, value.name, value.hasStaticKeyword, value.isGhost, value.typeArgs, value.formals, value.result, value.resultType, value.req, value.reads, value.ens, value.decreases, value.body, value.byMethodTok, TransformUnion(value.byMethodBody), value.attributes, value.signatureEllipsis);
+            return new Function(value.Tok, value.Name, value.HasStaticKeyword, value.IsGhost, value.TypeArgs, value.Formals, value.Result, value.ResultType, value.Req, value.Reads, value.Ens, value.Decreases, value.Body, value.ByMethodTok, TransformUnion(value.ByMethodBody), value.Attributes, value.SignatureEllipsis);
         }
 
         public virtual BlockStmt Transform(BlockStmt value)
         {
-            return new BlockStmt(value.tok, value.endTok, value.body.Select(TransformUnion).ToList());
+            return new BlockStmt(value.Tok, value.EndTok, value.Body.Select(TransformUnion).ToList());
         }
 
         public virtual AssertStmt Transform(AssertStmt value)
         {
-            return new AssertStmt(value.tok, value.endTok, value.expr, TransformUnion(value.proof), value.label, value.attrs);
+            return new AssertStmt(value.Tok, value.EndTok, value.Expr, TransformUnion(value.Proof), value.Label, value.Attrs);
         }
 
         public virtual VarDeclStmt Transform(VarDeclStmt value)
         {
-            return new VarDeclStmt(value.tok, value.endTok, value.locals, TransformUnion(value.update));
+            return new VarDeclStmt(value.Tok, value.EndTok, value.Locals, TransformUnion(value.Update));
         }
 
         public virtual Microsoft.Dafny.UpdateStmt Transform(Microsoft.Dafny.V2.UpdateStmt value)
@@ -238,217 +238,217 @@ namespace Microsoft.Dafny.V2
 
         public virtual IfStmt Transform(IfStmt value)
         {
-            return new IfStmt(value.tok, value.endTok, value.isBindingGuard, value.guard, TransformUnion(value.thn), TransformUnion(value.els));
+            return new IfStmt(value.Tok, value.EndTok, value.IsBindingGuard, value.Guard, TransformUnion(value.Thn), TransformUnion(value.Els));
         }
 
         public virtual AlternativeStmt Transform(AlternativeStmt value)
         {
-            return new AlternativeStmt(value.tok, value.endTok, value.alternatives.Select(Transform).ToList(), value.usesOptionalBraces);
+            return new AlternativeStmt(value.Tok, value.EndTok, value.Alternatives.Select(Transform).ToList(), value.UsesOptionalBraces);
         }
 
         public virtual GuardedAlternative Transform(GuardedAlternative value)
         {
-            return new GuardedAlternative(value.tok, value.isBindingGuard, value.guard, value.body.Select(TransformUnion).ToList());
+            return new GuardedAlternative(value.Tok, value.IsBindingGuard, value.Guard, value.Body.Select(TransformUnion).ToList());
         }
 
         public virtual WhileStmt Transform(WhileStmt value)
         {
-            return new WhileStmt(value.tok, value.endTok, value.guard, value.invariants, value.decreases, value.mod, TransformUnion(value.body));
+            return new WhileStmt(value.Tok, value.EndTok, value.Guard, value.Invariants, value.Decreases, value.Mod, TransformUnion(value.Body));
         }
 
         public virtual RefinedWhileStmt Transform(RefinedWhileStmt value)
         {
-            return new RefinedWhileStmt(value.tok, value.endTok, value.guard, value.invariants, value.decreases, value.mod, TransformUnion(value.body));
+            return new RefinedWhileStmt(value.Tok, value.EndTok, value.Guard, value.Invariants, value.Decreases, value.Mod, TransformUnion(value.Body));
         }
 
         public virtual ForLoopStmt Transform(ForLoopStmt value)
         {
-            return new ForLoopStmt(value.tok, value.endTok, value.loopIndexVariable, value.start, value.end, value.goingUp, value.invariants, value.decreases, value.mod, TransformUnion(value.body), value.attrs);
+            return new ForLoopStmt(value.Tok, value.EndTok, value.LoopIndexVariable, value.Start, value.End, value.GoingUp, value.Invariants, value.Decreases, value.Mod, TransformUnion(value.Body), value.Attrs);
         }
 
         public virtual AlternativeLoopStmt Transform(AlternativeLoopStmt value)
         {
-            return new AlternativeLoopStmt(value.tok, value.endTok, value.invariants, value.decreases, value.mod, value.alternatives.Select(Transform).ToList(), value.usesOptionalBraces);
+            return new AlternativeLoopStmt(value.Tok, value.EndTok, value.Invariants, value.Decreases, value.Mod, value.Alternatives.Select(Transform).ToList(), value.UsesOptionalBraces);
         }
 
         public virtual ForallStmt Transform(ForallStmt value)
         {
-            return new ForallStmt(value.tok, value.endTok, value.boundVars, value.attrs, value.range, value.ens, TransformUnion(value.body));
+            return new ForallStmt(value.Tok, value.EndTok, value.BoundVars, value.Attrs, value.Range, value.Ens, TransformUnion(value.Body));
         }
 
         public virtual ModifyStmt Transform(ModifyStmt value)
         {
-            return new ModifyStmt(value.tok, value.endTok, value.mod, value.attrs, TransformUnion(value.body));
+            return new ModifyStmt(value.Tok, value.EndTok, value.Mod, value.Attrs, TransformUnion(value.Body));
         }
 
         public virtual CalcStmt Transform(CalcStmt value)
         {
-            return new CalcStmt(value.tok, value.endTok, value.userSuppliedOp, value.lines, value.hints.Select(TransformUnion).ToList(), value.stepOps, value.attrs);
+            return new CalcStmt(value.Tok, value.EndTok, value.UserSuppliedOp, value.Lines, value.Hints.Select(TransformUnion).ToList(), value.StepOps, value.Attrs);
         }
 
         public virtual MatchStmt Transform(MatchStmt value)
         {
-            return new MatchStmt(value.tok, value.endTok, value.source, value.cases.Select(Transform).ToList(), value.usesOptionalBraces, value.context);
+            return new MatchStmt(value.Tok, value.EndTok, value.Source, value.Cases.Select(Transform).ToList(), value.UsesOptionalBraces, value.Context);
         }
 
         public virtual MatchCaseStmt Transform(MatchCaseStmt value)
         {
-            return new MatchCaseStmt(value.tok, value.ctor, value.arguments, value.body.Select(TransformUnion).ToList(), value.attrs);
+            return new MatchCaseStmt(value.Tok, value.Ctor, value.Arguments, value.Body.Select(TransformUnion).ToList(), value.Attrs);
         }
 
         public virtual NestedMatchStmt Transform(NestedMatchStmt value)
         {
-            return new NestedMatchStmt(value.tok, value.endTok, value.source, value.cases.Select(Transform).ToList(), value.usesOptionalBraces, value.attrs);
+            return new NestedMatchStmt(value.Tok, value.EndTok, value.Source, value.Cases.Select(Transform).ToList(), value.UsesOptionalBraces, value.Attrs);
         }
 
         public virtual NestedMatchCaseStmt Transform(NestedMatchCaseStmt value)
         {
-            return new NestedMatchCaseStmt(value.tok, value.pat, value.body.Select(TransformUnion).ToList());
+            return new NestedMatchCaseStmt(value.Tok, value.Pat, value.Body.Select(TransformUnion).ToList());
         }
 
         public virtual DividedBlockStmt Transform(DividedBlockStmt value)
         {
-            return new DividedBlockStmt(value.tok, value.endTok, value.bodyInit.Select(TransformUnion).ToList(), value.separatorTok, value.bodyProper.Select(TransformUnion).ToList());
+            return new DividedBlockStmt(value.Tok, value.EndTok, value.BodyInit.Select(TransformUnion).ToList(), value.SeparatorTok, value.BodyProper.Select(TransformUnion).ToList());
         }
 
         public virtual SpecialFunction Transform(SpecialFunction value)
         {
-            return new SpecialFunction(value.tok, value.name, TransformUnion(value.module), value.hasStaticKeyword, value.isGhost, value.typeArgs, value.formals, value.resultType, value.req, value.reads, value.ens, value.decreases, value.body, value.attributes, value.signatureEllipsis);
+            return new SpecialFunction(value.Tok, value.Name, TransformUnion(value.Module), value.HasStaticKeyword, value.IsGhost, value.TypeArgs, value.Formals, value.ResultType, value.Req, value.Reads, value.Ens, value.Decreases, value.Body, value.Attributes, value.SignatureEllipsis);
         }
 
         public virtual Predicate Transform(Predicate value)
         {
-            return new Predicate(value.tok, value.name, value.hasStaticKeyword, value.isGhost, value.typeArgs, value.formals, value.req, value.reads, value.ens, value.decreases, value.body, value.bodyOrigin, value.byMethodTok, TransformUnion(value.byMethodBody), value.attributes, value.signatureEllipsis);
+            return new Predicate(value.Tok, value.Name, value.HasStaticKeyword, value.IsGhost, value.TypeArgs, value.Formals, value.Req, value.Reads, value.Ens, value.Decreases, value.Body, value.BodyOrigin, value.ByMethodTok, TransformUnion(value.ByMethodBody), value.Attributes, value.SignatureEllipsis);
         }
 
         public virtual Method Transform(Method value)
         {
-            return new Method(value.tok, value.name, value.hasStaticKeyword, value.isGhost, value.typeArgs, value.ins, value.outs, value.req, value.mod, value.ens, value.decreases, TransformUnion(value.body), value.attributes, value.signatureEllipsis, value.isByMethod);
+            return new Method(value.Tok, value.Name, value.HasStaticKeyword, value.IsGhost, value.TypeArgs, value.Ins, value.Outs, value.Req, value.Mod, value.Ens, value.Decreases, TransformUnion(value.Body), value.Attributes, value.SignatureEllipsis, value.IsByMethod);
         }
 
         public virtual Lemma Transform(Lemma value)
         {
-            return new Lemma(value.tok, value.name, value.hasStaticKeyword, value.typeArgs, value.ins, value.outs, value.req, value.mod, value.ens, value.decreases, TransformUnion(value.body), value.attributes, value.signatureEllipsis);
+            return new Lemma(value.Tok, value.Name, value.HasStaticKeyword, value.TypeArgs, value.Ins, value.Outs, value.Req, value.Mod, value.Ens, value.Decreases, TransformUnion(value.Body), value.Attributes, value.SignatureEllipsis);
         }
 
         public virtual TwoStateLemma Transform(TwoStateLemma value)
         {
-            return new TwoStateLemma(value.tok, value.name, value.hasStaticKeyword, value.typeArgs, value.ins, value.outs, value.req, value.mod, value.ens, value.decreases, TransformUnion(value.body), value.attributes, value.signatureEllipsis);
+            return new TwoStateLemma(value.Tok, value.Name, value.HasStaticKeyword, value.TypeArgs, value.Ins, value.Outs, value.Req, value.Mod, value.Ens, value.Decreases, TransformUnion(value.Body), value.Attributes, value.SignatureEllipsis);
         }
 
         public virtual Constructor Transform(Constructor value)
         {
-            return new Constructor(value.tok, value.name, value.isGhost, value.typeArgs, value.ins, value.req, value.mod, value.ens, value.decreases, Transform(value.body), value.attributes, value.signatureEllipsis);
+            return new Constructor(value.Tok, value.Name, value.IsGhost, value.TypeArgs, value.Ins, value.Req, value.Mod, value.Ens, value.Decreases, Transform(value.Body), value.Attributes, value.SignatureEllipsis);
         }
 
         public virtual PrefixLemma Transform(PrefixLemma value)
         {
-            return new PrefixLemma(value.tok, value.name, value.hasStaticKeyword, value.typeArgs, value.k, value.ins, value.outs, value.req, value.mod, value.ens, value.decreases, TransformUnion(value.body), value.attributes, TransformUnion(value.extremeLemma));
+            return new PrefixLemma(value.Tok, value.Name, value.HasStaticKeyword, value.TypeArgs, value.K, value.Ins, value.Outs, value.Req, value.Mod, value.Ens, value.Decreases, TransformUnion(value.Body), value.Attributes, TransformUnion(value.ExtremeLemma));
         }
 
         public virtual LeastLemma Transform(LeastLemma value)
         {
-            return new LeastLemma(value.tok, value.name, value.hasStaticKeyword, value.typeOfK, value.typeArgs, value.ins, value.outs, value.req, value.mod, value.ens, value.decreases, TransformUnion(value.body), value.attributes, value.signatureEllipsis);
+            return new LeastLemma(value.Tok, value.Name, value.HasStaticKeyword, value.TypeOfK, value.TypeArgs, value.Ins, value.Outs, value.Req, value.Mod, value.Ens, value.Decreases, TransformUnion(value.Body), value.Attributes, value.SignatureEllipsis);
         }
 
         public virtual GreatestLemma Transform(GreatestLemma value)
         {
-            return new GreatestLemma(value.tok, value.name, value.hasStaticKeyword, value.typeOfK, value.typeArgs, value.ins, value.outs, value.req, value.mod, value.ens, value.decreases, TransformUnion(value.body), value.attributes, value.signatureEllipsis);
+            return new GreatestLemma(value.Tok, value.Name, value.HasStaticKeyword, value.TypeOfK, value.TypeArgs, value.Ins, value.Outs, value.Req, value.Mod, value.Ens, value.Decreases, TransformUnion(value.Body), value.Attributes, value.SignatureEllipsis);
         }
 
         public virtual TraitDecl Transform(TraitDecl value)
         {
-            return new TraitDecl(value.tok, value.name, TransformUnion(value.module), value.typeArgs, value.members.Select(TransformUnion).ToList(), value.attributes, value.isRefining, value.traits);
+            return new TraitDecl(value.Tok, value.Name, TransformUnion(value.Module), value.TypeArgs, value.Members.Select(TransformUnion).ToList(), value.Attributes, value.IsRefining, value.Traits);
         }
 
         public virtual DefaultClassDecl Transform(DefaultClassDecl value)
         {
-            return new DefaultClassDecl(TransformUnion(value.module), value.members.Select(TransformUnion).ToList());
+            return new DefaultClassDecl(TransformUnion(value.Module), value.Members.Select(TransformUnion).ToList());
         }
 
         public virtual ArrayClassDecl Transform(ArrayClassDecl value)
         {
-            return new ArrayClassDecl(value.dims, TransformUnion(value.module), value.attrs);
+            return new ArrayClassDecl(value.Dims, TransformUnion(value.Module), value.Attrs);
         }
 
         public virtual ArrowTypeDecl Transform(ArrowTypeDecl value)
         {
-            return new ArrowTypeDecl(value.tps, TransformUnion(value.req), TransformUnion(value.reads), TransformUnion(value.module), value.attributes);
+            return new ArrowTypeDecl(value.Tps, TransformUnion(value.Req), TransformUnion(value.Reads), TransformUnion(value.Module), value.Attributes);
         }
 
         public virtual IteratorDecl Transform(IteratorDecl value)
         {
-            return new IteratorDecl(value.tok, value.name, TransformUnion(value.module), value.typeArgs, value.ins, value.outs, value.reads, value.mod, value.decreases, value.requires, value.ensures, value.yieldRequires, value.yieldEnsures, TransformUnion(value.body), value.attributes, value.signatureEllipsis);
+            return new IteratorDecl(value.Tok, value.Name, TransformUnion(value.Module), value.TypeArgs, value.Ins, value.Outs, value.Reads, value.Mod, value.Decreases, value.Requires, value.Ensures, value.YieldRequires, value.YieldEnsures, TransformUnion(value.Body), value.Attributes, value.SignatureEllipsis);
         }
 
         public virtual IndDatatypeDecl Transform(IndDatatypeDecl value)
         {
-            return new IndDatatypeDecl(value.tok, value.name, TransformUnion(value.module), value.typeArgs, value.ctors, value.members.Select(TransformUnion).ToList(), value.attributes, value.isRefining);
+            return new IndDatatypeDecl(value.Tok, value.Name, TransformUnion(value.Module), value.TypeArgs, value.Ctors, value.Members.Select(TransformUnion).ToList(), value.Attributes, value.IsRefining);
         }
 
         public virtual TupleTypeDecl Transform(TupleTypeDecl value)
         {
-            return new TupleTypeDecl(value.argumentGhostness, TransformUnion(value.systemModule), value.attributes);
+            return new TupleTypeDecl(value.ArgumentGhostness, TransformUnion(value.SystemModule), value.Attributes);
         }
 
         public virtual CoDatatypeDecl Transform(CoDatatypeDecl value)
         {
-            return new CoDatatypeDecl(value.tok, value.name, TransformUnion(value.module), value.typeArgs, value.ctors, value.members.Select(TransformUnion).ToList(), value.attributes, value.isRefining);
+            return new CoDatatypeDecl(value.Tok, value.Name, TransformUnion(value.Module), value.TypeArgs, value.Ctors, value.Members.Select(TransformUnion).ToList(), value.Attributes, value.IsRefining);
         }
 
         public virtual OpaqueTypeDecl Transform(OpaqueTypeDecl value)
         {
-            return new OpaqueTypeDecl(value.tok, value.name, TransformUnion(value.module), value.characteristics, value.typeArgs, value.members.Select(TransformUnion).ToList(), value.attributes, value.isRefining);
+            return new OpaqueTypeDecl(value.Tok, value.Name, TransformUnion(value.Module), value.Characteristics, value.TypeArgs, value.Members.Select(TransformUnion).ToList(), value.Attributes, value.IsRefining);
         }
 
         public virtual NewtypeDecl Transform(NewtypeDecl value)
         {
-            return new NewtypeDecl(value.tok, value.name, TransformUnion(value.module), value.baseType, value.members.Select(TransformUnion).ToList(), value.attributes, value.isRefining);
+            return new NewtypeDecl(value.Tok, value.Name, TransformUnion(value.Module), value.BaseType, value.Members.Select(TransformUnion).ToList(), value.Attributes, value.IsRefining);
         }
 
         public virtual ValuetypeDecl Transform(ValuetypeDecl value)
         {
-            return new ValuetypeDecl(value.name, TransformUnion(value.module), value.typeParameterCount, value.typeTester, value.typeCreator);
+            return new ValuetypeDecl(value.Name, TransformUnion(value.Module), value.TypeParameterCount, value.TypeTester, value.TypeCreator);
         }
 
         public virtual TypeSynonymDecl Transform(TypeSynonymDecl value)
         {
-            return new TypeSynonymDecl(value.tok, value.name, value.characteristics, value.typeArgs, TransformUnion(value.module), value.rhs, value.attributes);
+            return new TypeSynonymDecl(value.Tok, value.Name, value.Characteristics, value.TypeArgs, TransformUnion(value.Module), value.Rhs, value.Attributes);
         }
 
         public virtual SubsetTypeDecl Transform(SubsetTypeDecl value)
         {
-            return new SubsetTypeDecl(value.tok, value.name, value.characteristics, value.typeArgs, TransformUnion(value.module), value.id, value.constraint, value.witnessKind, value.witness, value.attributes);
+            return new SubsetTypeDecl(value.Tok, value.Name, value.Characteristics, value.TypeArgs, TransformUnion(value.Module), value.Id, value.Constraint, value.WitnessKind, value.Witness, value.Attributes);
         }
 
         public virtual NonNullTypeDecl Transform(NonNullTypeDecl value)
         {
-            return new NonNullTypeDecl(TransformUnion(value.cl));
+            return new NonNullTypeDecl(TransformUnion(value.Cl));
         }
 
         public virtual InternalTypeSynonymDecl Transform(InternalTypeSynonymDecl value)
         {
-            return new InternalTypeSynonymDecl(value.tok, value.name, value.characteristics, value.typeArgs, TransformUnion(value.module), value.rhs, value.attributes);
+            return new InternalTypeSynonymDecl(value.Tok, value.Name, value.Characteristics, value.TypeArgs, TransformUnion(value.Module), value.Rhs, value.Attributes);
         }
 
         public virtual AliasModuleDecl Transform(AliasModuleDecl value)
         {
-            return new AliasModuleDecl(value.path, value.name, TransformUnion(value.parent), value.opened, value.exports);
+            return new AliasModuleDecl(value.Path, value.Name, TransformUnion(value.Parent), value.Opened, value.Exports);
         }
 
         public virtual AbstractModuleDecl Transform(AbstractModuleDecl value)
         {
-            return new AbstractModuleDecl(value.qid, value.name, TransformUnion(value.parent), value.opened, value.exports);
+            return new AbstractModuleDecl(value.Qid, value.Name, TransformUnion(value.Parent), value.Opened, value.Exports);
         }
 
         public virtual ModuleExportDecl Transform(ModuleExportDecl value)
         {
-            return new ModuleExportDecl(value.tok, TransformUnion(value.parent), value.exports, value.extends, value.provideAll, value.revealAll, value.isDefault, value.isRefining);
+            return new ModuleExportDecl(value.Tok, TransformUnion(value.Parent), value.Exports, value.Extends, value.ProvideAll, value.RevealAll, value.IsDefault, value.IsRefining);
         }
 
         public virtual Program Transform(Program value)
         {
-            return new Program(value.name, TransformUnion(value.module), value.builtIns, value.reporter);
+            return new Program(value.Name, TransformUnion(value.Module), value.BuiltIns, value.Reporter);
         }
     }
 }
