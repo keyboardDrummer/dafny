@@ -7596,13 +7596,13 @@ namespace Microsoft.Dafny {
       Contract.Invariant(cce.NonNullElements(Lhss));
       Contract.Invariant(cce.NonNullElements(Rhss));
     }
-    public UpdateStmt(IToken tok, IToken endTok, List<Expression> Lhss, List<AssignmentRhs> rhss, bool mutate)
-      : base(tok, endTok, Lhss) {
+    public UpdateStmt(IToken tok, IToken endTok, List<Expression> lhss, List<AssignmentRhs> rhss, bool mutate)
+      : base(tok, endTok, lhss) {
       Contract.Requires(tok != null);
       Contract.Requires(endTok != null);
-      Contract.Requires(cce.NonNullElements(Lhss));
+      Contract.Requires(cce.NonNullElements(lhss));
       Contract.Requires(cce.NonNullElements(rhss));
-      Contract.Requires(Lhss.Count != 0 || rhss.Count == 1);
+      Contract.Requires(lhss.Count != 0 || rhss.Count == 1);
       Rhss = rhss;
       CanMutateKnownState = mutate;
     }
@@ -8441,12 +8441,12 @@ namespace Microsoft.Dafny {
       Contract.Requires(tok != null);
       Contract.Requires(endTok != null);
       Contract.Requires(mod != null);
-      Mod = new Specification<FrameExpression>(mod, attributes);
+      Mod = mod;
       Body = body;
     }
 
     public ModifyStmt(IToken tok, IToken endTok, List<FrameExpression> baseMod, Attributes attributes, BlockStmt body)
-      : this(tok, endTok, new Specification<FrameExpression>(mod, attributes), body) {
+      : this(tok, endTok, new Specification<FrameExpression>(baseMod, attributes), body) {
     }
 
     public override IEnumerable<Statement> SubStatements {

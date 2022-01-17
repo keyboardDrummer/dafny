@@ -22,8 +22,8 @@ public class TypeTransformerUser {
       "Microsoft.Dafny.V2", "Microsoft.Dafny", usings,false, true, 
       typeof(Program), TypeTransformer.GetUnionsInNamespace(typeof(Program)), 
       new Dictionary<Type, TypeMutation>() {
-        { typeof(UpdateStmt), new TypeMutation(new HashSet<string>() { nameof(UpdateStmt.Lhss)}, new Dictionary<string, Type>() {
-          { "Lhss2", typeof(IReadOnlyList<AssignmentRhs>) }
+        { typeof(UpdateStmt), new TypeMutation(new HashSet<string>() { nameof(UpdateStmt.Rhss)}, new Dictionary<string, Type>() {
+          { "Rhss2", typeof(IReadOnlyList<AssignmentRhs>) }
         })}
       });
   }

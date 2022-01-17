@@ -3,10 +3,21 @@ namespace Microsoft.Dafny.V2
     using System;
     using System.Linq;
     using Microsoft.Dafny;
-    using System.Collections.Generic;
     using IToken = Microsoft.Boogie.IToken;
+    using System.Collections.Generic;
 
-    record UpdateStmt(IToken tok, IToken endTok, List<AssignmentRhs> rhss, Boolean mutate, IReadOnlyList<AssignmentRhs> Lhss2) : ConcreteUpdateStatement;
+    class UpdateStmt : ConcreteUpdateStatement
+    {
+        IToken tok; IToken endTok; List<Expression> lhss; List<AssignmentRhs> rhss; Boolean mutate; IReadOnlyList<AssignmentRhs> Rhss2; public UpdateStmt(IToken tok, IToken endTok, List<Expression> lhss, List<AssignmentRhs> rhss, Boolean mutate, IReadOnlyList<AssignmentRhs> Rhss2) : base(tok, endTok, lhss)
+        {
+            this.tok = tok;
+            this.endTok = endTok;
+            this.lhss = lhss;
+            this.rhss = rhss;
+            this.mutate = mutate;
+            this.Rhss2 = Rhss2;
+        }
+    }
 
     class BackwardTransformer
     {
@@ -74,7 +85,6 @@ namespace Microsoft.Dafny.V2
               Microsoft.Dafny.Field subType => subType,
               Microsoft.Dafny.Function subType => TransformUnion(subType),
               Microsoft.Dafny.Method subType => TransformUnion(subType),
-              Microsoft.Dafny.Resolver.AmbiguousMemberDecl subType => subType,
           };
 
         public virtual Function TransformUnion(Function value) =>
@@ -231,7 +241,7 @@ namespace Microsoft.Dafny.V2
             return new VarDeclStmt(value.Tok, value.EndTok, value.Locals, TransformUnion(value.Update));
         }
 
-        public virtual Microsoft.Dafny.UpdateStmt Transform(Microsoft.Dafny.V2.UpdateStmt value)
+        public virtual Microsoft.Dafny.UpdateStmt Transform(Microsoft.Dafny.UpdateStmt value)
         {
             throw new NotImplementedException("Mutated types do not have a default Transform implementation.");
         }
