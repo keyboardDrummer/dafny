@@ -5659,7 +5659,8 @@ namespace Microsoft.Dafny {
       get { return Characteristics.EqualitySupport != TypeParameter.EqualitySupportValue.Unspecified; }
     }
     public readonly Type Rhs;
-    public TypeSynonymDeclBase(IToken tok, string name, TypeParameter.TypeParameterCharacteristics characteristics, List<TypeParameter> typeArgs, ModuleDefinition enclosingModuleDefinition, Type rhs, Attributes attributes)
+    public TypeSynonymDeclBase(IToken tok, string name, TypeParameter.TypeParameterCharacteristics characteristics, 
+      List<TypeParameter> typeArgs, ModuleDefinition enclosingModuleDefinition, Type rhs, Attributes attributes)
       : base(tok, name, enclosingModuleDefinition, typeArgs, attributes, false) {
       Contract.Requires(tok != null);
       Contract.Requires(name != null);
@@ -5747,8 +5748,9 @@ namespace Microsoft.Dafny {
   }
 
   public class InternalTypeSynonymDecl : TypeSynonymDeclBase, RedirectingTypeDecl {
-    public InternalTypeSynonymDecl(IToken tok, string name, TypeParameter.TypeParameterCharacteristics characteristics, List<TypeParameter> typeArgs, ModuleDefinition module, Type rhs, Attributes attributes)
-      : base(tok, name, characteristics, typeArgs, module, rhs, attributes) {
+    public InternalTypeSynonymDecl(IToken tok, string name, TypeParameter.TypeParameterCharacteristics characteristics, 
+      List<TypeParameter> typeArgs, ModuleDefinition enclosingModuleDefinition, Type rhs, Attributes attributes)
+      : base(tok, name, characteristics, typeArgs, enclosingModuleDefinition, rhs, attributes) {
     }
   }
 
@@ -5769,7 +5771,7 @@ namespace Microsoft.Dafny {
       Contract.Requires(tok != null);
       Contract.Requires(name != null);
       Contract.Requires(typeArgs != null);
-      Contract.Requires(module != null);
+      Contract.Requires(enclosingModuleDefinition != null);
       Contract.Requires(boundVar != null && boundVar.Type != null);
       Contract.Requires(constraint != null);
       Contract.Requires((witnessKind == WKind.Compiled || witnessKind == WKind.Ghost) == (witness != null));
@@ -6727,6 +6729,9 @@ namespace Microsoft.Dafny {
   }
 
   public class Constructor : Method {
+
+    public DividedBlockStmt DividedBody { get; private set; }
+    
     public override string WhatKind { get { return "constructor"; } }
     [ContractInvariantMethod]
     void ObjectInvariant() {
@@ -6757,9 +6762,9 @@ namespace Microsoft.Dafny {
                   List<AttributedExpression> req, [Captured] Specification<FrameExpression> mod,
                   List<AttributedExpression> ens,
                   Specification<Expression> decreases,
-                  DividedBlockStmt body,
+                  DividedBlockStmt dividedBody,
                   Attributes attributes, IToken signatureEllipsis)
-      : base(tok, name, false, isGhost, typeArgs, ins, new List<Formal>(), req, mod, ens, decreases, body, attributes, signatureEllipsis) {
+      : base(tok, name, false, isGhost, typeArgs, ins, new List<Formal>(), req, mod, ens, decreases, dividedBody, attributes, signatureEllipsis) {
       Contract.Requires(tok != null);
       Contract.Requires(name != null);
       Contract.Requires(cce.NonNullElements(typeArgs));
@@ -6768,6 +6773,7 @@ namespace Microsoft.Dafny {
       Contract.Requires(mod != null);
       Contract.Requires(cce.NonNullElements(ens));
       Contract.Requires(decreases != null);
+      this.DividedBody = dividedBody;
     }
 
     public bool HasName {
@@ -8430,13 +8436,17 @@ namespace Microsoft.Dafny {
     public readonly Specification<FrameExpression> Mod;
     public readonly BlockStmt Body;
 
-    public ModifyStmt(IToken tok, IToken endTok, List<FrameExpression> mod, Attributes attributes, BlockStmt body)
+    public ModifyStmt(IToken tok, IToken endTok, Specification<FrameExpression> mod, BlockStmt body)
       : base(tok, endTok) {
       Contract.Requires(tok != null);
       Contract.Requires(endTok != null);
       Contract.Requires(mod != null);
       Mod = new Specification<FrameExpression>(mod, attributes);
       Body = body;
+    }
+
+    public ModifyStmt(IToken tok, IToken endTok, List<FrameExpression> baseMod, Attributes attributes, BlockStmt body)
+      : this(tok, endTok, new Specification<FrameExpression>(mod, attributes), body) {
     }
 
     public override IEnumerable<Statement> SubStatements {

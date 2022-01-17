@@ -94,7 +94,7 @@ namespace Microsoft.Dafny.V2
               Microsoft.Dafny.InternalTypeSynonymDecl subType => Transform(subType),
           };
 
-        public virtual Dafny.TypeSynonymDecl TransformUnion(Dafny.TypeSynonymDecl value) =>
+        public virtual TypeSynonymDecl TransformUnion(TypeSynonymDecl value) =>
           value switch
           {
               Microsoft.Dafny.SubsetTypeDecl subType => TransformUnion(subType),
@@ -211,9 +211,9 @@ namespace Microsoft.Dafny.V2
             return new ClassDecl(value.Tok, value.Name, TransformUnion(value.EnclosingModuleDefinition), value.TypeArgs, value.Members.Select(TransformUnion).ToList(), value.Attributes, value.IsRefining, value.ParentTraits);
         }
 
-        public virtual Dafny.Function Transform(Dafny.Function value)
+        public virtual Function Transform(Function value)
         {
-            return new Dafny.Function(value.Tok, value.Name, value.HasStaticKeyword, value.IsGhost, value.TypeArgs, value.Formals, value.Result, value.ResultType, value.Req, value.Reads, value.Ens, value.Decreases, value.Body, value.ByMethodTok, TransformUnion(value.ByMethodBody), value.Attributes, value.SignatureEllipsis);
+            return new Function(value.Tok, value.Name, value.HasStaticKeyword, value.IsGhost, value.TypeArgs, value.Formals, value.Result, value.ResultType, value.Req, value.Reads, value.Ens, value.Decreases, value.Body, value.ByMethodTok, TransformUnion(value.ByMethodBody), value.Attributes, value.SignatureEllipsis);
         }
 
         public virtual BlockStmt Transform(BlockStmt value)
@@ -278,7 +278,7 @@ namespace Microsoft.Dafny.V2
 
         public virtual ModifyStmt Transform(ModifyStmt value)
         {
-            return new ModifyStmt(value.Tok, value.EndTok, value.Mod, value.Attributes, TransformUnion(value.Body));
+            return new ModifyStmt(value.Tok, value.EndTok, value.Mod, TransformUnion(value.Body));
         }
 
         public virtual CalcStmt Transform(CalcStmt value)
@@ -338,7 +338,7 @@ namespace Microsoft.Dafny.V2
 
         public virtual Constructor Transform(Constructor value)
         {
-            return new Constructor(value.Tok, value.Name, value.IsGhost, value.TypeArgs, value.Ins, value.Req, value.Mod, value.Ens, value.Decreases, Transform(value.Body), value.Attributes, value.SignatureEllipsis);
+            return new Constructor(value.Tok, value.Name, value.IsGhost, value.TypeArgs, value.Ins, value.Req, value.Mod, value.Ens, value.Decreases, Transform(value.DividedBody), value.Attributes, value.SignatureEllipsis);
         }
 
         public virtual PrefixLemma Transform(PrefixLemma value)
@@ -358,7 +358,7 @@ namespace Microsoft.Dafny.V2
 
         public virtual TraitDecl Transform(TraitDecl value)
         {
-            return new TraitDecl(value.Tok, value.Name, TransformUnion(value.EnclosingModuleDefinition), value.TypeArgs, value.Members.Select(TransformUnion).ToList(), value.Attributes, value.IsRefining, value.Traits);
+            return new TraitDecl(value.Tok, value.Name, TransformUnion(value.EnclosingModuleDefinition), value.TypeArgs, value.Members.Select(TransformUnion).ToList(), value.Attributes, value.IsRefining, value.ParentTraits);
         }
 
         public virtual DefaultClassDecl Transform(DefaultClassDecl value)
@@ -378,7 +378,7 @@ namespace Microsoft.Dafny.V2
 
         public virtual IteratorDecl Transform(IteratorDecl value)
         {
-            return new IteratorDecl(value.Tok, value.Name, TransformUnion(value.EnclosingModuleDefinition), value.TypeArgs, value.Ins, value.Outs, value.Reads, value.Mod, value.Decreases, value.Requires, value.Ensures, value.YieldRequires, value.YieldEnsures, TransformUnion(value.Body), value.Attributes, value.SignatureEllipsis);
+            return new IteratorDecl(value.Tok, value.Name, TransformUnion(value.EnclosingModuleDefinition), value.TypeArgs, value.Ins, value.Outs, value.Reads, value.Modifies, value.Decreases, value.Requires, value.Ensures, value.YieldRequires, value.YieldEnsures, TransformUnion(value.Body), value.Attributes, value.SignatureEllipsis);
         }
 
         public virtual IndDatatypeDecl Transform(IndDatatypeDecl value)
@@ -411,14 +411,14 @@ namespace Microsoft.Dafny.V2
             return new ValuetypeDecl(value.Name, TransformUnion(value.EnclosingModuleDefinition), value.TypeParameterCount, value.TypeTester, value.TypeCreator);
         }
 
-        public virtual Dafny.TypeSynonymDecl Transform(Dafny.TypeSynonymDecl value)
+        public virtual TypeSynonymDecl Transform(TypeSynonymDecl value)
         {
-            return new Dafny.TypeSynonymDecl(value.Tok, value.Name, value.Characteristics, value.TypeArgs, TransformUnion(value.Module), value.Rhs, value.Attributes);
+            return new TypeSynonymDecl(value.Tok, value.Name, value.Characteristics, value.TypeArgs, TransformUnion(value.EnclosingModuleDefinition), value.Rhs, value.Attributes);
         }
 
         public virtual SubsetTypeDecl Transform(SubsetTypeDecl value)
         {
-            return new SubsetTypeDecl(value.Tok, value.Name, value.Characteristics, value.TypeArgs, TransformUnion(value.Module), value.BoundVar, value.Constraint, value.WitnessKind, value.Witness, value.Attributes);
+            return new SubsetTypeDecl(value.Tok, value.Name, value.Characteristics, value.TypeArgs, TransformUnion(value.EnclosingModuleDefinition), value.BoundVar, value.Constraint, value.WitnessKind, value.Witness, value.Attributes);
         }
 
         public virtual NonNullTypeDecl Transform(NonNullTypeDecl value)
@@ -428,7 +428,7 @@ namespace Microsoft.Dafny.V2
 
         public virtual InternalTypeSynonymDecl Transform(InternalTypeSynonymDecl value)
         {
-            return new InternalTypeSynonymDecl(value.Tok, value.Name, value.Characteristics, value.TypeArgs, TransformUnion(value.Module), value.Rhs, value.Attributes);
+            return new InternalTypeSynonymDecl(value.Tok, value.Name, value.Characteristics, value.TypeArgs, TransformUnion(value.EnclosingModuleDefinition), value.Rhs, value.Attributes);
         }
 
         public virtual AliasModuleDecl Transform(AliasModuleDecl value)
@@ -446,9 +446,9 @@ namespace Microsoft.Dafny.V2
             return new ModuleExportDecl(value.Tok, TransformUnion(value.EnclosingModuleDefinition), value.Exports, value.Extends, value.ProvideAll, value.RevealAll, value.IsDefault, value.IsRefining);
         }
 
-        public virtual Dafny.Program Transform(Dafny.Program value)
+        public virtual Program Transform(Program value)
         {
-            return new Dafny.Program(value.Name, TransformUnion(value.DefaultModule), value.BuiltIns, value.Reporter);
+            return new Program(value.Name, TransformUnion(value.DefaultModule), value.BuiltIns, value.Reporter);
         }
     }
 }

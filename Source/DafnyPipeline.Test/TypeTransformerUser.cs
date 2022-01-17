@@ -11,9 +11,11 @@ namespace DafnyPipeline.Test;
 public class TypeTransformerUser {
   [Fact]
   public void Use() {
-    var usings = new [] { 
-      SyntaxFactory.UsingDirective(SyntaxFactory.ParseName("System.Collections.Generic")), 
-      SyntaxFactory.UsingDirective(SyntaxFactory.ParseName("Microsoft.Boogie"))
+    var usings = new [] {
+      SyntaxFactory.UsingDirective(
+        SyntaxFactory.NameEquals(SyntaxFactory.IdentifierName("IToken")), 
+        SyntaxFactory.ParseName("Microsoft.Boogie.IToken")), 
+      SyntaxFactory.UsingDirective(SyntaxFactory.ParseName("System.Collections.Generic"))
     };
     
     TypeTransformer.TransformType(new Uri("/Users/rwillems/Documents/SourceCode/dafny/Source/Dafny/AST/DafnyAst2.cs"),
