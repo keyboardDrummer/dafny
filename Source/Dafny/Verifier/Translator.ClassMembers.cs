@@ -614,7 +614,7 @@ namespace Microsoft.Dafny {
             var decrCallee = new List<Expr>();
             var decrCaller = new List<Expr>();
             foreach (var ee in m.Decreases.Expressions) {
-              decrToks.Add(ee.tok);
+              decrToks.Add(ee.Tok);
               decrTypes.Add(ee.Type.NormalizeExpand());
               decrCaller.Add(exprTran.TrExpr(ee));
               Expression es = Substitute(ee, receiverSubst, substMap);
@@ -654,13 +654,13 @@ namespace Microsoft.Dafny {
         foreach (var formal in m.Ins.Where(formal => formal.DefaultValue != null)) {
           var e = formal.DefaultValue;
           CheckWellformed(e, new WFOptions(null, false, false, true), localVariables, builder, etran);
-          builder.Add(new Boogie.AssumeCmd(e.tok, CanCallAssumption(e, etran)));
-          CheckSubrange(e.tok, etran.TrExpr(e), e.Type, formal.Type, builder);
+          builder.Add(new Boogie.AssumeCmd(e.Tok, CanCallAssumption(e, etran)));
+          CheckSubrange(e.Tok, etran.TrExpr(e), e.Type, formal.Type, builder);
 
           if (formal.IsOld) {
-            Boogie.Expr wh = GetWhereClause(e.tok, etran.TrExpr(e), e.Type, etran.Old, ISALLOC, true);
+            Boogie.Expr wh = GetWhereClause(e.Tok, etran.TrExpr(e), e.Type, etran.Old, ISALLOC, true);
             if (wh != null) {
-              builder.Add(Assert(e.tok, wh, "default value must be allocated in the two-state lemma's previous state"));
+              builder.Add(Assert(e.Tok, wh, "default value must be allocated in the two-state lemma's previous state"));
             }
           }
         }
@@ -698,7 +698,7 @@ namespace Microsoft.Dafny {
         // mark the end of the modifles/out-parameter havocking with a CaptureState; make its location be the first ensures clause, if any (and just
         // omit the CaptureState if there's no ensures clause)
         if (m.Ens.Count != 0) {
-          builder.AddCaptureState(m.Ens[0].E.tok, false, "post-state");
+          builder.AddCaptureState(m.Ens[0].E.Tok, false, "post-state");
         }
 
         // check wellformedness of postconditions
@@ -1245,7 +1245,7 @@ namespace Microsoft.Dafny {
           N = i;
           break;
         }
-        toks.Add(new NestedToken(original.Tok, e1.tok));
+        toks.Add(new NestedToken(original.Tok, e1.Tok));
         types0.Add(e0.Type.NormalizeExpand());
         types1.Add(e1.Type.NormalizeExpand());
         callee.Add(etran.TrExpr(e0));
@@ -1288,7 +1288,7 @@ namespace Microsoft.Dafny {
       if (m.OverriddenMethod.Mod != null) {
         foreach (var e in m.OverriddenMethod.Mod.Expressions) {
           var newE = Substitute(e.E, null, substMap);
-          FrameExpression fe = new FrameExpression(e.tok, newE, e.FieldName);
+          FrameExpression fe = new FrameExpression(e.Tok, newE, e.FieldName);
           traitFrameExps.Add(fe);
         }
       }
@@ -1419,7 +1419,7 @@ namespace Microsoft.Dafny {
         comment = "user-defined postconditions";
         foreach (var p in m.Ens) {
           string errorMessage = CustomErrorMessage(p.Attributes);
-          AddEnsures(ens, Ensures(p.E.tok, true, CanCallAssumption(p.E, etran), errorMessage, comment));
+          AddEnsures(ens, Ensures(p.E.Tok, true, CanCallAssumption(p.E, etran), errorMessage, comment));
           comment = null;
           foreach (var s in TrSplitExprForMethodSpec(p.E, etran, kind)) {
             var post = s.E;

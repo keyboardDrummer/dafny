@@ -1264,7 +1264,7 @@ namespace Microsoft.Dafny {
 
     protected override void EmitLiteralExpr(ConcreteSyntaxTree wr, LiteralExpr e) {
       if (e is StaticReceiverExpr) {
-        wr.Write(TypeName(e.Type, wr, e.tok));
+        wr.Write(TypeName(e.Type, wr, e.Tok));
       } else if (e.Value == null) {
         wr.Write("null");
       } else if (e.Value is bool) {

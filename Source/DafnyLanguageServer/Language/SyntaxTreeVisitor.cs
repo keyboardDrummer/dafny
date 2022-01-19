@@ -489,7 +489,7 @@
           Visit(letExpression);
           break;
         default:
-          VisitUnknown(expression, expression.tok);
+          VisitUnknown(expression, expression.Tok);
           break;
       }
     }

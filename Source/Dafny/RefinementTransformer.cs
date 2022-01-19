@@ -621,19 +621,19 @@ namespace Microsoft.Dafny {
       Contract.Requires(prev != null);
 
       if (nw.Requires.Count != 0) {
-        reporter.Error(MessageSource.RefinementTransformer, nw.Requires[0].E.tok, "a refining iterator is not allowed to add preconditions");
+        reporter.Error(MessageSource.RefinementTransformer, nw.Requires[0].E.Tok, "a refining iterator is not allowed to add preconditions");
       }
       if (nw.YieldRequires.Count != 0) {
-        reporter.Error(MessageSource.RefinementTransformer, nw.YieldRequires[0].E.tok, "a refining iterator is not allowed to add yield preconditions");
+        reporter.Error(MessageSource.RefinementTransformer, nw.YieldRequires[0].E.Tok, "a refining iterator is not allowed to add yield preconditions");
       }
       if (nw.Reads.Expressions.Count != 0) {
-        reporter.Error(MessageSource.RefinementTransformer, nw.Reads.Expressions[0].E.tok, "a refining iterator is not allowed to extend the reads clause");
+        reporter.Error(MessageSource.RefinementTransformer, nw.Reads.Expressions[0].E.Tok, "a refining iterator is not allowed to extend the reads clause");
       }
       if (nw.Modifies.Expressions.Count != 0) {
-        reporter.Error(MessageSource.RefinementTransformer, nw.Modifies.Expressions[0].E.tok, "a refining iterator is not allowed to extend the modifies clause");
+        reporter.Error(MessageSource.RefinementTransformer, nw.Modifies.Expressions[0].E.Tok, "a refining iterator is not allowed to extend the modifies clause");
       }
       if (nw.Decreases.Expressions.Count != 0) {
-        reporter.Error(MessageSource.RefinementTransformer, nw.Decreases.Expressions[0].tok, "a refining iterator is not allowed to extend the decreases clause");
+        reporter.Error(MessageSource.RefinementTransformer, nw.Decreases.Expressions[0].Tok, "a refining iterator is not allowed to extend the decreases clause");
       }
 
       if (nw.SignatureIsOmitted) {
@@ -752,13 +752,13 @@ namespace Microsoft.Dafny {
             } else {
               var prevFunction = (Function)member;
               if (f.Req.Count != 0) {
-                reporter.Error(MessageSource.RefinementTransformer, f.Req[0].E.tok, "a refining {0} is not allowed to add preconditions", f.WhatKind);
+                reporter.Error(MessageSource.RefinementTransformer, f.Req[0].E.Tok, "a refining {0} is not allowed to add preconditions", f.WhatKind);
               }
               if (f.Reads.Count != 0) {
-                reporter.Error(MessageSource.RefinementTransformer, f.Reads[0].E.tok, "a refining {0} is not allowed to extend the reads clause", f.WhatKind);
+                reporter.Error(MessageSource.RefinementTransformer, f.Reads[0].E.Tok, "a refining {0} is not allowed to extend the reads clause", f.WhatKind);
               }
               if (f.Decreases.Expressions.Count != 0) {
-                reporter.Error(MessageSource.RefinementTransformer, f.Decreases.Expressions[0].tok, "decreases clause on refining {0} not supported", f.WhatKind);
+                reporter.Error(MessageSource.RefinementTransformer, f.Decreases.Expressions[0].Tok, "decreases clause on refining {0} not supported", f.WhatKind);
               }
 
               if (prevFunction.HasStaticKeyword != f.HasStaticKeyword) {
@@ -803,10 +803,10 @@ namespace Microsoft.Dafny {
             } else {
               var prevMethod = (Method)member;
               if (m.Req.Count != 0) {
-                reporter.Error(MessageSource.RefinementTransformer, m.Req[0].E.tok, "a refining method is not allowed to add preconditions");
+                reporter.Error(MessageSource.RefinementTransformer, m.Req[0].E.Tok, "a refining method is not allowed to add preconditions");
               }
               if (m.Mod.Expressions.Count != 0) {
-                reporter.Error(MessageSource.RefinementTransformer, m.Mod.Expressions[0].E.tok, "a refining method is not allowed to extend the modifies clause");
+                reporter.Error(MessageSource.RefinementTransformer, m.Mod.Expressions[0].E.Tok, "a refining method is not allowed to extend the modifies clause");
               }
               // If the previous method was not specified with "decreases *", then the new method is not allowed to provide any "decreases" clause.
               // Any "decreases *" clause is not inherited, so if the previous method was specified with "decreases *", then the new method needs
@@ -819,7 +819,7 @@ namespace Microsoft.Dafny {
               } else {
                 if (!Contract.Exists(prevMethod.Decreases.Expressions, e => e is WildcardExpr)) {
                   // If the previous loop was not specified with "decreases *", then the new loop is not allowed to provide any "decreases" clause.
-                  reporter.Error(MessageSource.RefinementTransformer, m.Decreases.Expressions[0].tok, "decreases clause on refining method not supported, unless the refined method was specified with 'decreases *'");
+                  reporter.Error(MessageSource.RefinementTransformer, m.Decreases.Expressions[0].Tok, "decreases clause on refining method not supported, unless the refined method was specified with 'decreases *'");
                 }
                 decreases = m.Decreases;
               }
@@ -1147,7 +1147,7 @@ namespace Microsoft.Dafny {
                   reporter.Info(MessageSource.RefinementTransformer, c.ConditionEllipsis, Printer.GuardToString(false, oldWhile.Guard));
                 } else {
                   if (oldWhile.Guard != null) {
-                    reporter.Error(MessageSource.RefinementTransformer, skel.Guard.tok, "a skeleton while statement with a guard can only replace a while statement with a non-deterministic guard");
+                    reporter.Error(MessageSource.RefinementTransformer, skel.Guard.Tok, "a skeleton while statement with a guard can only replace a while statement with a non-deterministic guard");
                   }
                   guard = skel.Guard;
                 }
@@ -1226,7 +1226,7 @@ namespace Microsoft.Dafny {
               body.Add(cNew);
               i++; j++;
               if (addedAssert != null) {
-                var tok = new Translator.ForceCheckToken(addedAssert.tok);
+                var tok = new Translator.ForceCheckToken(addedAssert.Tok);
                 body.Add(new AssertStmt(tok, tok, addedAssert, null, null, null));
               }
             } else {
@@ -1283,7 +1283,7 @@ namespace Microsoft.Dafny {
                 doMerge = true;
                 stmtGenerated.Add(nw);
                 var addedAssert = refinementCloner.CloneExpr(s.Expr);
-                var tok = new Translator.ForceCheckToken(addedAssert.tok);
+                var tok = new Translator.ForceCheckToken(addedAssert.Tok);
                 stmtGenerated.Add(new AssertStmt(tok, tok, addedAssert, null, null, null));
               }
             }
@@ -1456,7 +1456,7 @@ namespace Microsoft.Dafny {
       } else {
         if (!Contract.Exists(cOld.Decreases.Expressions, e => e is WildcardExpr)) {
           // If the previous loop was not specified with "decreases *", then the new loop is not allowed to provide any "decreases" clause.
-          reporter.Error(MessageSource.RefinementTransformer, cNew.Decreases.Expressions[0].tok, "a refining loop can provide a decreases clause only if the loop being refined was declared with 'decreases *'");
+          reporter.Error(MessageSource.RefinementTransformer, cNew.Decreases.Expressions[0].Tok, "a refining loop can provide a decreases clause only if the loop being refined was declared with 'decreases *'");
         }
         decr = cNew.Decreases;
       }
@@ -1573,16 +1573,16 @@ namespace Microsoft.Dafny {
           Contract.Assert(ident.Var is LocalVariable || ident.Var is Formal); // LHS identifier expressions must be locals or out parameters (ie. formals)
           if ((ident.Var is LocalVariable && RefinementToken.IsInherited(((LocalVariable)ident.Var).Tok, m)) || ident.Var is Formal) {
             // for some reason, formals are not considered to be inherited.
-            reporter.Error(MessageSource.RefinementTransformer, l.tok, "refinement method cannot assign to variable defined in parent module ('{0}')", ident.Var.Name);
+            reporter.Error(MessageSource.RefinementTransformer, l.Tok, "refinement method cannot assign to variable defined in parent module ('{0}')", ident.Var.Name);
           }
         } else if (l is MemberSelectExpr) {
           var member = ((MemberSelectExpr)l).Member;
           if (RefinementToken.IsInherited(member.Tok, m)) {
-            reporter.Error(MessageSource.RefinementTransformer, l.tok, "refinement method cannot assign to a field defined in parent module ('{0}')", member.Name);
+            reporter.Error(MessageSource.RefinementTransformer, l.Tok, "refinement method cannot assign to a field defined in parent module ('{0}')", member.Name);
           }
         } else {
           // must be an array element
-          reporter.Error(MessageSource.RefinementTransformer, l.tok, "new assignments in a refinement method can only assign to state that the module defines (which never includes array elements)");
+          reporter.Error(MessageSource.RefinementTransformer, l.Tok, "new assignments in a refinement method can only assign to state that the module defines (which never includes array elements)");
         }
       }
       if (stmt is UpdateStmt) {

@@ -1372,7 +1372,7 @@ namespace Microsoft.Dafny {
 
     protected override void EmitLiteralExpr(ConcreteSyntaxTree wr, LiteralExpr e) {
       if (e is StaticReceiverExpr) {
-        wr.Write(TypeName(e.Type, wr, e.tok));
+        wr.Write(TypeName(e.Type, wr, e.Tok));
       } else if (e.Value == null) {
         EmitNullText(e.Type, wr);
       } else if (e.Value is bool) {
@@ -1809,9 +1809,9 @@ namespace Microsoft.Dafny {
             udt.ResolvedClass is TypeSynonymDecl tsd) {
           // Hack to workaround type synonyms wrapped around the actual array type
           // TODO: Come up with a more systematic way of resolving this!
-          typeName = TypeName(tsd.Rhs.TypeArgs[0], wr, source.tok, null, false);
+          typeName = TypeName(tsd.Rhs.TypeArgs[0], wr, source.Tok, null, false);
         } else {
-          typeName = TypeName(source.Type.TypeArgs[0], wr, source.tok, null, false);
+          typeName = TypeName(source.Type.TypeArgs[0], wr, source.Tok, null, false);
         }
         if (lo == null) {
           if (hi == null) {
@@ -1854,7 +1854,7 @@ namespace Microsoft.Dafny {
     }
 
     protected override void EmitSeqConstructionExpr(SeqConstructionExpr expr, bool inLetExprBody, ConcreteSyntaxTree wr) {
-      wr.Write("DafnySequence<{0}>::Create(", TypeName(expr.Type, wr, expr.tok, null, false));
+      wr.Write("DafnySequence<{0}>::Create(", TypeName(expr.Type, wr, expr.Tok, null, false));
       TrExpr(expr.N, wr, inLetExprBody);
       wr.Write(", ");
       TrExpr(expr.Initializer, wr, inLetExprBody);
@@ -1862,7 +1862,7 @@ namespace Microsoft.Dafny {
     }
 
     protected override void EmitMultiSetFormingExpr(MultiSetFormingExpr expr, bool inLetExprBody, ConcreteSyntaxTree wr) {
-      throw NotSupported("MultiSetFormingExpr", expr.tok);
+      throw NotSupported("MultiSetFormingExpr", expr.Tok);
     }
 
     protected override void EmitApplyExpr(Type functionType, Bpl.IToken tok, Expression function, List<Expression> arguments, bool inLetExprBody, ConcreteSyntaxTree wr) {
@@ -2200,7 +2200,7 @@ namespace Microsoft.Dafny {
     protected override void EmitConversionExpr(ConversionExpr e, bool inLetExprBody, ConcreteSyntaxTree wr) {
       if (e.E.Type.IsNumericBased(Type.NumericPersuasion.Int) || e.E.Type.IsBitVectorType || e.E.Type.IsCharType) {
         if (e.ToType.IsNumericBased(Type.NumericPersuasion.Real)) {
-          throw NotSupported("Real numbers", e.tok);
+          throw NotSupported("Real numbers", e.Tok);
         } else if (e.ToType.IsCharType) {
           wr.Write("_dafny.Char(");
           TrParenExpr(e.E, wr, inLetExprBody);
@@ -2335,11 +2335,11 @@ namespace Microsoft.Dafny {
 
     protected override void EmitSetBuilder_New(ConcreteSyntaxTree wr, SetComprehension e, string collectionName) {
       var wrVarInit = DeclareLocalVar(collectionName, null, null, wr);
-      wrVarInit.Write("DafnySet<{0}>()", TypeName(e.Type.AsSetType.Arg, wrVarInit, e.tok, null, false));
+      wrVarInit.Write("DafnySet<{0}>()", TypeName(e.Type.AsSetType.Arg, wrVarInit, e.Tok, null, false));
     }
 
     protected override void EmitMapBuilder_New(ConcreteSyntaxTree wr, MapComprehension e, string collectionName) {
-      throw NotSupported("EmitMapBuilder_New", e.tok);
+      throw NotSupported("EmitMapBuilder_New", e.Tok);
     }
 
     protected override void EmitSetBuilder_Add(CollectionType ct, string collName, Expression elmt, bool inLetExprBody, ConcreteSyntaxTree wr) {
@@ -2362,7 +2362,7 @@ namespace Microsoft.Dafny {
     }
 
     protected override void EmitSingleValueGenerator(Expression e, bool inLetExprBody, string type, ConcreteSyntaxTree wr) {
-      throw NotSupported("EmitSingleValueGenerator", e.tok);
+      throw NotSupported("EmitSingleValueGenerator", e.Tok);
     }
 
     // ----- Target compilation and execution -------------------------------------------------------------

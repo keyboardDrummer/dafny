@@ -10,6 +10,24 @@ namespace DafnyPipeline.Test;
 
 public class TypeTransformerUser {
   [Fact]
+  public void Deghosting() {
+    var usings = new [] {
+      SyntaxFactory.UsingDirective(
+        SyntaxFactory.NameEquals(SyntaxFactory.IdentifierName("IToken")), 
+        SyntaxFactory.ParseName("Microsoft.Boogie.IToken")), 
+      SyntaxFactory.UsingDirective(SyntaxFactory.ParseName("System.Collections.Generic"))
+    };
+    
+    TypeTransformer.TransformType(new Uri("/Users/rwillems/Documents/SourceCode/dafny/Source/Dafny/AST/DafnyAst2.cs"),
+      "Microsoft.Dafny.V2", "Microsoft.Dafny", usings,true, false, 
+      typeof(Program), TypeTransformer.GetUnionsInNamespace(typeof(Program)), 
+      new Dictionary<Type, TypeMutation>() {
+        { typeof(MemberDecl), new TypeMutation(new HashSet<string>() { nameof(MemberDecl.IsGhost)}, new Dictionary<string, Type>() {
+        })}
+      });
+  }
+  
+  [Fact]
   public void Use() {
     var usings = new [] {
       SyntaxFactory.UsingDirective(

@@ -179,7 +179,7 @@ public Parser(Scanner/*!*/ scanner, Errors/*!*/ errors, Include include, ModuleD
   // initialize readonly fields
   dummyExpr = new LiteralExpr(Token.NoToken);
   dummyRhs = new ExprRhs(dummyExpr, null);
-  dummyFrameExpr = new FrameExpression(dummyExpr.tok, dummyExpr, null);
+  dummyFrameExpr = new FrameExpression(dummyExpr.Tok, dummyExpr, null);
   dummyStmt = new ReturnStmt(Token.NoToken, Token.NoToken, null);
   var dummyBlockStmt = new BlockStmt(Token.NoToken, Token.NoToken, new List<Statement>());
   dummyIfStmt = new IfStmt(Token.NoToken, Token.NoToken, false, null, dummyBlockStmt, null);
@@ -878,7 +878,7 @@ Dafny
 		   var fileName = DafnyOptions.Clo.UseBaseNameForFileName 
                    ? Path.GetFileName(scanner.FullFilename) 
                    : Path.GetRelativePath(Directory.GetCurrentDirectory(), scanner.FullFilename);
-		   errors.Warning(defaultModule.tok, "File contains no code: " + fileName);
+		   errors.Warning(defaultModule.Tok, "File contains no code: " + fileName);
 		 }
      DefaultClassDecl defaultClass = null;
      foreach (TopLevelDecl topleveldecl in defaultModule.TopLevelDecls) {
@@ -945,7 +945,7 @@ SubModuleDecl<DeclModifierData dmod, ModuleDefinition parent, out ModuleDecl sub
   ( ModuleDefinition<dmod, parent, out submodule>
   | ModuleImport<parent, out submodule>
   | ModuleExport<parent, out submodule>
-    (. if (isTopLevel) SemErr(submodule.tok, "There is no point to an export declaration at the top level");
+    (. if (isTopLevel) SemErr(submodule.Tok, "There is no point to an export declaration at the top level");
     .)
   )
   .
@@ -1838,7 +1838,7 @@ ReadsClause<.List<FrameExpression/*!*/>/*!*/ reads,
   { "," PossiblyWildFrameExpression<out fe, allowLemma, allowLambda, allowWild>    (. reads.Add(fe); .)
   }
   (. if (allowWild && reads.Count > 1 && reads.Exists(fe => fe.E is WildcardExpr)) {
-       SemErr(fe.tok, "A 'reads' clause that contains '*' is not allowed to contain any other expressions");
+       SemErr(fe.Tok, "A 'reads' clause that contains '*' is not allowed to contain any other expressions");
      }
   .)
   OldSemi
@@ -2098,7 +2098,7 @@ NamedType<out Type ty, out IToken tok, bool inExpressionContext> =
     OptGenericInstantiation<out typeArgs, inExpressionContext>
     (. e = new ExprDotName(tok, e, tok.val, typeArgs); .)
   }
-  (. ty = new UserDefinedType(e.tok, e); .)
+  (. ty = new UserDefinedType(e.Tok, e); .)
   .
 
 /*------------------------------------------------------------------------*/
@@ -2264,7 +2264,7 @@ FunctionDecl<DeclModifierData dmod, out Function/*!*/ f>
      if (byMethodBody == null && !isFunctionMethod) {
        foreach (var formal in formals) {
          if (formal.IsGhost) {
-           SemErr(formal.tok, "formal cannot be declared 'ghost' in this context");
+           SemErr(formal.Tok, "formal cannot be declared 'ghost' in this context");
          }
        }
      }
@@ -2332,7 +2332,7 @@ PossiblyWildExpression<out Expression e, bool allowLambda, bool allowWild>
    */
   ( "*"                        (. e = new WildcardExpr(t);
                                   if (!allowWild) {
-                                    SemErr(e.tok, "A '*' expression is not allowed here");
+                                    SemErr(e.Tok, "A '*' expression is not allowed here");
                                   }
                                .)
   | Expression<out e, false, allowLambda>
@@ -2369,7 +2369,7 @@ FrameExpression<out FrameExpression fe, bool allowLemma, bool allowLambda>
      IToken feTok = null;
      fe = dummyFrameExpr;
   .)
-  ( Expression<out e, allowLemma, allowLambda>   (. feTok = e.tok; .)
+  ( Expression<out e, allowLemma, allowLambda>   (. feTok = e.Tok; .)
     [ FrameField<out id>        (. fieldName = id.val;  feTok = id; .)
     ]                           (. fe = new FrameExpression(feTok, e, fieldName); .)
   |
@@ -2541,7 +2541,7 @@ UpdateStmt<out Statement/*!*/ s>
      IToken keywordToken = null;
      Expression exceptionExpr = null;
   .)
-( Lhs<out e>                       (. x = e.tok; .)
+( Lhs<out e>                       (. x = e.Tok; .)
   ( { Attribute<ref attrs> }
     ";"                            (. endTok = t; rhss.Add(new ExprRhs(e, attrs)); .)
   |                                (. lhss.Add(e); .)
@@ -2739,12 +2739,12 @@ VarDeclStatement<.out Statement/*!*/ s.>
     CasePatternLocal<out pat, isGhost>
     ( ":="
     | { Attribute<ref attrs> }
-      ":|"                          (.  SemErr(pat.tok, "LHS of assign-such-that expression must be variables, not general patterns"); .)
+      ":|"                          (.  SemErr(pat.Tok, "LHS of assign-such-that expression must be variables, not general patterns"); .)
     )
     Expression<out e, false, true>
 
     ";"
-    (. s = new VarDeclPattern(e.tok, e.tok, pat, e, isGhost); .)
+    (. s = new VarDeclPattern(e.Tok, e.Tok, pat, e, isGhost); .)
   )
   .
 
@@ -2882,7 +2882,7 @@ WhileStmt<out Statement stmt>
     (.
       if (guardEllipsis != null || bodyEllipsis != null) {
         if (mod != null) {
-          SemErr(mod[0].E.tok, "'modifies' clauses are not allowed on refining loops");
+          SemErr(mod[0].E.Tok, "'modifies' clauses are not allowed on refining loops");
         }
         if (body == null && !isDirtyLoop) {
           body = new BlockStmt(x, endTok, new List<Statement>());
@@ -2974,7 +2974,7 @@ DecreasesList<.List<Expression> decreases, bool allowWildcard, bool allowLambda.
   { "," PossiblyWildExpression<out e, allowLambda, allowWildcard> (. decreases.Add(e); .)
   }
   (. if (allowWildcard && decreases.Count > 1 && decreases.Exists(e => e is WildcardExpr)) {
-       SemErr(e.tok, "A 'decreases' clause that contains '*' is not allowed to contain any other expressions");
+       SemErr(e.Tok, "A 'decreases' clause that contains '*' is not allowed to contain any other expressions");
      }
   .)
   .
@@ -2995,7 +2995,7 @@ BindingGuard<out Expression e, bool allowLambda>
      Attributes attrs = null;
      Expression body;
   .)
-  IdentTypeOptional<out bv>                    (. bvars.Add(bv); x = bv.tok; .)
+  IdentTypeOptional<out bv>                    (. bvars.Add(bv); x = bv.Tok; .)
   { ","
     IdentTypeOptional<out bv>                  (. bvars.Add(bv); .)
   }
@@ -3032,8 +3032,8 @@ ExtendedPattern<.out ExtendedPattern pat.>
       ]
      ")"
                                            (. pat = new IdPattern(id, id.val, arguments); .)
-  | PossiblyNegatedLiteralExpr<out lit>    (. pat = new LitPattern(lit.tok, lit); .)
-  | IdentTypeOptional<out bv>              (. pat = new IdPattern(bv.tok, bv.Name, bv.SyntacticType, null); .)
+  | PossiblyNegatedLiteralExpr<out lit>    (. pat = new LitPattern(lit.Tok, lit); .)
+  | IdentTypeOptional<out bv>              (. pat = new IdPattern(bv.Tok, bv.Name, bv.SyntacticType, null); .)
   )
   (. // In case of parsing errors, make sure 'pat' still returns as non-null
     if (pat == null) {
@@ -3391,8 +3391,8 @@ Expression<out Expression e, bool allowLemma, bool allowLambda, bool allowBitwis
     /* here we parse the ";E" that is part of a "LemmaCall;E" expression (other "S;E" expressions are parsed elsewhere) */
     ";"                       (. endTok = t; .)
     Expression<out e0, allowLemma, allowLambda>
-    (. e = new StmtExpr(e.tok,
-             new UpdateStmt(e.tok, endTok, new List<Expression>(), new List<AssignmentRhs>() { new ExprRhs(e, null) }),
+    (. e = new StmtExpr(e.Tok,
+             new UpdateStmt(e.Tok, endTok, new List<Expression>(), new List<AssignmentRhs>() { new ExprRhs(e, null) }),
              e0);
     .)
   ]
@@ -3860,7 +3860,7 @@ LambdaSpec<.ref List<FrameExpression> reads, ref Expression req.>
 = { ReadsClause<reads, true, false, true>
   | "requires"                             (. Attributes attrs = null; .)
     { Attribute<ref attrs> }               (. Expression ee; .)
-    Expression<out ee, true, false>        (. req = req == null ? ee : new BinaryExpr(req.tok, BinaryExpr.Opcode.And, req, ee); .)
+    Expression<out ee, true, false>        (. req = req == null ? ee : new BinaryExpr(req.Tok, BinaryExpr.Opcode.And, req, ee); .)
   }
   .
 
@@ -4058,9 +4058,9 @@ IfExpression<out Expression e, bool allowLemma, bool allowLambda, bool allowBitw
                      var exists = (ExistsExpr) e;
                      var LHSs = new List<CasePattern<BoundVar>>();
                      foreach (var v in exists.BoundVars) {
-                       LHSs.Add(new CasePattern<BoundVar>(e.tok, v));
+                       LHSs.Add(new CasePattern<BoundVar>(e.Tok, v));
                      }
-                     e0 = new LetExpr(e.tok, LHSs, new List<Expression>() {
+                     e0 = new LetExpr(e.Tok, LHSs, new List<Expression>() {
                        exists.Term }, e0, false);
                      }
                      e = new ITEExpr(x, isBindingGuard, e, e0, e1);
@@ -4111,7 +4111,7 @@ LetExprWithLHS<out Expression e, bool allowLemma, bool allowLambda, bool allowBi
       ":|"                          (. exact = false;
                                        foreach (var lhs in letLHSs) {
                                          if (lhs.Arguments != null) {
-                                           SemErr(lhs.tok, "LHS of let-such-that expression must be variables, not general patterns");
+                                           SemErr(lhs.Tok, "LHS of let-such-that expression must be variables, not general patterns");
                                          }
                                        }
                                     .)
@@ -4221,7 +4221,7 @@ CasePattern<.out CasePattern<BoundVar> pat.>
                                           // later if resolution finds the CasePattern to denote a parameter-less constructor), because this
                                           // (in particular, bv.IsGhost) is the place where a LetExpr records whether or not the "ghost"
                                           // keyword was used in the declaration.
-                                          pat = new CasePattern<BoundVar>(bv.tok, bv);
+                                          pat = new CasePattern<BoundVar>(bv.Tok, bv);
                                        .)
   )
   (. // In case of parsing errors, make sure 'pat' still returns as non-null

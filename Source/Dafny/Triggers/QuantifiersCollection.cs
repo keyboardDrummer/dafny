@@ -248,12 +248,12 @@ namespace Microsoft.Dafny.Triggers {
           QuantifierWithTriggers q = group.quantifier;
           if (q.quantifier is ForallExpr) {
             ForallExpr quantifier = (ForallExpr)q.quantifier;
-            Expression expr = QuantifiersToExpression(quantifier.tok, BinaryExpr.ResolvedOpcode.And, group.expressions);
-            q.quantifier = new ForallExpr(quantifier.tok, quantifier.BodyEndTok, quantifier.TypeArgs, quantifier.BoundVars, quantifier.Range, expr, TriggerUtils.CopyAttributes(quantifier.Attributes)) { Type = quantifier.Type, Bounds = quantifier.Bounds };
+            Expression expr = QuantifiersToExpression(quantifier.Tok, BinaryExpr.ResolvedOpcode.And, group.expressions);
+            q.quantifier = new ForallExpr(quantifier.Tok, quantifier.BodyEndTok, quantifier.TypeArgs, quantifier.BoundVars, quantifier.Range, expr, TriggerUtils.CopyAttributes(quantifier.Attributes)) { Type = quantifier.Type, Bounds = quantifier.Bounds };
           } else if (q.quantifier is ExistsExpr) {
             ExistsExpr quantifier = (ExistsExpr)q.quantifier;
-            Expression expr = QuantifiersToExpression(quantifier.tok, BinaryExpr.ResolvedOpcode.Or, group.expressions);
-            q.quantifier = new ExistsExpr(quantifier.tok, quantifier.BodyEndTok, quantifier.TypeArgs, quantifier.BoundVars, quantifier.Range, expr, TriggerUtils.CopyAttributes(quantifier.Attributes)) { Type = quantifier.Type, Bounds = quantifier.Bounds };
+            Expression expr = QuantifiersToExpression(quantifier.Tok, BinaryExpr.ResolvedOpcode.Or, group.expressions);
+            q.quantifier = new ExistsExpr(quantifier.Tok, quantifier.BodyEndTok, quantifier.TypeArgs, quantifier.BoundVars, quantifier.Range, expr, TriggerUtils.CopyAttributes(quantifier.Attributes)) { Type = quantifier.Type, Bounds = quantifier.Bounds };
           }
           list.Add(q);
           splits.Add(q.quantifier);
@@ -324,7 +324,7 @@ namespace Microsoft.Dafny.Triggers {
 
       if (msg.Length > 0) {
         var msgStr = msg.ToString().TrimEnd("\r\n ".ToCharArray());
-        reporter.Message(MessageSource.Rewriter, errorLevel, q.quantifier.tok, msgStr);
+        reporter.Message(MessageSource.Rewriter, errorLevel, q.quantifier.Tok, msgStr);
       }
     }
 

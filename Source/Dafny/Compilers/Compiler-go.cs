@@ -1749,7 +1749,7 @@ namespace Microsoft.Dafny {
     protected override void EmitReturnExpr(Expression expr, Type resultType, bool inLetExprBody, ConcreteSyntaxTree wr) {
       var w = EmitReturnExpr(wr);
       var fromType = thisContext == null ? expr.Type : Resolver.SubstType(expr.Type, thisContext.ParentFormalTypeParametersToActuals);
-      w = EmitCoercionIfNecessary(fromType, resultType, expr.tok, w);
+      w = EmitCoercionIfNecessary(fromType, resultType, expr.Tok, w);
       TrExpr(expr, w, inLetExprBody);
     }
 
@@ -1972,9 +1972,9 @@ namespace Microsoft.Dafny {
 
     protected override void EmitLiteralExpr(ConcreteSyntaxTree wr, LiteralExpr e) {
       if (e is StaticReceiverExpr) {
-        wr.Write("{0}", TypeName_Companion(((UserDefinedType)e.Type).ResolvedClass, wr, e.tok));
+        wr.Write("{0}", TypeName_Companion(((UserDefinedType)e.Type).ResolvedClass, wr, e.Tok));
       } else if (e.Value == null) {
-        wr.Write("({0})(nil)", TypeName(e.Type, wr, e.tok));
+        wr.Write("({0})(nil)", TypeName(e.Type, wr, e.Tok));
       } else if (e.Value is bool) {
         wr.Write((bool)e.Value ? "true" : "false");
       } else if (e is CharLiteralExpr) {
@@ -2326,10 +2326,10 @@ namespace Microsoft.Dafny {
       wr.Write("(func () {0} {{ if ", TypeName(resultType, wr, null));
       TrExpr(guard, wr, inLetExprBody);
       wr.Write(" { return ");
-      var wBranch = EmitCoercionIfNecessary(thn.Type, resultType, thn.tok, wr);
+      var wBranch = EmitCoercionIfNecessary(thn.Type, resultType, thn.Tok, wr);
       TrExpr(thn, wBranch, inLetExprBody);
       wr.Write(" }; return ");
-      wBranch = EmitCoercionIfNecessary(els.Type, resultType, thn.tok, wr);
+      wBranch = EmitCoercionIfNecessary(els.Type, resultType, thn.Tok, wr);
       TrExpr(els, wBranch, inLetExprBody);
       wr.Write(" })() ");
     }
@@ -2698,9 +2698,9 @@ namespace Microsoft.Dafny {
       wr.Write(", ");
       var fromType = (UserDefinedType)expr.Initializer.Type.NormalizeExpand();
       var atd = (ArrowTypeDecl)fromType.ResolvedClass;
-      var tParam = new UserDefinedType(expr.tok, new TypeParameter(expr.tok, "X", TypeParameter.TPVarianceSyntax.NonVariant_Strict));
-      var toType = new ArrowType(expr.tok, atd, new List<Type>() { Type.Int }, tParam);
-      var initWr = EmitCoercionIfNecessary(fromType, toType, expr.tok, wr);
+      var tParam = new UserDefinedType(expr.Tok, new TypeParameter(expr.Tok, "X", TypeParameter.TPVarianceSyntax.NonVariant_Strict));
+      var toType = new ArrowType(expr.Tok, atd, new List<Type>() { Type.Int }, tParam);
+      var initWr = EmitCoercionIfNecessary(fromType, toType, expr.Tok, wr);
       TrExpr(expr.Initializer, initWr, inLetExprBody);
       wr.Write(")");
     }

@@ -219,7 +219,7 @@ namespace DafnyServer {
           Module = userType.ResolvedClass.EnclosingModuleDefinition.CompileName,
           Call = reveiverName + "." + callStmt.MethodSelect.Member,
           SymbolType = SymbolInformation.Type.Call,
-          StartToken = callStmt.MethodSelect.tok
+          StartToken = callStmt.MethodSelect.Tok
         });
       }
     }
@@ -245,7 +245,7 @@ namespace DafnyServer {
           Module = type.ResolvedClass.EnclosingModuleDefinition.CompileName,
           Call = designator + "." + exprDotName.SuffixName,
           SymbolType = SymbolInformation.Type.Call,
-          StartToken = exprDotName.tok
+          StartToken = exprDotName.Tok
         });
       }
     }
@@ -323,7 +323,7 @@ namespace DafnyServer {
                   moduleName == type.ResolvedClass.EnclosingModuleDefinition.CompileName) {
                 information.Add(new ReferenceInformation {
                   MethodName = exprDotName.SuffixName,
-                  StartToken = exprDotName.tok,
+                  StartToken = exprDotName.Tok,
                   ReferencedName = exprDotName.SuffixName
 
                 });
@@ -339,7 +339,7 @@ namespace DafnyServer {
                   moduleName == memberAcc.Member.EnclosingClass.EnclosingModuleDefinition.CompileName) {
                 information.Add(new ReferenceInformation {
                   MethodName = memberAcc.MemberName,
-                  StartToken = memberAcc.tok,
+                  StartToken = memberAcc.Tok,
                   ReferencedName = memberAcc.MemberName
                 });
               }
@@ -361,7 +361,7 @@ namespace DafnyServer {
           var callStmt = (CallStmt)statement;
           if (callStmt.Method.FullName == methodToFind) {
             information.Add(new ReferenceInformation {
-              StartToken = callStmt.MethodSelect.tok,
+              StartToken = callStmt.MethodSelect.Tok,
               MethodName = currentMethodName,
               ReferencedName = methodToFind.Split('.')[2]
             });

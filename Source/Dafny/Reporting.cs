@@ -92,7 +92,7 @@ namespace Microsoft.Dafny {
       Contract.Requires(e != null);
       Contract.Requires(msg != null);
       Contract.Requires(args != null);
-      Error(source, e.tok, msg, args);
+      Error(source, e.Tok, msg, args);
     }
 
     public void Warning(MessageSource source, IToken tok, string msg) {

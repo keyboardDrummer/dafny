@@ -135,7 +135,7 @@ namespace Microsoft.Dafny {
                     var ll = (MemberSelectExpr)lhs;
                     Fi = ll.Obj;
                     lhsBuilder = e => {
-                      var l = new MemberSelectExpr(ll.tok, e, ll.MemberName);
+                      var l = new MemberSelectExpr(ll.Tok, e, ll.MemberName);
                       l.Member = ll.Member;
                       l.TypeApplication_AtEnclosingClass = ll.TypeApplication_AtEnclosingClass;
                       l.TypeApplication_JustMember = ll.TypeApplication_JustMember;
@@ -147,10 +147,10 @@ namespace Microsoft.Dafny {
                     Contract.Assert(ll.SelectOne);
                     if (!FreeVariablesUtil.ContainsFreeVariable(ll.Seq, false, i)) {
                       Fi = ll.E0;
-                      lhsBuilder = e => { var l = new SeqSelectExpr(ll.tok, true, ll.Seq, e, null); l.Type = ll.Type; return l; };
+                      lhsBuilder = e => { var l = new SeqSelectExpr(ll.Tok, true, ll.Seq, e, null); l.Type = ll.Type; return l; };
                     } else if (!FreeVariablesUtil.ContainsFreeVariable(ll.E0, false, i)) {
                       Fi = ll.Seq;
-                      lhsBuilder = e => { var l = new SeqSelectExpr(ll.tok, true, e, ll.E0, null); l.Type = ll.Type; return l; };
+                      lhsBuilder = e => { var l = new SeqSelectExpr(ll.Tok, true, e, ll.E0, null); l.Type = ll.Type; return l; };
                     }
                   }
                 }
@@ -297,7 +297,7 @@ namespace Microsoft.Dafny {
         if (!FreeVariablesUtil.ContainsFreeVariable(F, false, i)) {
           // We're looking at R(i) && j == K.
           // We cannot invert j == K, but if we're lucky, R(i) contains a conjunct i==G.
-          Expression r = Expression.CreateBoolLiteral(R.tok, true);
+          Expression r = Expression.CreateBoolLiteral(R.Tok, true);
           Expression G = null;
           foreach (var c in Expression.Conjuncts(R)) {
             if (G == null && c is BinaryExpr) {
@@ -375,7 +375,7 @@ namespace Microsoft.Dafny {
           var r = Expression.CreateAnd(R, ife.Test);
           var valsThen = InvertExpression(i, j, r, ife.Thn);
           if (valsThen != null) {
-            r = Expression.CreateAnd(R, Expression.CreateNot(ife.tok, ife.Test));
+            r = Expression.CreateAnd(R, Expression.CreateNot(ife.Tok, ife.Test));
             var valsElse = InvertExpression(i, j, r, ife.Els);
             if (valsElse != null) {
               foreach (var val in valsThen) { yield return val; }
@@ -705,7 +705,7 @@ namespace Microsoft.Dafny {
             var format = "requires {0}";
             if (m.Mod.Expressions.Count == 0) {
               // modifies Repr
-              m.Mod.Expressions.Add(new FrameExpression(Repr.tok, Repr, null));
+              m.Mod.Expressions.Add(new FrameExpression(Repr.Tok, Repr, null));
               format += "\nmodifies {1}";
               addStatementsToUpdateRepr = true;
             }
@@ -1287,7 +1287,7 @@ namespace Microsoft.Dafny {
           newMatches.Add(c);
         }
 
-        reqs.Add(Expression.CreateMatch(e.tok, e.Source, newMatches, e.Type));
+        reqs.Add(Expression.CreateMatch(e.Tok, e.Source, newMatches, e.Type));
       } else if (expr is SeqConstructionExpr) {
         var e = (SeqConstructionExpr)expr;
         reqs.AddRange(generateAutoReqs(e.N));
@@ -1316,7 +1316,7 @@ namespace Microsoft.Dafny {
             reqs.AddRange(generateAutoReqs(e.E0));
             foreach (var req in generateAutoReqs(e.E1)) {
               // We only care about this req if E0 is false, since Or short-circuits
-              reqs.Add(Expression.CreateImplies(Expression.CreateNot(e.E1.tok, e.E0), req));
+              reqs.Add(Expression.CreateImplies(Expression.CreateNot(e.E1.Tok, e.E0), req));
             }
             break;
 
@@ -1340,7 +1340,7 @@ namespace Microsoft.Dafny {
           }
           var new_reqs = generateAutoReqs(e.Body);
           if (new_reqs.Count > 0) {
-            reqs.Add(Expression.CreateLet(e.tok, e.LHSs, e.RHSs, andify(e.tok, new_reqs), e.Exact));
+            reqs.Add(Expression.CreateLet(e.Tok, e.LHSs, e.RHSs, andify(e.Tok, new_reqs), e.Exact));
           }
         } else {
           // TODO: Still need to figure out what the right choice is here:
@@ -1356,10 +1356,10 @@ namespace Microsoft.Dafny {
 
         var auto_reqs = generateAutoReqs(e.Term);
         if (auto_reqs.Count > 0) {
-          Expression allReqsSatisfied = andify(e.Term.tok, auto_reqs);
+          Expression allReqsSatisfied = andify(e.Term.Tok, auto_reqs);
           Expression allReqsSatisfiedAndTerm = Expression.CreateAnd(allReqsSatisfied, e.Term);
           e.UpdateTerm(allReqsSatisfiedAndTerm);
-          reporter.Info(MessageSource.Rewriter, e.tok, "autoreq added (" + Printer.ExtendedExprToString(allReqsSatisfied) + ") &&");
+          reporter.Info(MessageSource.Rewriter, e.Tok, "autoreq added (" + Printer.ExtendedExprToString(allReqsSatisfied) + ") &&");
         }
       } else if (expr is SetComprehension) {
         var e = (SetComprehension)expr;
@@ -1369,7 +1369,7 @@ namespace Microsoft.Dafny {
         //reqs.AddRange(generateAutoReqs(e.Range));
         var auto_reqs = generateAutoReqs(e.Term);
         if (auto_reqs.Count > 0) {
-          reqs.Add(Expression.CreateQuantifier(new ForallExpr(e.tok, e.BodyEndTok, new List<TypeParameter>(), e.BoundVars, e.Range, andify(e.Term.tok, auto_reqs), e.Attributes), true));
+          reqs.Add(Expression.CreateQuantifier(new ForallExpr(e.Tok, e.BodyEndTok, new List<TypeParameter>(), e.BoundVars, e.Range, andify(e.Term.Tok, auto_reqs), e.Attributes), true));
         }
       } else if (expr is MapComprehension) {
         var e = (MapComprehension)expr;
@@ -1382,7 +1382,7 @@ namespace Microsoft.Dafny {
         }
         auto_reqs.AddRange(generateAutoReqs(e.Term));
         if (auto_reqs.Count > 0) {
-          reqs.Add(Expression.CreateQuantifier(new ForallExpr(e.tok, e.BodyEndTok, new List<TypeParameter>(), e.BoundVars, e.Range, andify(e.Term.tok, auto_reqs), e.Attributes), true));
+          reqs.Add(Expression.CreateQuantifier(new ForallExpr(e.Tok, e.BodyEndTok, new List<TypeParameter>(), e.BoundVars, e.Range, andify(e.Term.Tok, auto_reqs), e.Attributes), true));
         }
       } else if (expr is StmtExpr) {
         var e = (StmtExpr)expr;
@@ -1390,14 +1390,14 @@ namespace Microsoft.Dafny {
       } else if (expr is ITEExpr) {
         ITEExpr e = (ITEExpr)expr;
         reqs.AddRange(generateAutoReqs(e.Test));
-        reqs.Add(Expression.CreateITE(e.Test, andify(e.Thn.tok, generateAutoReqs(e.Thn)), andify(e.Els.tok, generateAutoReqs(e.Els))));
+        reqs.Add(Expression.CreateITE(e.Test, andify(e.Thn.Tok, generateAutoReqs(e.Thn)), andify(e.Els.Tok, generateAutoReqs(e.Els))));
       } else if (expr is NestedMatchExpr) {
         // Generate autoReq on e.ResolvedExpression, but also on the unresolved body in case something (e.g. another cloner) clears the resolved expression
         var e = (NestedMatchExpr)expr;
 
         var autoReqs = generateAutoReqs(e.ResolvedExpression);
-        var newMatch = new NestedMatchExpr(e.tok, e.Source, e.Cases, e.UsesOptionalBraces);
-        newMatch.ResolvedExpression = andify(e.tok, autoReqs);
+        var newMatch = new NestedMatchExpr(e.Tok, e.Source, e.Cases, e.UsesOptionalBraces);
+        newMatch.ResolvedExpression = andify(e.Tok, autoReqs);
         reqs.Add(newMatch);
       } else if (expr is ConcreteSyntaxExpression) {
         var e = (ConcreteSyntaxExpression)expr;
@@ -1506,7 +1506,7 @@ namespace Microsoft.Dafny {
                           current_limit = DafnyOptions.O.TimeLimit > 0 ? DafnyOptions.O.TimeLimit : 10;  // Default to 10 seconds
                           name = "timeLimit";
                         }
-                        Expression newArg = new LiteralExpr(attr.Args[0].tok, value * current_limit);
+                        Expression newArg = new LiteralExpr(attr.Args[0].Tok, value * current_limit);
                         member.Attributes = new Attributes("_" + name, new List<Expression>() { newArg }, attrs);
                         if (Attributes.Contains(attrs, name)) {
                           reporter.Warning(MessageSource.Rewriter, member.Tok, "timeLimitMultiplier annotation overrides " + name + " annotation");
@@ -1558,9 +1558,9 @@ namespace Microsoft.Dafny {
     public override NameSegment CloneNameSegment(Expression expr) {
       var e = (NameSegment)expr;
       if (oldvar != null && e.Name.Equals(oldvar.Name)) {
-        return new NameSegment(new AutoGeneratedToken(e.tok), var.Name, e.OptTypeArguments == null ? null : e.OptTypeArguments.ConvertAll(CloneType));
+        return new NameSegment(new AutoGeneratedToken(e.Tok), var.Name, e.OptTypeArguments == null ? null : e.OptTypeArguments.ConvertAll(CloneType));
       } else {
-        return new NameSegment(Tok(e.tok), e.Name, e.OptTypeArguments == null ? null : e.OptTypeArguments.ConvertAll(CloneType));
+        return new NameSegment(Tok(e.Tok), e.Name, e.OptTypeArguments == null ? null : e.OptTypeArguments.ConvertAll(CloneType));
       }
     }
 
@@ -1572,12 +1572,12 @@ namespace Microsoft.Dafny {
         if (bv.tok is MatchCaseToken) {
           Contract.Assert(e.Args.Count == cp.Arguments.Count);
           for (int i = 0; i < e.Args.Count; i++) {
-            ((MatchCaseToken)bv.tok).AddVar(e.Args[i].tok, cp.Arguments[i].Var, false);
+            ((MatchCaseToken)bv.tok).AddVar(e.Args[i].Tok, cp.Arguments[i].Var, false);
           }
         }
-        return new NameSegment(new AutoGeneratedToken(e.tok), bv.Name, null);
+        return new NameSegment(new AutoGeneratedToken(e.Tok), bv.Name, null);
       } else {
-        return new ApplySuffix(Tok(e.tok), e.AtTok == null ? null : Tok(e.AtTok), CloneExpr(e.Lhs), e.Bindings.ArgumentBindings.ConvertAll(CloneActualBinding));
+        return new ApplySuffix(Tok(e.Tok), e.AtTok == null ? null : Tok(e.AtTok), CloneExpr(e.Lhs), e.Bindings.ArgumentBindings.ConvertAll(CloneActualBinding));
       }
     }
 
@@ -1765,7 +1765,7 @@ namespace Microsoft.Dafny {
               continue;
             }
             if (0 <= j) {
-              reporter.Warning(MessageSource.Rewriter, arg.tok, "{0}s given as :induction arguments must be given in the same order as in the {1}; ignoring attribute",
+              reporter.Warning(MessageSource.Rewriter, arg.Tok, "{0}s given as :induction arguments must be given in the same order as in the {1}; ignoring attribute",
                 lemma != null ? "lemma parameter" : "bound variable", lemma != null ? "lemma" : "quantifier");
               return;
             }
@@ -1776,10 +1776,10 @@ namespace Microsoft.Dafny {
               i = 0;
               continue;
             }
-            reporter.Warning(MessageSource.Rewriter, arg.tok, "lemma parameters given as :induction arguments must be given in the same order as in the lemma; ignoring attribute");
+            reporter.Warning(MessageSource.Rewriter, arg.Tok, "lemma parameters given as :induction arguments must be given in the same order as in the lemma; ignoring attribute");
             return;
           }
-          reporter.Warning(MessageSource.Rewriter, arg.tok, "invalid :induction attribute argument; expected {0}{1}; ignoring attribute",
+          reporter.Warning(MessageSource.Rewriter, arg.Tok, "invalid :induction attribute argument; expected {0}{1}; ignoring attribute",
             i == 0 ? "'false' or 'true' or " : "",
             lemma != null ? "lemma parameter" : "bound variable");
           return;
@@ -1821,7 +1821,7 @@ namespace Microsoft.Dafny {
       protected override void VisitOneExpr(Expression expr) {
         var q = expr as QuantifierExpr;
         if (q != null && q.SplitQuantifier == null) {
-          IndRewriter.ComputeInductionVariables(q.tok, q.BoundVars, new List<Expression>() { q.LogicalBody() }, null, ref q.Attributes);
+          IndRewriter.ComputeInductionVariables(q.Tok, q.BoundVars, new List<Expression>() { q.LogicalBody() }, null, ref q.Attributes);
         }
       }
       void VisitInductionStmt(Statement stmt) {

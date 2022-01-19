@@ -35,7 +35,7 @@ namespace Microsoft.Dafny.Triggers {
     //   forall x :: P(x) ==> (Q(x) && R(x))
 
     private static UnaryOpExpr Not(Expression expr) {
-      return new UnaryOpExpr(expr.tok, UnaryOpExpr.Opcode.Not, expr) { Type = expr.Type };
+      return new UnaryOpExpr(expr.Tok, UnaryOpExpr.Opcode.Not, expr) { Type = expr.Type };
     }
 
     internal static IEnumerable<Expression> SplitExpr(Expression expr, BinaryExpr.Opcode separator) {
@@ -59,7 +59,7 @@ namespace Microsoft.Dafny.Triggers {
     internal static IEnumerable<Expression> SplitAndStich(BinaryExpr pair, BinaryExpr.Opcode separator) {
       foreach (var e1 in SplitExpr(pair.E1, separator)) {
         // Notice the token. This makes triggers/splitting-picks-the-right-tokens.dfy possible
-        yield return new BinaryExpr(e1.tok, pair.Op, pair.E0, e1) { ResolvedOp = pair.ResolvedOp, Type = pair.Type };
+        yield return new BinaryExpr(e1.Tok, pair.Op, pair.E0, e1) { ResolvedOp = pair.ResolvedOp, Type = pair.Type };
       }
     }
 
@@ -75,7 +75,7 @@ namespace Microsoft.Dafny.Triggers {
           stream = SplitExpr(body, BinaryExpr.Opcode.And);
         }
         foreach (var e in stream) {
-          var tok = new NestedToken(quantifier.tok, e.tok);
+          var tok = new NestedToken(quantifier.Tok, e.Tok);
           yield return new ForallExpr(tok, quantifier.BodyEndTok, ((ForallExpr)quantifier).TypeArgs, quantifier.BoundVars, quantifier.Range, e, TriggerUtils.CopyAttributes(quantifier.Attributes)) { Type = quantifier.Type, Bounds = quantifier.Bounds };
         }
       } else if (quantifier is ExistsExpr) {
@@ -86,7 +86,7 @@ namespace Microsoft.Dafny.Triggers {
           stream = SplitExpr(body, BinaryExpr.Opcode.Or);
         }
         foreach (var e in stream) {
-          var tok = new NestedToken(quantifier.tok, e.tok);
+          var tok = new NestedToken(quantifier.Tok, e.Tok);
           yield return new ExistsExpr(tok, quantifier.BodyEndTok, ((ExistsExpr)quantifier).TypeArgs, quantifier.BoundVars, quantifier.Range, e, TriggerUtils.CopyAttributes(quantifier.Attributes)) { Type = quantifier.Type, Bounds = quantifier.Bounds };
         }
       } else {
@@ -149,8 +149,8 @@ namespace Microsoft.Dafny.Triggers {
             if (triggersCollector.IsTriggerKiller(sub) && (!TriggersCollector.IsPotentialTriggerCandidate(sub))) {
               var entry = substMap.Find(x => ExprExtensions.ExpressionEq(sub, x.Item1));
               if (entry == null) {
-                var newBv = new BoundVar(sub.tok, "_t#" + substMap.Count, sub.Type);
-                var ie = new IdentifierExpr(sub.tok, newBv.Name);
+                var newBv = new BoundVar(sub.Tok, "_t#" + substMap.Count, sub.Type);
+                var ie = new IdentifierExpr(sub.Tok, newBv.Name);
                 ie.Var = newBv;
                 ie.Type = newBv.Type;
                 substMap.Add(new Tuple<Expression, IdentifierExpr>(sub, ie));
@@ -167,9 +167,9 @@ namespace Microsoft.Dafny.Triggers {
       } else {
         // make a copy of the expr
         if (expr is ForallExpr) {
-          expr = new ForallExpr(expr.tok, expr.BodyEndTok, expr.TypeArgs, expr.BoundVars, expr.Range, expr.Term, TriggerUtils.CopyAttributes(expr.Attributes)) { Type = expr.Type, Bounds = expr.Bounds };
+          expr = new ForallExpr(expr.Tok, expr.BodyEndTok, expr.TypeArgs, expr.BoundVars, expr.Range, expr.Term, TriggerUtils.CopyAttributes(expr.Attributes)) { Type = expr.Type, Bounds = expr.Bounds };
         } else {
-          expr = new ExistsExpr(expr.tok, expr.BodyEndTok, expr.TypeArgs, expr.BoundVars, expr.Range, expr.Term, TriggerUtils.CopyAttributes(expr.Attributes)) { Type = expr.Type, Bounds = expr.Bounds };
+          expr = new ExistsExpr(expr.Tok, expr.BodyEndTok, expr.TypeArgs, expr.BoundVars, expr.Range, expr.Term, TriggerUtils.CopyAttributes(expr.Attributes)) { Type = expr.Type, Bounds = expr.Bounds };
         }
       }
       return expr;

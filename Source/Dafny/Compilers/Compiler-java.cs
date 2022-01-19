@@ -284,7 +284,7 @@ namespace Microsoft.Dafny {
       wrTuple.Write(", ");
       if (rhs is MultiSelectExpr) {
         Type t = rhs.Type.NormalizeExpand();
-        wrTuple.Write($"({TypeName(t, wrTuple, rhs.tok)})");
+        wrTuple.Write($"({TypeName(t, wrTuple, rhs.Tok)})");
       }
 
       TrExpr(rhs, wrTuple, false);
@@ -961,9 +961,9 @@ namespace Microsoft.Dafny {
 
     protected override void EmitLiteralExpr(ConcreteSyntaxTree wr, LiteralExpr e) {
       if (e is StaticReceiverExpr) {
-        wr.Write(TypeName(e.Type, wr, e.tok));
+        wr.Write(TypeName(e.Type, wr, e.Tok));
       } else if (e.Value == null) {
-        wr.Write($"({TypeName(e.Type, wr, e.tok)}) null");
+        wr.Write($"({TypeName(e.Type, wr, e.Tok)}) null");
       } else if (e.Value is bool value) {
         wr.Write(value ? "true" : "false");
       } else if (e is CharLiteralExpr) {
@@ -1483,7 +1483,7 @@ namespace Microsoft.Dafny {
 
     protected override void EmitSeqSelectRange(Expression source, Expression lo, Expression hi, bool fromArray, bool inLetExprBody, ConcreteSyntaxTree wr) {
       if (fromArray) {
-        wr.Write($"{DafnySeqClass}.fromRawArrayRange({TypeDescriptor(source.Type.NormalizeExpand().TypeArgs[0], wr, source.tok)}, ");
+        wr.Write($"{DafnySeqClass}.fromRawArrayRange({TypeDescriptor(source.Type.NormalizeExpand().TypeArgs[0], wr, source.Tok)}, ");
       }
       TrParenExpr(source, wr, inLetExprBody);
       if (fromArray) {
@@ -2489,14 +2489,14 @@ namespace Microsoft.Dafny {
     }
 
     protected override void EmitSetBuilder_New(ConcreteSyntaxTree wr, SetComprehension e, string collectionName) {
-      wr.WriteLine($"java.util.ArrayList<{BoxedTypeName(e.Type.AsSetType.Arg, wr, e.tok)}> {collectionName} = new java.util.ArrayList<>();");
+      wr.WriteLine($"java.util.ArrayList<{BoxedTypeName(e.Type.AsSetType.Arg, wr, e.Tok)}> {collectionName} = new java.util.ArrayList<>();");
     }
 
     protected override void EmitMapBuilder_New(ConcreteSyntaxTree wr, MapComprehension e, string collectionName) {
       var mt = e.Type.AsMapType;
       var domType = mt.Domain;
       var ranType = mt.Range;
-      wr.WriteLine($"java.util.HashMap<{BoxedTypeName(domType, wr, e.tok)}, {BoxedTypeName(ranType, wr, e.tok)}> {collectionName} = new java.util.HashMap<>();");
+      wr.WriteLine($"java.util.HashMap<{BoxedTypeName(domType, wr, e.Tok)}, {BoxedTypeName(ranType, wr, e.Tok)}> {collectionName} = new java.util.HashMap<>();");
     }
 
     protected override void OrganizeModules(Program program, out List<ModuleDefinition> modules) {
@@ -3682,7 +3682,7 @@ namespace Microsoft.Dafny {
     }
 
     protected override void EmitSeqConstructionExpr(SeqConstructionExpr expr, bool inLetExprBody, ConcreteSyntaxTree wr) {
-      wr.Write($"{DafnySeqClass}.Create({TypeDescriptor(expr.Type.AsCollectionType.Arg, wr, expr.tok)}, ");
+      wr.Write($"{DafnySeqClass}.Create({TypeDescriptor(expr.Type.AsCollectionType.Arg, wr, expr.Tok)}, ");
       TrExpr(expr.N, wr, inLetExprBody);
       wr.Write(", ");
       TrExpr(expr.Initializer, wr, inLetExprBody);

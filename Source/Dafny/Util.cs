@@ -232,14 +232,14 @@ namespace Microsoft.Dafny {
       Contract.Requires(errors != null);
       if (performThisDeprecationCheck) {
         if (fe.E is ThisExpr) {
-          errors.Deprecated(fe.E.tok, "constructors no longer need 'this' to be listed in modifies clauses");
+          errors.Deprecated(fe.E.Tok, "constructors no longer need 'this' to be listed in modifies clauses");
           return;
         } else if (fe.E is SetDisplayExpr) {
           var s = (SetDisplayExpr)fe.E;
           var deprecated = s.Elements.FindAll(e => e is ThisExpr);
           if (deprecated.Count != 0) {
             foreach (var e in deprecated) {
-              errors.Deprecated(e.tok, "constructors no longer need 'this' to be listed in modifies clauses");
+              errors.Deprecated(e.Tok, "constructors no longer need 'this' to be listed in modifies clauses");
             }
             s.Elements.RemoveAll(e => e is ThisExpr);
             if (s.Elements.Count == 0) {
@@ -987,7 +987,7 @@ namespace Microsoft.Dafny {
       // then the mapping from B<T> to A<U> is unique, which means the mapping frmo B<Y> to A<X> is unique, which means we can check if an
       // A<X> value is a B<Y> value by checking if the value is of type B<...>.
       var B = ((UserDefinedType)tte.ToType.NormalizeExpandKeepConstraints()).ResolvedClass; // important to keep constraints here, so no type parameters are lost
-      var B_T = UserDefinedType.FromTopLevelDecl(tte.tok, B);
+      var B_T = UserDefinedType.FromTopLevelDecl(tte.Tok, B);
       var tps = new HashSet<TypeParameter>(); // There are going to be the type parameters of fromType (that is, T in the discussion above)
       if (fromType.TypeArgs.Count != 0) {
         // we need this "if" statement, because if "fromType" is "object" or "object?", then it isn't a UserDefinedType
