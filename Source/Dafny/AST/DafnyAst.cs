@@ -4605,12 +4605,12 @@ namespace Microsoft.Dafny {
       Contract.Invariant(1 <= Ctors.Count);
     }
 
-    public DatatypeDecl(IToken tok, string name, ModuleDefinition module, List<TypeParameter> typeArgs,
+    public DatatypeDecl(IToken tok, string name, ModuleDefinition enclosingModuleDefinition, List<TypeParameter> typeArgs,
       [Captured] List<DatatypeCtor> ctors, List<MemberDecl> members, Attributes attributes, bool isRefining)
-      : base(tok, name, module, typeArgs, members, attributes, isRefining) {
+      : base(tok, name, enclosingModuleDefinition, typeArgs, members, attributes, isRefining) {
       Contract.Requires(tok != null);
       Contract.Requires(name != null);
-      Contract.Requires(module != null);
+      Contract.Requires(enclosingModuleDefinition != null);
       Contract.Requires(cce.NonNullElements(typeArgs));
       Contract.Requires(cce.NonNullElements(ctors));
       Contract.Requires(cce.NonNullElements(members));
