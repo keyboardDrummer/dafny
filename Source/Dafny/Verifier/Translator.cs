@@ -4795,7 +4795,7 @@ namespace Microsoft.Dafny {
           //   CanCall[[ RHS(g) ]] &&
           //   (var lhs0,lhs1,... := rhs0,rhs1,...;  CanCall[[ Body ]])
           Bpl.Expr canCallRHS = Bpl.Expr.True;
-          foreach (var rhs in e.RHSs) {
+          foreach (var rhs in e.Rhss) {
             canCallRHS = BplAnd(canCallRHS, CanCallAssumption(rhs, etran));
           }
 
@@ -6224,16 +6224,16 @@ namespace Microsoft.Dafny {
       if (e.Exact) {
         var uniqueSuffix = "#Z" + defaultIdGenerator.FreshNumericId("#Z");
         var substMap = SetupBoundVarsAsLocals(e.BoundVars.ToList<BoundVar>(), builder, locals, etran, null, "#Z");
-        Contract.Assert(e.LHSs.Count == e.RHSs.Count);  // checked by resolution
+        Contract.Assert(e.Lhss.Count == e.Rhss.Count);  // checked by resolution
         var varNameGen = CurrentIdGenerator.NestedFreshIdGenerator("let#");
-        for (int i = 0; i < e.LHSs.Count; i++) {
-          var pat = e.LHSs[i];
-          var rhs = e.RHSs[i];
+        for (int i = 0; i < e.Lhss.Count; i++) {
+          var pat = e.Lhss[i];
+          var rhs = e.Rhss[i];
           var nm = varNameGen.FreshId(string.Format("#{0}#", i));
           var r = new Bpl.LocalVariable(pat.Tok, new Bpl.TypedIdent(pat.Tok, nm, TrType(rhs.Type)));
           locals.Add(r);
           var rIe = new Bpl.IdentifierExpr(rhs.Tok, r);
-          CheckWellformedWithResult(e.RHSs[i], options, rIe, pat.Expr.Type, locals, builder, etran);
+          CheckWellformedWithResult(e.Rhss[i], options, rIe, pat.Expr.Type, locals, builder, etran);
           CheckCasePatternShape(pat, rIe, rhs.Tok, pat.Expr.Type, builder);
           builder.Add(TrAssumeCmd(pat.Tok, Bpl.Expr.Eq(etran.TrExpr(Substitute(pat.Expr, null, substMap)), rIe)));
         }
@@ -6252,10 +6252,10 @@ namespace Microsoft.Dafny {
         //   CheckWellformed(Body(b));
         //   If non-ghost:  var b' where typeAntecedent; assume RHS(b'); assert Body(b) == Body(b');
         //   assume CanCall
-        Contract.Assert(e.RHSs.Count == 1);  // this is true of all successfully resolved let-such-that expressions
+        Contract.Assert(e.Rhss.Count == 1);  // this is true of all successfully resolved let-such-that expressions
         var lhsVars = e.BoundVars.ToList<BoundVar>();
         var substMap = SetupBoundVarsAsLocals(lhsVars, out var typeAntecedent, builder, locals, etran);
-        var rhs = Substitute(e.RHSs[0], null, substMap);
+        var rhs = Substitute(e.Rhss[0], null, substMap);
         if (checkRhs) {
           var wellFormednessBuilder = new BoogieStmtListBuilder(this);
           CheckWellformed(rhs, options, locals, wellFormednessBuilder, etran);
@@ -6263,7 +6263,7 @@ namespace Microsoft.Dafny {
           builder.Add(ifCmd);
 
           var bounds = lhsVars.ConvertAll(_ => (ComprehensionExpr.BoundedPool)new ComprehensionExpr.SpecialAllocIndependenceAllocatedBoundedPool());  // indicate "no alloc" (is this what we want?)
-          GenerateAndCheckGuesses(e.Tok, lhsVars, bounds, e.RHSs[0], TrTrigger(etran, e.Attributes, e.Tok), builder, etran);
+          GenerateAndCheckGuesses(e.Tok, lhsVars, bounds, e.Rhss[0], TrTrigger(etran, e.Attributes, e.Tok), builder, etran);
         }
         // assume typeAntecedent(b);
         builder.Add(TrAssumeCmd(e.Tok, typeAntecedent));
@@ -6277,7 +6277,7 @@ namespace Microsoft.Dafny {
           foreach (BoundVar bv in lhsVars) {
             nonGhostMap_prime.Add(bv, bv.IsGhost ? substMap[bv] : substMap_prime[bv]);
           }
-          var rhs_prime = Substitute(e.RHSs[0], null, nonGhostMap_prime);
+          var rhs_prime = Substitute(e.Rhss[0], null, nonGhostMap_prime);
           var letBody_prime = Substitute(e.Body, null, nonGhostMap_prime);
           builder.Add(TrAssumeCmd(e.Tok, CanCallAssumption(rhs_prime, etran)));
           builder.Add(TrAssumeCmd(e.Tok, etran.TrExpr(rhs_prime)));
@@ -10179,13 +10179,13 @@ namespace Microsoft.Dafny {
             bool usesHeap = false, usesOldHeap = false;
             var FVsHeapAt = new HashSet<Label>();
             Type usesThis = null;
-            FreeVariablesUtil.ComputeFreeVariables(e.RHSs[0], FVs, ref usesHeap, ref usesOldHeap, FVsHeapAt, ref usesThis);
+            FreeVariablesUtil.ComputeFreeVariables(e.Rhss[0], FVs, ref usesHeap, ref usesOldHeap, FVsHeapAt, ref usesThis);
             var FTVs = new HashSet<TypeParameter>();
             foreach (var bv in e.BoundVars) {
               FVs.Remove(bv);
               ComputeFreeTypeVariables(bv.Type, FTVs);
             }
-            ComputeFreeTypeVariables(e.RHSs[0], FTVs);
+            ComputeFreeTypeVariables(e.Rhss[0], FTVs);
             info = new LetSuchThatExprInfo(e.Tok, letSuchThatExprInfo.Count, FVs.ToList(), FTVs.ToList(), usesHeap, usesOldHeap, FVsHeapAt, usesThis, currentDeclaration);
             letSuchThatExprInfo.Add(e, info);
           }
@@ -10215,7 +10215,7 @@ namespace Microsoft.Dafny {
               rhs.Type = bv.Type;
               rhss.Add(rhs);
             }
-            var expr = new LetExpr(e.Tok, e.LHSs, rhss, e.Body, true);
+            var expr = new LetExpr(e.Tok, e.Lhss, rhss, e.Body, true);
             expr.Type = e.Type; // resolve here
             e.setTranslationDesugaring(this, expr);
           }
@@ -10279,7 +10279,7 @@ namespace Microsoft.Dafny {
       }
 
       var canCall = FunctionCall(e.Tok, info.CanCallFunctionName(), Bpl.Type.Bool, gExprs);
-      var p = Substitute(e.RHSs[0], receiverReplacement, substMap);
+      var p = Substitute(e.Rhss[0], receiverReplacement, substMap);
       Bpl.Expr ax = Bpl.Expr.Imp(canCall, BplAnd(antecedent, etranCC.TrExpr(p)));
       ax = BplForall(gg, tr, ax);
       AddOtherDefinition(canCallFunction, new Bpl.Axiom(e.Tok, ax));
@@ -11642,10 +11642,10 @@ namespace Microsoft.Dafny {
     }
 
     public static Expression InlineLet(LetExpr letExpr) {
-      Contract.Requires(letExpr.LHSs.All(p => p.Var != null));
+      Contract.Requires(letExpr.Lhss.All(p => p.Var != null));
       var substMap = new Dictionary<IVariable, Expression>();
-      for (var i = 0; i < letExpr.LHSs.Count; i++) {
-        substMap.Add(letExpr.LHSs[i].Var, letExpr.RHSs[i]);
+      for (var i = 0; i < letExpr.Lhss.Count; i++) {
+        substMap.Add(letExpr.Lhss[i].Var, letExpr.Rhss[i]);
       }
       return Translator.Substitute(letExpr.Body, null, substMap);
     }

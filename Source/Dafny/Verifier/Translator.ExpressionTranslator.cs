@@ -249,10 +249,10 @@ namespace Microsoft.Dafny {
       public Expression GetSubstitutedBody(LetExpr e) {
         Contract.Requires(e != null);
         Contract.Requires(e.Exact);
-        Contract.Assert(e.LHSs.Count == e.RHSs.Count);  // checked by resolution
+        Contract.Assert(e.Lhss.Count == e.Rhss.Count);  // checked by resolution
         var substMap = new Dictionary<IVariable, Expression>();
-        for (int i = 0; i < e.LHSs.Count; i++) {
-          translator.AddCasePatternVarSubstitutions(e.LHSs[i], TrExpr(e.RHSs[i]), substMap);
+        for (int i = 0; i < e.Lhss.Count; i++) {
+          translator.AddCasePatternVarSubstitutions(e.Lhss[i], TrExpr(e.Rhss[i]), substMap);
         }
         return Translator.Substitute(e.Body, null, substMap);
       }
@@ -1503,8 +1503,8 @@ BplBoundVar(varNameGen.FreshId(string.Format("#{0}#", bv.Name)), predef.BoxType,
       public void TrLetExprPieces(LetExpr let, out List<Boogie.Variable> lhss, out List<Boogie.Expr> rhss) {
         Contract.Requires(let != null);
         var substMap = new Dictionary<IVariable, Expression>();
-        for (int i = 0; i < let.LHSs.Count; i++) {
-          translator.AddCasePatternVarSubstitutions(let.LHSs[i], TrExpr(let.RHSs[i]), substMap);
+        for (int i = 0; i < let.Lhss.Count; i++) {
+          translator.AddCasePatternVarSubstitutions(let.Lhss[i], TrExpr(let.Rhss[i]), substMap);
         }
         lhss = new List<Boogie.Variable>();
         rhss = new List<Boogie.Expr>();

@@ -407,7 +407,7 @@ namespace Microsoft.Dafny {
 
       } else if (expr is LetExpr) {
         var e = (LetExpr)expr;
-        return new LetExpr(Tok(e.Tok), e.LHSs.ConvertAll(CloneCasePattern), e.RHSs.ConvertAll(CloneExpr), CloneExpr(e.Body), e.Exact, e.Attributes);
+        return new LetExpr(Tok(e.Tok), e.Lhss.ConvertAll(CloneCasePattern), e.Rhss.ConvertAll(CloneExpr), CloneExpr(e.Body), e.Exact, e.Attributes);
 
       } else if (expr is LetOrFailExpr) {
         var e = (LetOrFailExpr)expr;
@@ -664,7 +664,7 @@ namespace Microsoft.Dafny {
 
       } else if (stmt is VarDeclPattern) {
         var s = (VarDeclPattern)stmt;
-        r = new VarDeclPattern(Tok(s.Tok), Tok(s.EndTok), CloneCasePattern(s.LHS), CloneExpr(s.RHS), s.HasGhostModifier);
+        r = new VarDeclPattern(Tok(s.Tok), Tok(s.EndTok), CloneCasePattern(s.Lhs), CloneExpr(s.Rhs), s.HasGhostModifier);
 
       } else if (stmt is ModifyStmt) {
         var s = (ModifyStmt)stmt;

@@ -891,8 +891,8 @@ namespace Microsoft.Dafny {
           }
         }
         var varNameGen = CurrentIdGenerator.NestedFreshIdGenerator("let#");
-        var pat = s.LHS;
-        var rhs = s.RHS;
+        var pat = s.Lhs;
+        var rhs = s.Rhs;
         var nm = varNameGen.FreshId(string.Format("#{0}#", 0));
         var r = new Bpl.LocalVariable(pat.Tok, new Bpl.TypedIdent(pat.Tok, nm, TrType(rhs.Type)));
         locals.Add(r);

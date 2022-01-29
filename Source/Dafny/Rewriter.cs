@@ -1335,12 +1335,12 @@ namespace Microsoft.Dafny {
         var e = (LetExpr)expr;
 
         if (e.Exact) {
-          foreach (var rhs in e.RHSs) {
+          foreach (var rhs in e.Rhss) {
             reqs.AddRange(generateAutoReqs(rhs));
           }
           var new_reqs = generateAutoReqs(e.Body);
           if (new_reqs.Count > 0) {
-            reqs.Add(Expression.CreateLet(e.Tok, e.LHSs, e.RHSs, andify(e.Tok, new_reqs), e.Exact));
+            reqs.Add(Expression.CreateLet(e.Tok, e.Lhss, e.Rhss, andify(e.Tok, new_reqs), e.Exact));
           }
         } else {
           // TODO: Still need to figure out what the right choice is here:

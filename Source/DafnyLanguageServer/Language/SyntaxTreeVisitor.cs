@@ -686,7 +686,7 @@
 
     public virtual void Visit(LetExpr letExpression) {
       VisitBoundVars(letExpression);
-      foreach (var rhs in letExpression.RHSs) {
+      foreach (var rhs in letExpression.Rhss) {
         VisitNullableExpression(rhs);
       }
       VisitNullableAttributes(letExpression.Attributes);

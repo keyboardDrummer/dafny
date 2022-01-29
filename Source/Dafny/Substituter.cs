@@ -363,7 +363,7 @@ namespace Microsoft.Dafny {
       if (letExpr.Exact) {
         var rhss = new List<Expression>();
         bool anythingChanged = false;
-        foreach (var rhs in letExpr.RHSs) {
+        foreach (var rhs in letExpr.Rhss) {
           var r = Substitute(rhs);
           if (r != rhs) {
             anythingChanged = true;
@@ -375,8 +375,8 @@ namespace Microsoft.Dafny {
         // Note, CreateBoundVarSubstitutions has the side effect of updating the substitution map.
         // For an Exact let expression, this is something that needs to be done after substituting
         // in the RHSs.
-        var newCasePatterns = CreateCasePatternSubstitutions(letExpr.LHSs, true);
-        if (newCasePatterns != letExpr.LHSs) {
+        var newCasePatterns = CreateCasePatternSubstitutions(letExpr.Lhss, true);
+        if (newCasePatterns != letExpr.Lhss) {
           anythingChanged = true;
         }
 
@@ -393,17 +393,17 @@ namespace Microsoft.Dafny {
 
         return null;
       } else {
-        var rhs = Substitute(letExpr.RHSs[0]);
+        var rhs = Substitute(letExpr.Rhss[0]);
         var body = Substitute(letExpr.Body);
         var newBounds = SubstituteBoundedPoolList(letExpr.Constraint_Bounds);
-        if (rhs == letExpr.RHSs[0] && body == letExpr.Body && newBounds == letExpr.Constraint_Bounds) {
+        if (rhs == letExpr.Rhss[0] && body == letExpr.Body && newBounds == letExpr.Constraint_Bounds) {
           return null;
         }
 
         // keep copies of the substitution maps so we can reuse them at desugaring time
         var newSubstMap = new Dictionary<IVariable, Expression>(substMap);
         var newTypeMap = new Dictionary<TypeParameter, Type>(typeMap);
-        return new Translator.SubstLetExpr(letExpr.Tok, letExpr.LHSs, new List<Expression> { rhs }, body, letExpr.Exact, letExpr, newSubstMap, newTypeMap, newBounds);
+        return new Translator.SubstLetExpr(letExpr.Tok, letExpr.Lhss, new List<Expression> { rhs }, body, letExpr.Exact, letExpr, newSubstMap, newTypeMap, newBounds);
       }
     }
 

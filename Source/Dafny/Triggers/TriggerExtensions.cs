@@ -48,7 +48,7 @@ namespace Microsoft.Dafny.Triggers {
 
   internal static class ExprExtensions {
     internal static bool IsInlineable(this LetExpr expr) {
-      return expr.LHSs.All(p => p.Var != null) && expr.Exact;
+      return expr.Lhss.All(p => p.Var != null) && expr.Exact;
     }
 
     internal static IEnumerable<Expression> AllSubExpressions(this Expression expr, bool wrapOld, bool strict, bool inlineLets = false) {

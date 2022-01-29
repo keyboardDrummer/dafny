@@ -880,10 +880,10 @@ namespace Microsoft.Dafny {
         }
       } else if (expr is LetExpr letExpr) {
         if (letExpr.Exact) {
-          Contract.Assert(letExpr.LHSs.Count == letExpr.RHSs.Count);
+          Contract.Assert(letExpr.Lhss.Count == letExpr.Rhss.Count);
           var i = 0;
-          foreach (var ee in letExpr.RHSs) {
-            var lhs = letExpr.LHSs[i];
+          foreach (var ee in letExpr.Rhss) {
+            var lhs = letExpr.Lhss[i];
             // Make LHS vars ghost if the RHS is a ghost
             if (UsesSpecFeatures(ee)) {
               foreach (var bv in lhs.Vars) {
@@ -901,16 +901,16 @@ namespace Microsoft.Dafny {
           }
           isCompilable = CheckIsCompilable(letExpr.Body, codeContext) && isCompilable;
         } else {
-          Contract.Assert(letExpr.RHSs.Count == 1);
+          Contract.Assert(letExpr.Rhss.Count == 1);
           var lhsVarsAreAllGhost = letExpr.BoundVars.All(bv => bv.IsGhost);
           if (!lhsVarsAreAllGhost) {
-            isCompilable = CheckIsCompilable(letExpr.RHSs[0], codeContext) && isCompilable;
+            isCompilable = CheckIsCompilable(letExpr.Rhss[0], codeContext) && isCompilable;
           }
           isCompilable = CheckIsCompilable(letExpr.Body, codeContext) && isCompilable;
 
           // fill in bounds for this to-be-compiled let-such-that expression
-          Contract.Assert(letExpr.RHSs.Count == 1);  // if we got this far, the resolver will have checked this condition successfully
-          var constraint = letExpr.RHSs[0];
+          Contract.Assert(letExpr.Rhss.Count == 1);  // if we got this far, the resolver will have checked this condition successfully
+          var constraint = letExpr.Rhss[0];
           if (resolver != null) {
             letExpr.Constraint_Bounds = Resolver.DiscoverBestBounds_MultipleVars(letExpr.BoundVars.ToList<IVariable>(),
               constraint, true, ComprehensionExpr.BoundedPool.PoolVirtues.None);
@@ -1111,11 +1111,11 @@ namespace Microsoft.Dafny {
       } else if (expr is LetExpr) {
         var e = (LetExpr)expr;
         if (e.Exact) {
-          MakeGhostAsNeeded(e.LHSs);
+          MakeGhostAsNeeded(e.Lhss);
           return UsesSpecFeatures(e.Body);
         } else {
-          Contract.Assert(e.RHSs.Count == 1);
-          if (UsesSpecFeatures(e.RHSs[0])) {
+          Contract.Assert(e.Rhss.Count == 1);
+          if (UsesSpecFeatures(e.Rhss[0])) {
             foreach (var bv in e.BoundVars) {
               bv.MakeGhost();
             }

@@ -2349,10 +2349,10 @@ namespace Microsoft.Dafny {
       if (expr is LetExpr) {
         var e = (LetExpr)expr;
         if (e.Exact) {
-          for (int i = 0; i < e.LHSs.Count; i++) {
-            var lhs = e.LHSs[i];
+          for (int i = 0; i < e.Lhss.Count; i++) {
+            var lhs = e.Lhss[i];
             if (Contract.Exists(lhs.Vars, bv => !bv.IsGhost)) {
-              TrCasePatternOpt(lhs, e.RHSs[i], wr, false);
+              TrCasePatternOpt(lhs, e.Rhss[i], wr, false);
             }
           }
           TrExprOpt(e.Body, resultType, wr, accumulatorVar);
@@ -3084,8 +3084,8 @@ namespace Microsoft.Dafny {
 
       } else if (stmt is VarDeclPattern) {
         var s = (VarDeclPattern)stmt;
-        if (Contract.Exists(s.LHS.Vars, bv => !bv.IsGhost)) {
-          TrCasePatternOpt(s.LHS, s.RHS, wr, false);
+        if (Contract.Exists(s.Lhs.Vars, bv => !bv.IsGhost)) {
+          TrCasePatternOpt(s.Lhs, s.Rhs, wr, false);
         }
       } else if (stmt is ModifyStmt) {
         var s = (ModifyStmt)stmt;
@@ -4518,14 +4518,14 @@ namespace Microsoft.Dafny {
           //    LamLet(G, tmp =>
           //      LamLet(dtorX(tmp), x =>
           //      LamLet(dtorY(tmp), y => E)))
-          Contract.Assert(e.LHSs.Count == e.RHSs.Count);  // checked by resolution
+          Contract.Assert(e.Lhss.Count == e.Rhss.Count);  // checked by resolution
           var w = wr;
-          for (int i = 0; i < e.LHSs.Count; i++) {
-            var lhs = e.LHSs[i];
+          for (int i = 0; i < e.Lhss.Count; i++) {
+            var lhs = e.Lhss[i];
             if (Contract.Exists(lhs.Vars, bv => !bv.IsGhost)) {
               var rhsName = string.Format("_pat_let{0}_{1}", GetUniqueAstNumber(e), i);
-              w = CreateIIFE_ExprBody(rhsName, e.RHSs[i].Type, e.RHSs[i].Tok, e.RHSs[i], inLetExprBody, e.Body.Type, e.Body.Tok, w);
-              w = TrCasePattern(lhs, rhsName, e.RHSs[i].Type, e.Body.Type, w);
+              w = CreateIIFE_ExprBody(rhsName, e.Rhss[i].Type, e.Rhss[i].Tok, e.Rhss[i], inLetExprBody, e.Body.Type, e.Body.Tok, w);
+              w = TrCasePattern(lhs, rhsName, e.Rhss[i].Type, e.Body.Type, w);
             }
           }
           TrExpr(e.Body, w, true);
@@ -4546,7 +4546,7 @@ namespace Microsoft.Dafny {
           //        // not a source of nondeterminancy.
           //        return E;
           //      })
-          Contract.Assert(e.RHSs.Count == 1);  // checked by resolution
+          Contract.Assert(e.Rhss.Count == 1);  // checked by resolution
           var missingBounds = ComprehensionExpr.BoolBoundedPool.MissingBounds(e.BoundVars.ToList<BoundVar>(), e.Constraint_Bounds, ComprehensionExpr.BoundedPool.PoolVirtues.Enumerable);
           if (missingBounds.Count != 0) {
             foreach (var bv in missingBounds) {
@@ -4557,7 +4557,7 @@ namespace Microsoft.Dafny {
             foreach (var bv in e.BoundVars) {
               DeclareLocalVar(IdName(bv), bv.Type, bv.tok, false, PlaceboValue(bv.Type, wr, bv.tok, true), w);
             }
-            TrAssignSuchThat(new List<IVariable>(e.BoundVars).ConvertAll(bv => (IVariable)bv), e.RHSs[0], e.Constraint_Bounds, e.Tok.line, w, inLetExprBody);
+            TrAssignSuchThat(new List<IVariable>(e.BoundVars).ConvertAll(bv => (IVariable)bv), e.Rhss[0], e.Constraint_Bounds, e.Tok.line, w, inLetExprBody);
             EmitReturnExpr(e.Body, e.Body.Type, true, w);
           }
         }

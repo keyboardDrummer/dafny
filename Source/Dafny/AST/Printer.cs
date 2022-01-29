@@ -1544,9 +1544,9 @@ namespace Microsoft.Dafny {
           wr.Write("ghost ");
         }
         wr.Write("var ");
-        PrintCasePattern(s.LHS);
+        PrintCasePattern(s.Lhs);
         wr.Write(" := ");
-        PrintExpression(s.RHS, true);
+        PrintExpression(s.Rhs, true);
         wr.Write(";");
 
       } else if (stmt is SkeletonStatement) {
@@ -1956,10 +1956,10 @@ namespace Microsoft.Dafny {
       } else if (expr is LetExpr) {
         var e = (LetExpr)expr;
         Indent(indent);
-        if (e.LHSs.Exists(lhs => lhs != null && lhs.Var != null && lhs.Var.IsGhost)) { wr.Write("ghost "); }
+        if (e.Lhss.Exists(lhs => lhs != null && lhs.Var != null && lhs.Var.IsGhost)) { wr.Write("ghost "); }
         wr.Write("var ");
         string sep = "";
-        foreach (var lhs in e.LHSs) {
+        foreach (var lhs in e.Lhss) {
           wr.Write(sep);
           PrintCasePattern(lhs);
           sep = ", ";
@@ -1969,7 +1969,7 @@ namespace Microsoft.Dafny {
         } else {
           wr.Write(" :| ");
         }
-        PrintExpressionList(e.RHSs, true);
+        PrintExpressionList(e.Rhss, true);
         wr.WriteLine(";");
         PrintExtendedExpr(e.Body, indent, isRightmost, endWithCloseParen);
       } else if (expr is StmtExpr && isRightmost) {
@@ -2553,10 +2553,10 @@ namespace Microsoft.Dafny {
         var e = (LetExpr)expr;
         bool parensNeeded = !isRightmost;
         if (parensNeeded) { wr.Write("("); }
-        if (e.LHSs.Exists(lhs => lhs != null && lhs.Var != null && lhs.Var.IsGhost)) { wr.Write("ghost "); }
+        if (e.Lhss.Exists(lhs => lhs != null && lhs.Var != null && lhs.Var.IsGhost)) { wr.Write("ghost "); }
         wr.Write("var ");
         string sep = "";
-        foreach (var lhs in e.LHSs) {
+        foreach (var lhs in e.Lhss) {
           wr.Write(sep);
           PrintCasePattern(lhs);
           sep = ", ";
@@ -2566,7 +2566,7 @@ namespace Microsoft.Dafny {
         } else {
           wr.Write(" :| ");
         }
-        PrintExpressionList(e.RHSs, true);
+        PrintExpressionList(e.Rhss, true);
         wr.Write("; ");
         PrintExpression(e.Body, !parensNeeded && isFollowedBySemicolon);
         if (parensNeeded) { wr.Write(")"); }

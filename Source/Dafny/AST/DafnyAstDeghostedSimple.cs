@@ -895,12 +895,12 @@ namespace Microsoft.Dafny.V2
             return new Microsoft.Dafny.MapType(value.Finite, TransformUnion(value.Domain), TransformUnion(value.Range));
         }
 
-        public virtual Microsoft.Dafny.ValuetypeDecl Transform(Microsoft.Dafny.ValuetypeDecl value)
-        {
-            return new Microsoft.Dafny.ValuetypeDecl(value.Name, TransformUnion(value.EnclosingModuleDefinition), 
-              value.TypeParameterCount, 
-              Transform(value.TypeTester, value => TransformUnion(value), value => value), 
-              Transform(value.TypeCreator, value => Transform(value, value => TransformUnion(value)), value => TransformUnion(value)));
+        public virtual Microsoft.Dafny.ValuetypeDecl Transform(Microsoft.Dafny.ValuetypeDecl value) {
+          throw new Exception();
+          // return new Microsoft.Dafny.ValuetypeDecl(value.Name, TransformUnion(value.EnclosingModuleDefinition), 
+          //   value.TypeParameterCount, 
+          //   Transform(value.TypeTester, value => TransformUnion(value), value => value), 
+          //   Transform(value.TypeCreator, value => Transform(value, value => TransformUnion(value)), value => TransformUnion(value)));
         }
 
         public virtual Microsoft.Dafny.LiteralModuleDecl Transform(Microsoft.Dafny.LiteralModuleDecl value)
@@ -983,9 +983,9 @@ namespace Microsoft.Dafny.V2
             return new Microsoft.Dafny.SpecialField(value.Tok, value.Name, value.SpecialId, value.IdParam, value.IsGhost, value.IsMutable, value.IsUserMutable, TransformUnion(value.Type), TransformUnion(value.Attributes));
         }
 
-        public virtual Microsoft.Dafny.DatatypeDestructor Transform(Microsoft.Dafny.DatatypeDestructor value)
-        {
-            return new Microsoft.Dafny.DatatypeDestructor(value.Tok, Transform(value.EnclosingCtor), TransformUnion(value.CorrespondingFormal), value.Name, value.CompiledName, value.IsGhost, TransformUnion(value.Type), TransformUnion(value.Attributes));
+        public virtual Microsoft.Dafny.DatatypeDestructor Transform(Microsoft.Dafny.DatatypeDestructor value) {
+          throw new Exception();
+            // return new Microsoft.Dafny.DatatypeDestructor(value.Tok, Transform(value.EnclosingCtor), TransformUnion(value.CorrespondingFormal), value.Name, value.CompiledName, value.IsGhost, TransformUnion(value.Type), TransformUnion(value.Attributes));
         }
 
         public virtual Microsoft.Dafny.ConstantField Transform(Microsoft.Dafny.ConstantField value)
@@ -1075,7 +1075,7 @@ namespace Microsoft.Dafny.V2
 
         public virtual Microsoft.Dafny.CallStmt Transform(Microsoft.Dafny.CallStmt value)
         {
-            return new Microsoft.Dafny.CallStmt(value.Tok, value.EndTok, Transform(value.Lhs, value => TransformUnion(value)), Transform(value.MemSel), Transform(value.Args, value => Transform(value)));
+            return new Microsoft.Dafny.CallStmt(value.Tok, value.EndTok, Transform(value.Lhs, value => TransformUnion(value)), Transform(value.MethodSelect), Transform(value.BindingArgs, value => Transform(value)));
         }
 
         public virtual Microsoft.Dafny.BlockStmt Transform(Microsoft.Dafny.BlockStmt value)
@@ -1145,7 +1145,7 @@ namespace Microsoft.Dafny.V2
 
         public virtual Microsoft.Dafny.UpdateStmt Transform(Microsoft.Dafny.UpdateStmt value)
         {
-            return new Microsoft.Dafny.UpdateStmt(value.Tok, value.EndTok, Transform(value.Lhss, value => TransformUnion(value)), Transform(value.Rhss, value => TransformUnion(value)), value.Mutate);
+            return new Microsoft.Dafny.UpdateStmt(value.Tok, value.EndTok, Transform(value.Lhss, value => TransformUnion(value)), Transform(value.Rhss, value => TransformUnion(value)), value.CanMutateKnownState);
         }
 
         public virtual Microsoft.Dafny.AssignOrReturnStmt Transform(Microsoft.Dafny.AssignOrReturnStmt value)
@@ -1185,7 +1185,7 @@ namespace Microsoft.Dafny.V2
 
         public virtual Microsoft.Dafny.StaticReceiverExpr Transform(Microsoft.Dafny.StaticReceiverExpr value)
         {
-            return new Microsoft.Dafny.StaticReceiverExpr(value.Tok, TransformUnion(value.T), value.IsImplicit);
+            return new Microsoft.Dafny.StaticReceiverExpr(value.Tok, TransformUnion(value.UnresolvedType), value.IsImplicit);
         }
 
         public virtual Microsoft.Dafny.LiteralExpr Transform(Microsoft.Dafny.LiteralExpr value)
@@ -1195,7 +1195,7 @@ namespace Microsoft.Dafny.V2
 
         public virtual Microsoft.Dafny.DatatypeValue Transform(Microsoft.Dafny.DatatypeValue value)
         {
-            return new Microsoft.Dafny.DatatypeValue(value.Tok, value.DatatypeName, value.MemberName, Transform(value.Arguments, value => Transform(value)));
+            return new Microsoft.Dafny.DatatypeValue(value.Tok, value.DatatypeName, value.MemberName, Transform(value.ArgumentBindings, value => Transform(value)));
         }
 
         public virtual Microsoft.Dafny.Resolver_IdentifierExpr Transform(Microsoft.Dafny.Resolver_IdentifierExpr value)
@@ -1225,32 +1225,32 @@ namespace Microsoft.Dafny.V2
 
         public virtual Microsoft.Dafny.SeqUpdateExpr Transform(Microsoft.Dafny.SeqUpdateExpr value)
         {
-            return new Microsoft.Dafny.SeqUpdateExpr(value.Tok, TransformUnion(value.Seq), TransformUnion(value.Index), TransformUnion(value.Val));
+            return new Microsoft.Dafny.SeqUpdateExpr(value.Tok, TransformUnion(value.Seq), TransformUnion(value.Index), TransformUnion(value.Value));
         }
 
         public virtual Microsoft.Dafny.ApplyExpr Transform(Microsoft.Dafny.ApplyExpr value)
         {
-            return new Microsoft.Dafny.ApplyExpr(value.Tok, TransformUnion(value.Fn), Transform(value.Args, value => TransformUnion(value)));
+            return new Microsoft.Dafny.ApplyExpr(value.Tok, TransformUnion(value.Function), Transform(value.Args, value => TransformUnion(value)));
         }
 
         public virtual Microsoft.Dafny.FunctionCallExpr Transform(Microsoft.Dafny.FunctionCallExpr value)
         {
-            return new Microsoft.Dafny.FunctionCallExpr(value.Tok, value.Fn, TransformUnion(value.Receiver), value.OpenParen, Transform(value.Args, value => Transform(value)), value.AtLabel);
+            return new Microsoft.Dafny.FunctionCallExpr(value.Tok, value.Name, TransformUnion(value.Receiver), value.OpenParen, Transform(value.ArgumentBindings, value => Transform(value)), value.AtLabel);
         }
 
         public virtual Microsoft.Dafny.SeqConstructionExpr Transform(Microsoft.Dafny.SeqConstructionExpr value)
         {
-            return new Microsoft.Dafny.SeqConstructionExpr(value.Tok, TransformUnion(value.ElementType), TransformUnion(value.Length), TransformUnion(value.Initializer));
+            return new Microsoft.Dafny.SeqConstructionExpr(value.Tok, TransformUnion(value.ExplicitElementType), TransformUnion(value.N), TransformUnion(value.Initializer));
         }
 
         public virtual Microsoft.Dafny.MultiSetFormingExpr Transform(Microsoft.Dafny.MultiSetFormingExpr value)
         {
-            return new Microsoft.Dafny.MultiSetFormingExpr(value.Tok, TransformUnion(value.Expr));
+            return new Microsoft.Dafny.MultiSetFormingExpr(value.Tok, TransformUnion(value.E));
         }
 
         public virtual Microsoft.Dafny.OldExpr Transform(Microsoft.Dafny.OldExpr value)
         {
-            return new Microsoft.Dafny.OldExpr(value.Tok, TransformUnion(value.Expr), value.At);
+            return new Microsoft.Dafny.OldExpr(value.Tok, TransformUnion(value.E), value.At);
         }
 
         public virtual Microsoft.Dafny.UnchangedExpr Transform(Microsoft.Dafny.UnchangedExpr value)
@@ -1275,7 +1275,7 @@ namespace Microsoft.Dafny.V2
 
         public virtual Microsoft.Dafny.StmtExpr Transform(Microsoft.Dafny.StmtExpr value)
         {
-            return new Microsoft.Dafny.StmtExpr(value.Tok, value.Stmt, TransformUnion(value.Expr));
+            return new Microsoft.Dafny.StmtExpr(value.Tok, value.S, TransformUnion(value.E));
         }
 
         public virtual Microsoft.Dafny.ITEExpr Transform(Microsoft.Dafny.ITEExpr value)
@@ -1313,9 +1313,9 @@ namespace Microsoft.Dafny.V2
             return new Microsoft.Dafny.ParensExpression(value.Tok, TransformUnion(value.E));
         }
 
-        public virtual Microsoft.Dafny.DatatypeUpdateExpr Transform(Microsoft.Dafny.DatatypeUpdateExpr value)
-        {
-            return new Microsoft.Dafny.DatatypeUpdateExpr(value.Tok, TransformUnion(value.Root), Transform(value.Updates, value => Transform(value, value => value, value => value, value => TransformUnion(value))));
+        public virtual Microsoft.Dafny.DatatypeUpdateExpr Transform(Microsoft.Dafny.DatatypeUpdateExpr value) {
+          throw new Exception();
+          //return new Microsoft.Dafny.DatatypeUpdateExpr(value.Tok, TransformUnion(value.Root), Transform(value.Updates, value => Transform(value, value => value, value => value, value => TransformUnion(value))));
         }
 
         public virtual Microsoft.Dafny.DefaultValueExpression Transform(Microsoft.Dafny.DefaultValueExpression value)
@@ -1340,12 +1340,12 @@ namespace Microsoft.Dafny.V2
 
         public virtual Microsoft.Dafny.MapComprehension Transform(Microsoft.Dafny.MapComprehension value)
         {
-            return new Microsoft.Dafny.MapComprehension(value.Tok, value.EndTok, value.Finite, value.Bvars, TransformUnion(value.Range), TransformUnion(value.TermLeft), TransformUnion(value.TermRight), TransformUnion(value.Attributes));
+            return new Microsoft.Dafny.MapComprehension(value.Tok, value.BodyEndTok, value.Finite, value.BoundVars, TransformUnion(value.Range), TransformUnion(value.TermLeft), TransformUnion(value.TermRight), TransformUnion(value.Attributes));
         }
 
         public virtual Microsoft.Dafny.LambdaExpr Transform(Microsoft.Dafny.LambdaExpr value)
         {
-            return new Microsoft.Dafny.LambdaExpr(value.Tok, value.EndTok, value.Bvars, TransformUnion(value.Requires), Transform(value.Reads, value => Transform(value)), TransformUnion(value.Body));
+            return new Microsoft.Dafny.LambdaExpr(value.Tok, value.BodyEndTok, value.BoundVars, TransformUnion(value.Range), Transform(value.Reads, value => Transform(value)), TransformUnion(value.Body));
         }
 
         public virtual Microsoft.Dafny.LitCtx Transform(Microsoft.Dafny.LitCtx value)
@@ -1360,7 +1360,7 @@ namespace Microsoft.Dafny.V2
 
         public virtual Microsoft.Dafny.LitPattern Transform(Microsoft.Dafny.LitPattern value)
         {
-            return new Microsoft.Dafny.LitPattern(value.Tok, TransformUnion(value.Lit), value.IsGhost);
+            return new Microsoft.Dafny.LitPattern(value.Tok, TransformUnion(value.OrigLit), value.IsGhost);
         }
 
         public virtual Microsoft.Dafny.IdPattern Transform(Microsoft.Dafny.IdPattern value)
@@ -1390,12 +1390,13 @@ namespace Microsoft.Dafny.V2
 
         public virtual Microsoft.Dafny.ExprDotName Transform(Microsoft.Dafny.ExprDotName value)
         {
-            return new Microsoft.Dafny.ExprDotName(value.Tok, TransformUnion(value.Obj), value.SuffixName, Transform(value.OptTypeArguments, value => TransformUnion(value)));
+            return new Microsoft.Dafny.ExprDotName(value.Tok, TransformUnion(value.Lhs), value.SuffixName, Transform(value.OptTypeArguments, value => TransformUnion(value)));
         }
 
         public virtual Microsoft.Dafny.ApplySuffix Transform(Microsoft.Dafny.ApplySuffix value)
         {
-            return new Microsoft.Dafny.ApplySuffix(value.Tok, value.AtLabel, TransformUnion(value.Lhs), Transform(value.Args, value => Transform(value)));
+            return new Microsoft.Dafny.ApplySuffix(value.Tok, value.AtTok, TransformUnion(value.Lhs), 
+              Transform(value.ArgumentBindings, value => Transform(value)));
         }
 
         public virtual Microsoft.Dafny.ComprehensionExpr.ExactBoundedPool Transform(Microsoft.Dafny.ComprehensionExpr.ExactBoundedPool value)
@@ -1405,7 +1406,7 @@ namespace Microsoft.Dafny.V2
 
         public virtual Microsoft.Dafny.ComprehensionExpr.AllocFreeBoundedPool Transform(Microsoft.Dafny.ComprehensionExpr.AllocFreeBoundedPool value)
         {
-            return new Microsoft.Dafny.ComprehensionExpr.AllocFreeBoundedPool(TransformUnion(value.T));
+            return new Microsoft.Dafny.ComprehensionExpr.AllocFreeBoundedPool(TransformUnion(value.Type));
         }
 
         public virtual Microsoft.Dafny.ComprehensionExpr.IntBoundedPool Transform(Microsoft.Dafny.ComprehensionExpr.IntBoundedPool value)
@@ -1415,42 +1416,42 @@ namespace Microsoft.Dafny.V2
 
         public virtual Microsoft.Dafny.ComprehensionExpr.SubSetBoundedPool Transform(Microsoft.Dafny.ComprehensionExpr.SubSetBoundedPool value)
         {
-            return new Microsoft.Dafny.ComprehensionExpr.SubSetBoundedPool(TransformUnion(value.Set), value.IsFiniteCollection);
+            return new Microsoft.Dafny.ComprehensionExpr.SubSetBoundedPool(TransformUnion(value.UpperBound), value.IsFiniteCollection);
         }
 
         public virtual Microsoft.Dafny.ComprehensionExpr.SuperSetBoundedPool Transform(Microsoft.Dafny.ComprehensionExpr.SuperSetBoundedPool value)
         {
-            return new Microsoft.Dafny.ComprehensionExpr.SuperSetBoundedPool(TransformUnion(value.Set));
+            return new Microsoft.Dafny.ComprehensionExpr.SuperSetBoundedPool(TransformUnion(value.LowerBound));
         }
 
         public virtual Microsoft.Dafny.ComprehensionExpr.DatatypeBoundedPool Transform(Microsoft.Dafny.ComprehensionExpr.DatatypeBoundedPool value)
         {
-            return new Microsoft.Dafny.ComprehensionExpr.DatatypeBoundedPool(TransformUnion(value.D));
+            return new Microsoft.Dafny.ComprehensionExpr.DatatypeBoundedPool(TransformUnion(value.Decl));
         }
 
         public virtual Microsoft.Dafny.CalcStmt.TernaryCalcOp Transform(Microsoft.Dafny.CalcStmt.TernaryCalcOp value)
         {
-            return new Microsoft.Dafny.CalcStmt.TernaryCalcOp(TransformUnion(value.Idx));
+            return new Microsoft.Dafny.CalcStmt.TernaryCalcOp(TransformUnion(value.Index));
         }
 
         public virtual Microsoft.Dafny.ComprehensionExpr.SetBoundedPool Transform(Microsoft.Dafny.ComprehensionExpr.SetBoundedPool value)
         {
-            return new Microsoft.Dafny.ComprehensionExpr.SetBoundedPool(TransformUnion(value.Set), TransformUnion(value.BvType), TransformUnion(value.CollectionElementType), value.IsFiniteCollection);
+            return new Microsoft.Dafny.ComprehensionExpr.SetBoundedPool(TransformUnion(value.Set), TransformUnion(value.BoundVariableType), TransformUnion(value.CollectionElementType), value.IsFiniteCollection);
         }
 
         public virtual Microsoft.Dafny.ComprehensionExpr.MultiSetBoundedPool Transform(Microsoft.Dafny.ComprehensionExpr.MultiSetBoundedPool value)
         {
-            return new Microsoft.Dafny.ComprehensionExpr.MultiSetBoundedPool(TransformUnion(value.Multiset), TransformUnion(value.BvType), TransformUnion(value.CollectionElementType));
+            return new Microsoft.Dafny.ComprehensionExpr.MultiSetBoundedPool(TransformUnion(value.MultiSet), TransformUnion(value.BoundVariableType), TransformUnion(value.CollectionElementType));
         }
 
         public virtual Microsoft.Dafny.ComprehensionExpr.MapBoundedPool Transform(Microsoft.Dafny.ComprehensionExpr.MapBoundedPool value)
         {
-            return new Microsoft.Dafny.ComprehensionExpr.MapBoundedPool(TransformUnion(value.Map), TransformUnion(value.BvType), TransformUnion(value.CollectionElementType), value.IsFiniteCollection);
+            return new Microsoft.Dafny.ComprehensionExpr.MapBoundedPool(TransformUnion(value.Map), TransformUnion(value.BoundVariableType), TransformUnion(value.CollectionElementType), value.IsFiniteCollection);
         }
 
         public virtual Microsoft.Dafny.ComprehensionExpr.SeqBoundedPool Transform(Microsoft.Dafny.ComprehensionExpr.SeqBoundedPool value)
         {
-            return new Microsoft.Dafny.ComprehensionExpr.SeqBoundedPool(TransformUnion(value.Seq), TransformUnion(value.BvType), TransformUnion(value.CollectionElementType));
+            return new Microsoft.Dafny.ComprehensionExpr.SeqBoundedPool(TransformUnion(value.Seq), TransformUnion(value.BoundVariableType), TransformUnion(value.CollectionElementType));
         }
 
         public virtual Microsoft.Dafny.ModuleDefinition Transform(Microsoft.Dafny.ModuleDefinition value)
@@ -1475,12 +1476,14 @@ namespace Microsoft.Dafny.V2
 
         public virtual Microsoft.Dafny.ExportSignature Transform(Microsoft.Dafny.ExportSignature value)
         {
-            return new Microsoft.Dafny.ExportSignature(value.PrefixTok, value.Prefix, value.IdTok, value.Id, value.Opaque);
+            return new Microsoft.Dafny.ExportSignature(value.ClassIdTok, value.ClassId, value.Tok, value.Id, value.Opaque);
         }
 
         public virtual Microsoft.Dafny.Specification<ToT> Transform<FromT, ToT>(Microsoft.Dafny.Specification<FromT> value, Func<FromT, ToT> convT)
+          where ToT : class
+          where FromT : class
         {
-            return new Microsoft.Dafny.Specification<ToT>(value.Exprs, TransformUnion(value.Attributes));
+            return new Microsoft.Dafny.Specification<ToT>(Transform(value.Expressions, convT), TransformUnion(value.Attributes));
         }
 
         public virtual Microsoft.Dafny.FrameExpression Transform(Microsoft.Dafny.FrameExpression value)

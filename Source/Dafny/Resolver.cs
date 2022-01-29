@@ -6892,7 +6892,7 @@ namespace Microsoft.Dafny {
           }
         } else if (expr is LetExpr) {
           var e = (LetExpr)expr;
-          foreach (var p in e.LHSs) {
+          foreach (var p in e.Lhss) {
             foreach (var x in p.Vars) {
               if (!IsDetermined(x.Type.Normalize())) {
                 resolver.reporter.Error(MessageSource.Resolver, x.tok, "the type of the bound variable '{0}' could not be determined", x.Name);
@@ -7564,16 +7564,16 @@ namespace Microsoft.Dafny {
       } else if (expr is LetExpr) {
         var e = (LetExpr)expr;
         var status = Function.TailStatus.TriviallyTailRecursive;
-        for (var i = 0; i < e.LHSs.Count; i++) {
-          var pat = e.LHSs[i];
+        for (var i = 0; i < e.Lhss.Count; i++) {
+          var pat = e.Lhss[i];
           if (pat.Vars.ToList().Exists(bv => !bv.IsGhost)) {
             if (e.Exact) {
-              var s = CheckHasNoRecursiveCall(e.RHSs[i], enclosingFunction, reportErrors);
+              var s = CheckHasNoRecursiveCall(e.Rhss[i], enclosingFunction, reportErrors);
               status = TRES_Or(status, s);
             } else {
               // We have detected the existence of a non-ghost LHS, so check the RHS
-              Contract.Assert(e.RHSs.Count == 1);
-              status = CheckHasNoRecursiveCall(e.RHSs[0], enclosingFunction, reportErrors);
+              Contract.Assert(e.Rhss.Count == 1);
+              status = CheckHasNoRecursiveCall(e.Rhss[0], enclosingFunction, reportErrors);
               break;
             }
           }
@@ -7749,16 +7749,16 @@ namespace Microsoft.Dafny {
       } else if (expr is LetExpr) {
         var e = (LetExpr)expr;
         // skip ghost sub-expressions
-        for (var i = 0; i < e.LHSs.Count; i++) {
-          var pat = e.LHSs[i];
+        for (var i = 0; i < e.Lhss.Count; i++) {
+          var pat = e.Lhss[i];
           if (pat.Vars.ToList().Exists(bv => !bv.IsGhost)) {
             if (e.Exact) {
-              var s = CheckHasNoRecursiveCall(e.RHSs[i], enclosingFunction, reportErrors);
+              var s = CheckHasNoRecursiveCall(e.Rhss[i], enclosingFunction, reportErrors);
               status = TRES_Or(status, s);
             } else {
               // We have detected the existence of a non-ghost LHS, so check the RHS
-              Contract.Assert(e.RHSs.Count == 1);
-              status = CheckHasNoRecursiveCall(e.RHSs[0], enclosingFunction, reportErrors);
+              Contract.Assert(e.Rhss.Count == 1);
+              status = CheckHasNoRecursiveCall(e.Rhss[0], enclosingFunction, reportErrors);
               break;
             }
           }
@@ -7905,7 +7905,7 @@ namespace Microsoft.Dafny {
           return false;
         } else if (expr is LetExpr) {
           var e = (LetExpr)expr;
-          foreach (var rhs in e.RHSs) {
+          foreach (var rhs in e.Rhss) {
             Visit(rhs, CallingPosition.Neither);
           }
           var cpBody = cp;
@@ -8262,8 +8262,8 @@ namespace Microsoft.Dafny {
           var e = (LetExpr)expr;
           Visit(Attributes.SubExpressions(e.Attributes), true);
           if (e.Exact) {
-            Contract.Assert(e.LHSs.Count == e.RHSs.Count);
-            for (var i = 0; i < e.LHSs.Count; i++) {
+            Contract.Assert(e.Lhss.Count == e.Rhss.Count);
+            for (var i = 0; i < e.Lhss.Count; i++) {
               // The VisitPattern function visits all BoundVar's in a pattern and returns
               // "true" if all variables are ghost.
               bool VisitPattern(CasePattern<BoundVar> pat, bool patternGhostContext) {
@@ -8284,11 +8284,11 @@ namespace Microsoft.Dafny {
                 }
               }
 
-              var allGhosts = VisitPattern(e.LHSs[i], inGhostContext);
-              Visit(e.RHSs[i], inGhostContext || allGhosts);
+              var allGhosts = VisitPattern(e.Lhss[i], inGhostContext);
+              Visit(e.Rhss[i], inGhostContext || allGhosts);
             }
           } else {
-            Contract.Assert(e.RHSs.Count == 1);
+            Contract.Assert(e.Rhss.Count == 1);
             var allGhost = true;
             foreach (var bv in e.BoundVars) {
               if (!bv.IsGhost) {
@@ -8296,7 +8296,7 @@ namespace Microsoft.Dafny {
               }
               VisitType(bv.tok, bv.Type, inGhostContext || bv.IsGhost);
             }
-            Visit(e.RHSs[0], inGhostContext || allGhost);
+            Visit(e.Rhss[0], inGhostContext || allGhost);
           }
           Visit(e.Body, inGhostContext);
           return false;
@@ -8650,13 +8650,13 @@ namespace Microsoft.Dafny {
           if (s.HasGhostModifier || mustBeErasable) {
             s.IsGhost = s.LocalVars.All(v => v.IsGhost);
           } else {
-            var spec = ExpressionTester.UsesSpecFeatures(s.RHS);
+            var spec = ExpressionTester.UsesSpecFeatures(s.Rhs);
             if (spec) {
               foreach (var local in s.LocalVars) {
                 local.MakeGhost();
               }
             } else {
-              ExpressionTester.CheckIsCompilable(resolver, s.RHS, codeContext);
+              ExpressionTester.CheckIsCompilable(resolver, s.Rhs, codeContext);
             }
             s.IsGhost = spec;
           }
@@ -11311,17 +11311,17 @@ namespace Microsoft.Dafny {
             local.type = new InferredTypeProxy();
           }
         }
-        ResolveExpression(s.RHS, new ResolveOpts(codeContext, true));
-        ResolveCasePattern(s.LHS, s.RHS.Type, codeContext);
+        ResolveExpression(s.Rhs, new ResolveOpts(codeContext, true));
+        ResolveCasePattern(s.Lhs, s.Rhs.Type, codeContext);
         // Check for duplicate names now, because not until after resolving the case pattern do we know if identifiers inside it refer to bound variables or nullary constructors
         var c = 0;
-        foreach (var bv in s.LHS.Vars) {
+        foreach (var bv in s.Lhs.Vars) {
           ScopePushAndReport(scope, bv, "local_variable");
           c++;
         }
         if (c == 0) {
           // Every identifier-looking thing in the pattern resolved to a constructor; that is, this LHS is a constant literal
-          reporter.Error(MessageSource.Resolver, s.LHS.Tok, "LHS is a constant literal; to be legal, it must introduce at least one bound variable");
+          reporter.Error(MessageSource.Resolver, s.Lhs.Tok, "LHS is a constant literal; to be legal, it must introduce at least one bound variable");
         }
       } else if (stmt is AssignStmt) {
         AssignStmt s = (AssignStmt)stmt;
@@ -15212,16 +15212,16 @@ namespace Microsoft.Dafny {
       } else if (expr is LetExpr) {
         var e = (LetExpr)expr;
         if (e.Exact) {
-          foreach (var rhs in e.RHSs) {
+          foreach (var rhs in e.Rhss) {
             ResolveExpression(rhs, opts);
           }
           scope.PushMarker();
-          if (e.LHSs.Count != e.RHSs.Count) {
-            reporter.Error(MessageSource.Resolver, expr, "let expression must have same number of LHSs (found {0}) as RHSs (found {1})", e.LHSs.Count, e.RHSs.Count);
+          if (e.Lhss.Count != e.Rhss.Count) {
+            reporter.Error(MessageSource.Resolver, expr, "let expression must have same number of LHSs (found {0}) as RHSs (found {1})", e.Lhss.Count, e.Rhss.Count);
           }
           var i = 0;
-          foreach (var lhs in e.LHSs) {
-            var rhsType = i < e.RHSs.Count ? e.RHSs[i].Type : new InferredTypeProxy();
+          foreach (var lhs in e.Lhss) {
+            var rhsType = i < e.Rhss.Count ? e.Rhss[i].Type : new InferredTypeProxy();
             ResolveCasePattern(lhs, rhsType, opts.codeContext);
             // Check for duplicate names now, because not until after resolving the case pattern do we know if identifiers inside it refer to bound variables or nullary constructors
             var c = 0;
@@ -15237,19 +15237,19 @@ namespace Microsoft.Dafny {
           }
         } else {
           // let-such-that expression
-          if (e.RHSs.Count != 1) {
-            reporter.Error(MessageSource.Resolver, expr, "let-such-that expression must have just one RHS (found {0})", e.RHSs.Count);
+          if (e.Rhss.Count != 1) {
+            reporter.Error(MessageSource.Resolver, expr, "let-such-that expression must have just one RHS (found {0})", e.Rhss.Count);
           }
           // the bound variables are in scope in the RHS of a let-such-that expression
           scope.PushMarker();
-          foreach (var lhs in e.LHSs) {
+          foreach (var lhs in e.Lhss) {
             Contract.Assert(lhs.Var != null);  // the parser already checked that every LHS is a BoundVar, not a general pattern
             var v = lhs.Var;
             ScopePushAndReport(scope, v, "let-variable");
             ResolveType(v.tok, v.Type, opts.codeContext, ResolveTypeOptionEnum.InferTypeProxies, null);
             AddTypeDependencyEdges(opts.codeContext, v.Type);
           }
-          foreach (var rhs in e.RHSs) {
+          foreach (var rhs in e.Rhss) {
             ResolveExpression(rhs, opts);
             ConstrainTypeExprBool(rhs, "type of RHS of let-such-that expression must be boolean (got {0})");
           }
@@ -18373,7 +18373,7 @@ namespace Microsoft.Dafny {
         return;
       } else if (expr is LetExpr) {
         var e = (LetExpr)expr;
-        foreach (var rhs in e.RHSs) {
+        foreach (var rhs in e.Rhss) {
           CheckCoCalls(rhs, int.MaxValue, null, coCandidates);
         }
         CheckCoCalls(e.Body, destructionLevel, coContext, coCandidates);
