@@ -1159,7 +1159,7 @@ namespace Microsoft.Dafny {
       var typeMapParents = cl.ParentFormalTypeParametersToActuals;
       var typeMapUdt = Resolver.TypeSubstitutionMap(cl.TypeArgs, udt.TypeArgs);
       var typeArgs = parent.TypeArgs.ConvertAll(tp => Resolver.SubstType(typeMapParents[tp], typeMapUdt));
-      return new UserDefinedType(udt.tok, parent.Name, parent, typeArgs);
+      return new UserDefinedType(udt.Tok, parent.Name, parent, typeArgs);
     }
     public bool IsTraitType {
       get {
@@ -1750,11 +1750,11 @@ namespace Microsoft.Dafny {
       } else if (t is ArrowType) {
         var s = (ArrowType)t;
         var args = s.TypeArgs.ConvertAll(_ => (Type)new InferredTypeProxy());
-        return new ArrowType(s.tok, (ArrowTypeDecl)s.ResolvedClass, args);
+        return new ArrowType(s.Tok, (ArrowTypeDecl)s.ResolvedClass, args);
       } else {
         var s = (UserDefinedType)t;
         var args = s.TypeArgs.ConvertAll(_ => (Type)new InferredTypeProxy());
-        return new UserDefinedType(s.tok, s.Name, s.ResolvedClass, args);
+        return new UserDefinedType(s.Tok, s.Name, s.ResolvedClass, args);
       }
     }
 
@@ -1870,7 +1870,7 @@ namespace Microsoft.Dafny {
           if (typeArgs == null) {
             return null;
           }
-          return new UserDefinedType(udtA.tok, udtA.Name, udtA.ResolvedClass, typeArgs);
+          return new UserDefinedType(udtA.Tok, udtA.Name, udtA.ResolvedClass, typeArgs);
         }
       }
       // We exhausted all possibilities of subset types being equal, so use the base-most types.
@@ -1944,7 +1944,7 @@ namespace Microsoft.Dafny {
           return null;
         }
         var udt = (UserDefinedType)a;
-        return new UserDefinedType(udt.tok, udt.Name, aa, typeArgs);
+        return new UserDefinedType(udt.Tok, udt.Name, aa, typeArgs);
       } else if (a.AsArrowType != null) {
         var aa = a.AsArrowType;
         var bb = b.AsArrowType;
@@ -1965,7 +1965,7 @@ namespace Microsoft.Dafny {
           return null;
         }
         var arr = (ArrowType)aa;
-        return new ArrowType(arr.tok, (ArrowTypeDecl)arr.ResolvedClass, typeArgs);
+        return new ArrowType(arr.Tok, (ArrowTypeDecl)arr.ResolvedClass, typeArgs);
       } else if (b.IsObjectQ) {
         var udtB = (UserDefinedType)b;
         return !a.IsRefType ? null : abNonNullTypes ? UserDefinedType.CreateNonNullType(udtB) : udtB;
@@ -1990,7 +1990,7 @@ namespace Microsoft.Dafny {
             return null;
           }
           var udt = (UserDefinedType)a;
-          var xx = new UserDefinedType(udt.tok, udt.Name, aa, typeArgs);
+          var xx = new UserDefinedType(udt.Tok, udt.Name, aa, typeArgs);
           return abNonNullTypes ? UserDefinedType.CreateNonNullType(xx) : xx;
         } else if (aa is ClassDecl && bb is ClassDecl) {
           var A = (ClassDecl)aa;
@@ -2098,7 +2098,7 @@ namespace Microsoft.Dafny {
           if (typeArgs == null) {
             return null;
           }
-          return new UserDefinedType(udtA.tok, udtA.Name, udtA.ResolvedClass, typeArgs);
+          return new UserDefinedType(udtA.Tok, udtA.Name, udtA.ResolvedClass, typeArgs);
         } else {
           // The two subset types do not have the same head, so there is no meet
           return null;
@@ -2172,7 +2172,7 @@ namespace Microsoft.Dafny {
           return null;
         }
         var udt = (UserDefinedType)a;
-        return new UserDefinedType(udt.tok, udt.Name, aa, typeArgs);
+        return new UserDefinedType(udt.Tok, udt.Name, aa, typeArgs);
       } else if (a.AsArrowType != null) {
         var aa = a.AsArrowType;
         var bb = b.AsArrowType;
@@ -2193,7 +2193,7 @@ namespace Microsoft.Dafny {
           return null;
         }
         var arr = (ArrowType)aa;
-        return new ArrowType(arr.tok, (ArrowTypeDecl)arr.ResolvedClass, typeArgs);
+        return new ArrowType(arr.Tok, (ArrowTypeDecl)arr.ResolvedClass, typeArgs);
       } else if (b.IsObjectQ) {
         return a.IsRefType ? a : null;
       } else if (a.IsObjectQ) {
@@ -2216,7 +2216,7 @@ namespace Microsoft.Dafny {
             return null;
           }
           var udt = (UserDefinedType)a;
-          return new UserDefinedType(udt.tok, udt.Name, aa, typeArgs);
+          return new UserDefinedType(udt.Tok, udt.Name, aa, typeArgs);
         } else if (aa is ClassDecl && bb is ClassDecl) {
           if (a.IsSubtypeOf(b, false, false)) {
             return a;
@@ -2743,7 +2743,7 @@ namespace Microsoft.Dafny {
   public class UserDefinedType : NonProxyType {
     [ContractInvariantMethod]
     void ObjectInvariant() {
-      Contract.Invariant(tok != null);
+      Contract.Invariant(Tok != null);
       Contract.Invariant(Name != null);
       Contract.Invariant(cce.NonNullElements(TypeArgs));
       Contract.Invariant(NamePath is NameSegment || NamePath is ExprDotName);
@@ -2751,7 +2751,7 @@ namespace Microsoft.Dafny {
     }
 
     public readonly Expression NamePath;  // either NameSegment or ExprDotName (with the inner expression satisfying this same constraint)
-    public readonly IToken tok;  // token of the Name
+    public readonly IToken Tok;  // token of the Name
     public readonly string Name;
     [Rep]
 
@@ -2785,17 +2785,10 @@ namespace Microsoft.Dafny {
 
     public TopLevelDecl ResolvedClass;  // filled in by resolution, if Name denotes a class/datatype/iterator and TypeArgs match the type parameters of that class/datatype/iterator
 
-    public UserDefinedType(IToken tok, string name, List<Type> optTypeArgs)
-      : this(tok, new NameSegment(tok, name, optTypeArgs)) {
-      Contract.Requires(tok != null);
-      Contract.Requires(name != null);
-      Contract.Requires(optTypeArgs == null || optTypeArgs.Count > 0);  // this is what it means to be syntactically optional
-    }
-
     public UserDefinedType(IToken tok, Expression namePath) {
       Contract.Requires(tok != null);
       Contract.Requires(namePath is NameSegment || namePath is ExprDotName);
-      this.tok = tok;
+      this.Tok = tok;
       if (namePath is NameSegment) {
         var n = (NameSegment)namePath;
         this.Name = n.Name;
@@ -2809,6 +2802,13 @@ namespace Microsoft.Dafny {
         this.TypeArgs = new List<Type>();  // TODO: is this really the thing to do?
       }
       this.NamePath = namePath;
+    }
+    
+    public UserDefinedType(IToken tok, string name, List<Type> optTypeArgs)
+      : this(tok, new NameSegment(tok, name, optTypeArgs)) {
+      Contract.Requires(tok != null);
+      Contract.Requires(name != null);
+      Contract.Requires(optTypeArgs == null || optTypeArgs.Count > 0);  // this is what it means to be syntactically optional
     }
 
     /// <summary>
@@ -2872,7 +2872,7 @@ namespace Microsoft.Dafny {
       //Contract.Requires(!(cd is ClassDecl) || cd is DefaultClassDecl || cd is ArrowTypeDecl || name == cd.Name + "?");
       Contract.Requires(!(cd is ArrowTypeDecl) || name == cd.Name);
       Contract.Requires(!(cd is DefaultClassDecl) || name == cd.Name);
-      this.tok = tok;
+      this.Tok = tok;
       this.Name = name;
       this.ResolvedClass = cd;
       this.TypeArgs = typeArgs;
@@ -2891,14 +2891,14 @@ namespace Microsoft.Dafny {
       Contract.Requires(udtNullableType != null);
       Contract.Requires(udtNullableType.ResolvedClass is ClassDecl);
       var cl = (ClassDecl)udtNullableType.ResolvedClass;
-      return new UserDefinedType(udtNullableType.tok, cl.NonNullTypeDecl.Name, cl.NonNullTypeDecl, udtNullableType.TypeArgs);
+      return new UserDefinedType(udtNullableType.Tok, cl.NonNullTypeDecl.Name, cl.NonNullTypeDecl, udtNullableType.TypeArgs);
     }
 
     public static UserDefinedType CreateNullableType(UserDefinedType udtNonNullType) {
       Contract.Requires(udtNonNullType != null);
       Contract.Requires(udtNonNullType.ResolvedClass is NonNullTypeDecl);
       var nntd = (NonNullTypeDecl)udtNonNullType.ResolvedClass;
-      return new UserDefinedType(udtNonNullType.tok, nntd.ClassDecl.Name + "?", nntd.ClassDecl, udtNonNullType.TypeArgs);
+      return new UserDefinedType(udtNonNullType.Tok, nntd.ClassDecl.Name + "?", nntd.ClassDecl, udtNonNullType.TypeArgs);
     }
 
     /// <summary>
@@ -2917,7 +2917,7 @@ namespace Microsoft.Dafny {
     public UserDefinedType(IToken tok, TypeParameter tp) {
       Contract.Requires(tok != null);
       Contract.Requires(tp != null);
-      this.tok = tok;
+      this.Tok = tok;
       this.Name = tp.Name;
       this.TypeArgs = new List<Type>();
       this.ResolvedClass = tp;
@@ -4349,8 +4349,16 @@ namespace Microsoft.Dafny {
 
     public InheritanceInformationClass ParentTypeInformation;  // filled in during resolution
     public class InheritanceInformationClass {
-      private readonly Dictionary<TraitDecl, List<(Type, List<TraitDecl> /*via this parent path*/)>> info = new Dictionary<TraitDecl, List<(Type, List<TraitDecl>)>>();
+      private readonly Dictionary<TraitDecl, List<(Type, List<TraitDecl> /*via this parent path*/)>> info;
 
+      public InheritanceInformationClass(Dictionary<TraitDecl, List<(Type, List<TraitDecl>)>> info) {
+        this.info = info;
+      }
+
+      public InheritanceInformationClass() {
+        this.info = new();
+      }
+      
       /// <summary>
       /// Returns a subset of the trait's ParentTraits, but not repeating any head type.
       /// Assumes the declaration has been successfully resolved.

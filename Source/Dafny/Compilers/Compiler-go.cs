@@ -1271,7 +1271,7 @@ namespace Microsoft.Dafny {
           var w = new ConcreteSyntaxTree();
           w.Write("{0}(", cl is TupleTypeDecl ? "_dafny.TupleType" : TypeName_RTD(xType, w, tok));
           var typeArgs = cl is DatatypeDecl dt ? UsedTypeParameters(dt, udt.TypeArgs) : TypeArgumentInstantiation.ListFromClass(cl, udt.TypeArgs);
-          EmitTypeDescriptorsActuals(typeArgs, udt.tok, w, true);
+          EmitTypeDescriptorsActuals(typeArgs, udt.Tok, w, true);
           w.Write(")");
           return w.ToString();
         } else if (xType.IsNonNullRefType) {
@@ -1279,7 +1279,7 @@ namespace Microsoft.Dafny {
           return "_dafny.PossiblyNullType/*not used*/";
         } else {
           Contract.Assert(cl is NewtypeDecl || cl is SubsetTypeDecl);
-          return TypeName_RTD(xType, wr, udt.tok) + "()";
+          return TypeName_RTD(xType, wr, udt.Tok) + "()";
         }
       } else {
         Contract.Assert(false); throw new cce.UnreachableException();  // unexpected type
@@ -1438,7 +1438,7 @@ namespace Microsoft.Dafny {
         } else if (constructTypeParameterDefaultsFromTypeDescriptors) {
           var w = new ConcreteSyntaxTree();
           w = EmitCoercionIfNecessary(from: null, to: xType, tok: tok, wr: w);
-          w.Write(TypeDescriptor(udt, wr, udt.tok));
+          w.Write(TypeDescriptor(udt, wr, udt.Tok));
           w.Write(".Default()");
           return w.ToString();
         } else {

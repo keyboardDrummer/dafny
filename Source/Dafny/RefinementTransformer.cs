@@ -324,7 +324,7 @@ namespace Microsoft.Dafny {
                 var udt = UserDefinedType.FromTopLevelDecl(nw.Tok, nw);
                 postTasks.Enqueue(() => {
                   if (!udt.SupportsEquality) {
-                    reporter.Error(MessageSource.RefinementTransformer, udt.tok, "type '{0}', which does not support equality, is used to refine an opaque type with equality support", udt.Name);
+                    reporter.Error(MessageSource.RefinementTransformer, udt.Tok, "type '{0}', which does not support equality, is used to refine an opaque type with equality support", udt.Name);
                   }
                 });
               }
@@ -335,7 +335,7 @@ namespace Microsoft.Dafny {
               var udt = UserDefinedType.FromTopLevelDecl(nw.Tok, nw);
               postTasks.Enqueue(() => {
                 if (!udt.HasCompilableValue) {
-                  reporter.Error(MessageSource.RefinementTransformer, udt.tok, "type '{0}', which does not support auto-initialization, is used to refine an opaque type that expects auto-initialization", udt.Name);
+                  reporter.Error(MessageSource.RefinementTransformer, udt.Tok, "type '{0}', which does not support auto-initialization, is used to refine an opaque type that expects auto-initialization", udt.Name);
                 }
               });
             } else if (od.Characteristics.IsNonempty) {
@@ -344,7 +344,7 @@ namespace Microsoft.Dafny {
               var udt = UserDefinedType.FromTopLevelDecl(nw.Tok, nw);
               postTasks.Enqueue(() => {
                 if (!udt.IsNonempty) {
-                  reporter.Error(MessageSource.RefinementTransformer, udt.tok, "type '{0}', which may be empty, is used to refine an opaque type expected to be nonempty", udt.Name);
+                  reporter.Error(MessageSource.RefinementTransformer, udt.Tok, "type '{0}', which may be empty, is used to refine an opaque type expected to be nonempty", udt.Name);
                 }
               });
             }

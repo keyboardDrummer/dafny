@@ -79,7 +79,7 @@ namespace Microsoft.Dafny {
 
       var udt = UserDefinedType.FromTopLevelDecl(sst.Tok, sst);
       string d;
-      d = TypeName_UDT(FullTypeName(udt), udt, wr, udt.tok) + ".Witness";
+      d = TypeName_UDT(FullTypeName(udt), udt, wr, udt.Tok) + ".Witness";
     }
 
     protected override void GetNativeInfo(NativeType.Selection sel, out string name, out string literalSuffix,

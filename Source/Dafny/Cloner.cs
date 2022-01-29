@@ -175,7 +175,7 @@ namespace Microsoft.Dafny {
         return new MapType(tt.Finite, CloneType(tt.Domain), CloneType(tt.Range));
       } else if (t is ArrowType) {
         var tt = (ArrowType)t;
-        return new ArrowType(Tok(tt.tok), tt.Args.ConvertAll(CloneType), CloneType(tt.Result));
+        return new ArrowType(Tok(tt.Tok), tt.Args.ConvertAll(CloneType), CloneType(tt.Result));
       } else if (t is UserDefinedType) {
         var tt = (UserDefinedType)t;
 #if TEST_TYPE_SYNONYM_TRANSPARENCY
@@ -185,7 +185,7 @@ namespace Microsoft.Dafny {
           return CloneType(syn.Rhs);
         }
 #endif
-        return new UserDefinedType(Tok(tt.tok), CloneExpr(tt.NamePath));
+        return new UserDefinedType(Tok(tt.Tok), CloneExpr(tt.NamePath));
       } else if (t is InferredTypeProxy) {
         return new InferredTypeProxy();
       } else if (t is ParamTypeProxy) {
@@ -1226,7 +1226,7 @@ namespace Microsoft.Dafny {
         var tt = (UserDefinedType)t;
         // We want syntactic cloning of the Expression that is tt.NamePath, unlike the semantic (that is, post-resolved)
         // cloning that CloneExpr is doing above.
-        return new UserDefinedType(Tok(tt.tok), CloneNamePathExpression(tt.NamePath));
+        return new UserDefinedType(Tok(tt.Tok), CloneNamePathExpression(tt.NamePath));
       } else {
         return base.CloneType(t);
       }

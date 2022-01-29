@@ -6969,7 +6969,7 @@ namespace Microsoft.Dafny {
                         var possiblyNullTypeDecl = (ClassDecl)possiblyNullUdf.ResolvedClass;
                         Contract.Assert(nonNullTypeDecl.TypeArgs.Count == possiblyNullTypeDecl.TypeArgs.Count);
                         Contract.Assert(nonNullTypeDecl.TypeArgs.Count == nntUdf.TypeArgs.Count);
-                        var ty = new UserDefinedType(nntUdf.tok, possiblyNullUdf.Name, possiblyNullTypeDecl, nntUdf.TypeArgs);
+                        var ty = new UserDefinedType(nntUdf.Tok, possiblyNullUdf.Name, possiblyNullTypeDecl, nntUdf.TypeArgs);
 
                         hint = string.Format(" (to make it possible for {0} to have the value 'null', declare its type to be '{1}')", name, ty);
                       }
@@ -8400,7 +8400,7 @@ namespace Microsoft.Dafny {
           Contract.Assert(udt.ResolvedClass != null);
           var formalTypeArgs = udt.ResolvedClass.TypeArgs;
           Contract.Assert(formalTypeArgs != null);
-          CheckTypeInstantiation(udt.tok, "type", udt.ResolvedClass.Name, formalTypeArgs, udt.TypeArgs, inGhostContext);
+          CheckTypeInstantiation(udt.Tok, "type", udt.ResolvedClass.Name, formalTypeArgs, udt.TypeArgs, inGhostContext);
 
         } else if (type is TypeProxy) {
           // the type was underconstrained; this is checked elsewhere, but it is not in violation of the equality-type test
@@ -9250,10 +9250,10 @@ namespace Microsoft.Dafny {
                 parentRelation.AddEdge(cl, trait);
               }
             } else {
-              reporter.Error(MessageSource.Resolver, udt.tok, "{0} '{1}' is in a different module than trait '{2}'. A {0} may only extend a trait in the same module, unless the parent trait is annotated with {{:termination false}}.", cl.WhatKind, cl.Name, trait.FullName);
+              reporter.Error(MessageSource.Resolver, udt.Tok, "{0} '{1}' is in a different module than trait '{2}'. A {0} may only extend a trait in the same module, unless the parent trait is annotated with {{:termination false}}.", cl.WhatKind, cl.Name, trait.FullName);
             }
           } else {
-            reporter.Error(MessageSource.Resolver, udt != null ? udt.tok : cl.Tok, "a {0} can only extend traits (found '{1}')", cl.WhatKind, tt);
+            reporter.Error(MessageSource.Resolver, udt != null ? udt.Tok : cl.Tok, "a {0} can only extend traits (found '{1}')", cl.WhatKind, tt);
           }
         }
       }
@@ -10921,7 +10921,7 @@ namespace Microsoft.Dafny {
         if (reporter.Count(ErrorLevel.Error) == prevErrorCount) {
           var r = t.NamePath.Resolved as Resolver_IdentifierExpr;
           if (r == null || !(r.Type is Resolver_IdentifierExpr.ResolverType_Type)) {
-            reporter.Error(MessageSource.Resolver, t.tok, "expected type");
+            reporter.Error(MessageSource.Resolver, t.Tok, "expected type");
           } else if (r.Type is Resolver_IdentifierExpr.ResolverType_Type) {
             var d = r.Decl;
             if (d is OpaqueTypeDecl) {
@@ -10956,11 +10956,11 @@ namespace Microsoft.Dafny {
             if (option.Opt == ResolveTypeOptionEnum.DontInfer) {
               // don't add anything
             } else if (d.TypeArgs.Count != t.TypeArgs.Count && t.TypeArgs.Count == 0) {
-              FillInTypeArguments(t.tok, d.TypeArgs.Count, t.TypeArgs, defaultTypeArguments, option);
+              FillInTypeArguments(t.Tok, d.TypeArgs.Count, t.TypeArgs, defaultTypeArguments, option);
             }
             // defaults and auto have been applied; check if we now have the right number of arguments
             if (d.TypeArgs.Count != t.TypeArgs.Count) {
-              reporter.Error(MessageSource.Resolver, t.tok, "Wrong number of type arguments ({0} instead of {1}) passed to {2}: {3}", t.TypeArgs.Count, d.TypeArgs.Count, d.WhatKind, t.Name);
+              reporter.Error(MessageSource.Resolver, t.Tok, "Wrong number of type arguments ({0} instead of {1}) passed to {2}: {3}", t.TypeArgs.Count, d.TypeArgs.Count, d.WhatKind, t.Name);
             }
 
           }
@@ -10968,7 +10968,7 @@ namespace Microsoft.Dafny {
         if (t.ResolvedClass == null) {
           // There was some error. Still, we will set .ResolvedClass to some value to prevent some crashes in the downstream resolution.  The
           // 0-tuple is convenient, because it is always in scope.
-          t.ResolvedClass = builtIns.TupleType(t.tok, 0, false);
+          t.ResolvedClass = builtIns.TupleType(t.Tok, 0, false);
           // clear out the TypeArgs since 0-tuple doesn't take TypeArg
           t.TypeArgs = new List<Type>();
         }
@@ -14446,7 +14446,7 @@ namespace Microsoft.Dafny {
         }
       } else if (type is ArrowType) {
         var t = (ArrowType)type;
-        return new ArrowType(t.tok, (ArrowTypeDecl)t.ResolvedClass, t.Args.ConvertAll(u => SubstType(u, subst)), SubstType(t.Result, subst));
+        return new ArrowType(t.Tok, (ArrowTypeDecl)t.ResolvedClass, t.Args.ConvertAll(u => SubstType(u, subst)), SubstType(t.Result, subst));
       } else if (type is UserDefinedType) {
         var t = (UserDefinedType)type;
         if (t.ResolvedClass is TypeParameter tp) {
@@ -14495,7 +14495,7 @@ namespace Microsoft.Dafny {
             return type;
           } else {
             // Note, even if t.NamePath is non-null, we don't care to keep that syntactic part of the expression in what we return here
-            return new UserDefinedType(t.tok, t.Name, resolvedClass, newArgs);
+            return new UserDefinedType(t.Tok, t.Name, resolvedClass, newArgs);
           }
         } else {
           // there's neither a resolved param nor a resolved class, which means the UserDefinedType wasn't
@@ -14544,7 +14544,7 @@ namespace Microsoft.Dafny {
         var t = (UserDefinedType)type;
         if (t.ResolvedClass is TypeParameter tp) {
           if (tp.Variance != TypeParameter.TPVariance.Non && tp.Variance != context) {
-            reporter.Error(MessageSource.Resolver, t.tok, "formal type parameter '{0}' is not used according to its variance specification", tp.Name);
+            reporter.Error(MessageSource.Resolver, t.Tok, "formal type parameter '{0}' is not used according to its variance specification", tp.Name);
           } else if (tp.StrictVariance && lax) {
             string hint;
             if (tp.VarianceSyntax == TypeParameter.TPVarianceSyntax.NonVariant_Strict) {
@@ -14553,7 +14553,7 @@ namespace Microsoft.Dafny {
               Contract.Assert(tp.VarianceSyntax == TypeParameter.TPVarianceSyntax.Covariant_Strict);
               hint = string.Format(" (perhaps try changing the declaration from '+{0}' to '*{0}')", tp.Name);
             }
-            reporter.Error(MessageSource.Resolver, t.tok, "formal type parameter '{0}' is not used according to its variance specification (it is used left of an arrow){1}", tp.Name, hint);
+            reporter.Error(MessageSource.Resolver, t.Tok, "formal type parameter '{0}' is not used according to its variance specification (it is used left of an arrow){1}", tp.Name, hint);
           }
         } else {
           var resolvedClass = t.ResolvedClass;
@@ -14564,7 +14564,7 @@ namespace Microsoft.Dafny {
             var cg = enclosingTypeDefinition.EnclosingModule.CallGraph;
             var t0 = resolvedClass as ICallable;
             if (t0 != null && cg.GetSCCRepresentative(t0) == cg.GetSCCRepresentative(enclosingTypeDefinition)) {
-              reporter.Error(MessageSource.Resolver, t.tok, "using the type being defined ('{0}') here violates strict positivity, that is, it would cause a logical inconsistency by defining a type whose cardinality exceeds itself (like the Continuum Transfunctioner, you might say its power would then be exceeded only by its mystery)", resolvedClass.Name);
+              reporter.Error(MessageSource.Resolver, t.Tok, "using the type being defined ('{0}') here violates strict positivity, that is, it would cause a logical inconsistency by defining a type whose cardinality exceeds itself (like the Continuum Transfunctioner, you might say its power would then be exceeded only by its mystery)", resolvedClass.Name);
             }
           }
           for (int i = 0; i < t.TypeArgs.Count; i++) {

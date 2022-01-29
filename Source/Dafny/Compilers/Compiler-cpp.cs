@@ -912,7 +912,7 @@ namespace Microsoft.Dafny {
         if (class_name || xType.IsTypeParameter || xType.IsOpaqueType || xType.IsDatatype) {  // Don't add pointer decorations to class names or type parameters
           return IdProtect(s) + ActualTypeArgs(xType.TypeArgs);
         } else {
-          return TypeName_UDT(s, udt, wr, udt.tok);
+          return TypeName_UDT(s, udt, wr, udt.Tok);
         }
       } else if (xType is SetType) {
         Type argType = ((SetType)xType).Arg;
