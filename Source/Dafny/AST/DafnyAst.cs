@@ -585,7 +585,16 @@ namespace Microsoft.Dafny {
 
   // ------------------------------------------------------------------------------------------------------
 
-  public abstract class Type {
+  public interface IType {
+    bool IsBoolType { get; }
+    bool IsBigOrdinalType { get; }
+    bool IsBitVectorType { get; }
+    bool IsMapType { get; }
+    bool IsIMapType { get; }
+    bool IsNumericBased(Type.NumericPersuasion p0);
+  }
+  
+  public abstract class Type : IType {
     public static readonly BoolType Bool = new BoolType();
     public static readonly CharType Char = new CharType();
     public static readonly IntType Int = new IntType();
@@ -4795,9 +4804,8 @@ namespace Microsoft.Dafny {
     public override string WhatKind { get { return Name; } }
     public readonly Dictionary<string, MemberDecl> Members = new Dictionary<string, MemberDecl>();
     public readonly Func<Type, bool> TypeTester;
-    public readonly Func<List<Type>, Type>/*?*/ TypeCreator;
 
-    public ValuetypeDecl(string name, ModuleDefinition enclosingModuleDefinition, int typeParameterCount, Func<Type, bool> typeTester, Func<List<Type>, Type>/*?*/ typeCreator)
+    public ValuetypeDecl(string name, ModuleDefinition enclosingModuleDefinition, int typeParameterCount, Func<IType, bool> typeTester)
       : base(Token.NoToken, name, enclosingModuleDefinition, new List<TypeParameter>(), null, false) {
       Contract.Requires(name != null);
       Contract.Requires(enclosingModuleDefinition != null);
@@ -4809,7 +4817,6 @@ namespace Microsoft.Dafny {
         TypeArgs.Add(new TypeParameter(Token.NoToken, ((char)('T' + i)).ToString(), i, this));
       }
       this.TypeTester = typeTester;
-      this.TypeCreator = typeCreator;
     }
 
     public int TypeParameterCount { get; private set; }
@@ -4817,13 +4824,6 @@ namespace Microsoft.Dafny {
     public bool IsThisType(Type t) {
       Contract.Assert(t != null);
       return TypeTester(t);
-    }
-
-    public Type CreateType(List<Type> typeArgs) {
-      Contract.Requires(typeArgs != null);
-      Contract.Requires(typeArgs.Count == TypeArgs.Count);
-      Contract.Assume(TypeCreator != null);  // can only call CreateType for a ValuetypeDecl with a type creator (this is up to the caller to ensure)
-      return TypeCreator(typeArgs);
     }
   }
 
@@ -7889,7 +7889,7 @@ namespace Microsoft.Dafny {
       Contract.Requires(cce.NonNullElements(lhs));
       Contract.Requires(methodSelect != null);
       Contract.Requires(methodSelect.Member is Method);
-      Contract.Requires(cce.NonNullElements(args));
+      Contract.Requires(cce.NonNullElements(bindingArgs));
 
       this.Lhs = lhs;
       this.MethodSelect = methodSelect;
@@ -9898,13 +9898,13 @@ namespace Microsoft.Dafny {
 
     public DatatypeValue(IToken tok, string datatypeName, string memberName, [Captured] List<ActualBinding> argumentBindings)
       : base(tok) {
-      Contract.Requires(cce.NonNullElements(arguments));
+      Contract.Requires(cce.NonNullElements(argumentBindings));
       Contract.Requires(tok != null);
       Contract.Requires(datatypeName != null);
       Contract.Requires(memberName != null);
       this.DatatypeName = datatypeName;
       this.MemberName = memberName;
-      this.Bindings = new ActualBindings(arguments);
+      this.Bindings = new ActualBindings(argumentBindings);
     }
 
     /// <summary>
@@ -10570,12 +10570,12 @@ namespace Microsoft.Dafny {
     public Function Function;  // filled in by resolution
 
     public FunctionCallExpr(IToken tok, string name, Expression receiver, IToken openParen, [Captured] List<ActualBinding> argumentBindings, Label/*?*/ atLabel = null)
-      : this(tok, name, receiver, openParen, new ActualBindings(args), atLabel) {
+      : this(tok, name, receiver, openParen, new ActualBindings(argumentBindings), atLabel) {
       Contract.Requires(tok != null);
       Contract.Requires(name != null);
       Contract.Requires(receiver != null);
-      Contract.Requires(cce.NonNullElements(args));
-      Contract.Requires(openParen != null || args.Count == 0);
+      Contract.Requires(cce.NonNullElements(argumentBindings));
+      Contract.Requires(openParen != null || argumentBindings.Count == 0);
       Contract.Ensures(type == null);
     }
 
@@ -11813,7 +11813,7 @@ namespace Microsoft.Dafny {
 
     public readonly bool Finite;
     public readonly Expression TermLeft;
-    public readonly Expression TermRight => base.Term;
+    public Expression TermRight => base.Term;
 
     public List<Boogie.Function> ProjectionFunctions;  // filled in during translation (and only for general map comprehensions where "TermLeft != null")
 
