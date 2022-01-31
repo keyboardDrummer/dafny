@@ -4803,7 +4803,7 @@ namespace Microsoft.Dafny {
   public class ValuetypeDecl : TopLevelDecl {
     public override string WhatKind { get { return Name; } }
     public readonly Dictionary<string, MemberDecl> Members = new Dictionary<string, MemberDecl>();
-    public readonly Func<Type, bool> TypeTester;
+    public readonly Func<IType, bool> TypeTester;
 
     public ValuetypeDecl(string name, ModuleDefinition enclosingModuleDefinition, int typeParameterCount, Func<IType, bool> typeTester)
       : base(Token.NoToken, name, enclosingModuleDefinition, new List<TypeParameter>(), null, false) {
@@ -5392,6 +5392,8 @@ namespace Microsoft.Dafny {
       Contract.Invariant(EnclosingCtors.Count > 0);
       Contract.Invariant(EnclosingCtors.Count == CorrespondingFormals.Count);
     }
+
+    public string CompiledName => (string)this.IdParam;
 
     public DatatypeDestructor(IToken tok, List<DatatypeCtor> enclosingCtors, List<Formal> correspondingFormals, string name, string compiledName, bool isGhost, Type type, Attributes attributes)
       : base(tok, name, SpecialField.ID.UseIdParam, compiledName, isGhost, false, false, type, attributes) {

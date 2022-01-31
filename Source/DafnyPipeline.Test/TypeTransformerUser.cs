@@ -32,8 +32,17 @@ System.Collections.Generic;");
       new Dictionary<Type, TypeMutation>() {
         { typeof(Method), new TypeMutation(new HashSet<string>() {
           nameof(Method.Req), 
-          nameof(Method.Ens)
-        }) }
+          nameof(Method.Ens),
+          nameof(Method.Mod),
+          nameof(Method.Decreases)
+        })
+        },
+        { typeof(GreatestLemma), TypeMutation.Delete },
+        { typeof(LeastLemma), TypeMutation.Delete },
+        { typeof(ExtremeLemma), TypeMutation.Delete },
+        { typeof(PrefixLemma), TypeMutation.Delete },
+        { typeof(TwoStateLemma), TypeMutation.Delete },
+        { typeof(Lemma), TypeMutation.Delete }
       });
   }
   
