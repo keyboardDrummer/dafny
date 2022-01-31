@@ -9,7 +9,7 @@ using Microsoft.Boogie;
 
 namespace Microsoft.Dafny.V2
 {
-    public class Method : MemberDecl, TypeParameter.ParentType, IMethodCodeContext
+    public class Method : MemberDecl, TypeParameter.ParentType
     {
         public override string WhatKind { get { return "method"; } }
         public bool SignatureIsOmitted { get { return SignatureEllipsis != null; } }
@@ -81,49 +81,10 @@ namespace Microsoft.Dafny.V2
             MustReverify = false;
         }
 
-        bool ICodeContext.IsGhost { get { return this.IsGhost; } }
-        List<TypeParameter> ICodeContext.TypeArgs { get { return this.TypeArgs; } }
-        List<Formal> ICodeContext.Ins { get { return this.Ins; } }
-        List<Formal> IMethodCodeContext.Outs { get { return this.Outs; } }
-        Specification<FrameExpression> IMethodCodeContext.Modifies {
-          get { throw new Exception(); }
-        }
-        IToken ICallable.Tok { get { return this.Tok; } }
-        string ICallable.NameRelativeToModule
-        {
-            get
-            {
-                if (EnclosingClass is DefaultClassDecl)
-                {
-                    return Name;
-                }
-                else
-                {
-                    return EnclosingClass.Name + "." + Name;
-                }
-            }
-        }
-        Specification<Expression> ICallable.Decreases {
-          get { throw new Exception(); }
-        }
         bool _inferredDecr;
-        bool ICallable.InferredDecreases
-        {
-            set { _inferredDecr = value; }
-            get { return _inferredDecr; }
-        }
 
         public virtual bool AllowsAllocation => true;
 
-        ModuleDefinition ICodeContext.EnclosingModule
-        {
-            get
-            {
-                Contract.Assert(this.EnclosingClass != null);  // this getter is supposed to be called only after signature-resolution is complete
-                return this.EnclosingClass.EnclosingModuleDefinition;
-            }
-        }
-        bool ICodeContext.MustReverify { get { return this.MustReverify; } }
 
         public override string CompileName
         {
