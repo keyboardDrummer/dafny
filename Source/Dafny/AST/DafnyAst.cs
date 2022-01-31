@@ -10031,7 +10031,7 @@ namespace Microsoft.Dafny {
   /// <summary>
   /// This class is used only inside the resolver itself. It gets hung in the AST in uncompleted name segments.
   /// </summary>
-  class Resolver_IdentifierExpr : Expression {
+  public class Resolver_IdentifierExpr : Expression {
     public readonly TopLevelDecl Decl;
     public readonly List<Type> TypeArgs;
     [ContractInvariantMethod]
