@@ -10,6 +10,7 @@ using System.IO;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Reflection;
+using System.Threading.Tasks;
 using Microsoft.Boogie;
 
 namespace Microsoft.Dafny {
@@ -231,8 +232,9 @@ namespace Microsoft.Dafny {
       return null; // Success
     }
 
-    public static bool BoogieOnce(ExecutionEngineOptions options, string baseFile, string moduleName, Microsoft.Boogie.Program boogieProgram, string programId,
-      out PipelineStatistics stats, out PipelineOutcome oc) {
+    public static async Task<(bool IsVerified, PipelineOutcome Outcome, PipelineStatistics Statistics)> BoogieOnce(ExecutionEngineOptions options, string baseFile,
+      string moduleName,
+      Microsoft.Boogie.Program boogieProgram, string programId) {
       if (programId == null) {
         programId = "main_program_id";
       }
@@ -248,9 +250,9 @@ namespace Microsoft.Dafny {
       }
 
       bplFilename = BoogieProgramSuffix(bplFilename, moduleName);
-      stats = null;
-      oc = BoogiePipelineWithRerun(options, boogieProgram, bplFilename, out stats, 1 < DafnyOptions.O.VerifySnapshots ? programId : null);
-      return IsBoogieVerified(oc, stats);
+      var (outcome, stats) = await BoogiePipelineWithRerun(options, boogieProgram, bplFilename,
+        1 < DafnyOptions.O.VerifySnapshots ? programId : null);
+      return (IsBoogieVerified(outcome, stats), outcome, stats);
     }
 
     public static string BoogieProgramSuffix(string printFile, string suffix) {
@@ -277,41 +279,43 @@ namespace Microsoft.Dafny {
     /// The method prints errors for resolution and type checking errors, but still returns
     /// their error code.
     /// </summary>
-    static PipelineOutcome BoogiePipelineWithRerun(ExecutionEngineOptions options, Microsoft.Boogie.Program/*!*/ program, string/*!*/ bplFileName,
-        out PipelineStatistics stats, string programId) {
+    private static async Task<(PipelineOutcome Outcome, PipelineStatistics Statistics)> BoogiePipelineWithRerun(ExecutionEngineOptions options,
+        Microsoft.Boogie.Program/*!*/ program, string/*!*/ bplFileName,
+        string programId) {
       Contract.Requires(program != null);
       Contract.Requires(bplFileName != null);
-      Contract.Ensures(0 <= Contract.ValueAtReturn(out stats).InconclusiveCount && 0 <= Contract.ValueAtReturn(out stats).TimeoutCount);
 
-      stats = new PipelineStatistics();
+      var stats = new PipelineStatistics();
       CivlTypeChecker ctc;
       PipelineOutcome oc = ExecutionEngine.ResolveAndTypecheck(options, program, bplFileName, out ctc);
       switch (oc) {
         case PipelineOutcome.Done:
-          return oc;
+          return (oc, stats);
 
         case PipelineOutcome.ResolutionError:
-        case PipelineOutcome.TypeCheckingError: {
-            ExecutionEngine.PrintBplFile(options, bplFileName, program, false, false, DafnyOptions.O.PrettyPrint);
-            Console.WriteLine();
-            Console.WriteLine("*** Encountered internal translation error - re-running Boogie to get better debug information");
-            Console.WriteLine();
+        case PipelineOutcome.TypeCheckingError:
+          ExecutionEngine.PrintBplFile(options, bplFileName, program, false, false, DafnyOptions.O.PrettyPrint);
+          Console.WriteLine();
+          Console.WriteLine(
+            "*** Encountered internal translation error - re-running Boogie to get better debug information");
+          Console.WriteLine();
 
-            List<string/*!*/>/*!*/ fileNames = new List<string/*!*/>();
-            fileNames.Add(bplFileName);
-            var reparsedProgram = ExecutionEngine.ParseBoogieProgram(options, fileNames, true);
-            if (reparsedProgram != null) {
-              ExecutionEngine.ResolveAndTypecheck(options, reparsedProgram, bplFileName, out ctc);
-            }
+          List<string /*!*/> /*!*/ fileNames = new List<string /*!*/>();
+          fileNames.Add(bplFileName);
+          var reparsedProgram = ExecutionEngine.ParseBoogieProgram(options, fileNames, true);
+          if (reparsedProgram != null) {
+            ExecutionEngine.ResolveAndTypecheck(options, reparsedProgram, bplFileName, out ctc);
           }
-          return oc;
+
+          return (oc, stats);
 
         case PipelineOutcome.ResolvedAndTypeChecked:
           ExecutionEngine.EliminateDeadVariables(program);
           ExecutionEngine.CollectModSets(options, program);
           ExecutionEngine.CoalesceBlocks(options, program);
           ExecutionEngine.Inline(options, program);
-          return ExecutionEngine.InferAndVerify(options, program, stats, programId).Result;
+          var outcome = await ExecutionEngine.InferAndVerify(options, program, stats, programId);
+          return (outcome, stats);
 
         default:
           Contract.Assert(false); throw new cce.UnreachableException();  // unexpected outcome

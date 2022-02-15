@@ -205,7 +205,7 @@ module SomeModule {
       testOutputHelper.WriteLine("proverLog: " + temp1);
       DafnyOptions.O.ProverLogFilePath = temp1;
       foreach (var boogieProgram in boogiePrograms) {
-        Main.BoogieOnce(DafnyOptions.O, "", "", boogieProgram, "programId", out _, out var outcome);
+        var (_, outcome, _) = Main.BoogieOnce(DafnyOptions.O, "", "", boogieProgram, "programId").Result;
         testOutputHelper.WriteLine("outcome: " + outcome);
         foreach (var proverFile in Directory.GetFiles(directory)) {
           yield return File.ReadAllText(proverFile);
