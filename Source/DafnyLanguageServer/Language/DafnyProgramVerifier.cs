@@ -71,11 +71,11 @@ namespace Microsoft.Dafny.LanguageServer.Language {
         // The printer is responsible for two things: It logs boogie errors and captures the counter example model.
         var errorReporter = (DiagnosticErrorReporter)program.reporter;
         var printer = new ModelCapturingOutputPrinter(logger, errorReporter, progressReporter);
-        ExecutionEngine.printer = printer;
+        Options.GetPrinter = options => printer;
         // Do not set these settings within the object's construction. It will break some tests within
         // VerificationNotificationTest and DiagnosticsTest that rely on updating these settings.
-        DafnyOptions.O.TimeLimit = options.TimeLimit;
-        DafnyOptions.O.VcsCores = GetConfiguredCoreCount(options);
+        Options.TimeLimit = options.TimeLimit;
+        Options.VcsCores = GetConfiguredCoreCount(options);
         var translated = Translator.Translate(program, errorReporter, new Translator.TranslatorFlags { InsertChecksums = true });
         bool verified = true;
         foreach (var (_, boogieProgram) in translated) {
@@ -106,7 +106,7 @@ namespace Microsoft.Dafny.LanguageServer.Language {
       using (cancellationToken.Register(() => CancelVerification(uniqueId))) {
         try {
           var statistics = new PipelineStatistics();
-          var outcome = ExecutionEngine.InferAndVerify(Options, program, statistics, uniqueId, null, uniqueId);
+          var outcome = ExecutionEngine.InferAndVerify(Options, program, statistics, uniqueId, null, uniqueId).Result;
           return Main.IsBoogieVerified(outcome, statistics);
         } catch (Exception e) when (e is not OperationCanceledException) {
           if (!cancellationToken.IsCancellationRequested) {

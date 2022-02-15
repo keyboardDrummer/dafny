@@ -311,7 +311,7 @@ namespace Microsoft.Dafny {
           ExecutionEngine.CollectModSets(options, program);
           ExecutionEngine.CoalesceBlocks(options, program);
           ExecutionEngine.Inline(options, program);
-          return ExecutionEngine.InferAndVerify(options, program, stats, programId);
+          return ExecutionEngine.InferAndVerify(options, program, stats, programId).Result;
 
         default:
           Contract.Assert(false); throw new cce.UnreachableException();  // unexpected outcome

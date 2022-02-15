@@ -13,7 +13,7 @@ namespace Microsoft.Dafny {
     private readonly ExecutionEngineOptions options;
 
     static void Main(string[] args) {
-      var options = CommandLineOptions.FromArguments();
+      var options = DafnyOptions.FromArguments(o => new DafnyConsolePrinter(o), args);
       Server server = new Server(options);
 
       // read the optional flag (only one flag is allowed)
@@ -69,7 +69,6 @@ namespace Microsoft.Dafny {
     public Server(ExecutionEngineOptions options) {
       this.options = options;
       this.running = true;
-      ExecutionEngine.printer = new DafnyConsolePrinter(options);
       SetupConsole();
     }
 

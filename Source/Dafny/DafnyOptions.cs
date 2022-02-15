@@ -17,8 +17,20 @@ namespace Microsoft.Dafny {
   public class DafnyOptions : Bpl.CommandLineOptions {
     private ErrorReporter errorReporter;
 
-    public DafnyOptions(ErrorReporter errorReporter = null)
-      : base("Dafny", "Dafny program verifier") {
+    public new static DafnyOptions FromArguments(params string[] arguments)
+    {
+      return FromArguments(options => new Bpl.ConsolePrinter(options), arguments);
+    }
+
+    public static DafnyOptions FromArguments(Func<DafnyOptions, Bpl.OutputPrinter> getPrinter, params string[] arguments)
+    {
+      var result = new DafnyOptions(o => getPrinter((DafnyOptions)o));
+      result.Parse(arguments);
+      return result;
+    }
+
+    public DafnyOptions(Func<Bpl.CommandLineOptions, Bpl.OutputPrinter> getPrinter, ErrorReporter errorReporter = null)
+      : base("Dafny", "Dafny program verifier", getPrinter) {
       this.errorReporter = errorReporter;
       Prune = true;
       NormalizeNames = true;
@@ -143,7 +155,7 @@ namespace Microsoft.Dafny {
     public virtual TestGenerationOptions TestGenOptions =>
       testGenOptions ??= new TestGenerationOptions();
 
-    protected override bool ParseOption(string name, Bpl.CommandLineOptionEngine.CommandLineParseState ps) {
+    protected override bool ParseOption(string name, Bpl.CommandLineParseState ps) {
       var args = ps.args; // convenient synonym
       switch (name) {
         case "dprelude":
@@ -546,7 +558,7 @@ namespace Microsoft.Dafny {
       return TestGenOptions.ParseOption(name, ps) || base.ParseOption(name, ps);
     }
 
-    protected void InvalidArgumentError(string name, CommandLineParseState ps) {
+    protected void InvalidArgumentError(string name, Bpl.CommandLineParseState ps) {
       ps.Error("Invalid argument \"{0}\" to option {1}", ps.args[ps.i], name);
     }
 

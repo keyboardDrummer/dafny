@@ -146,7 +146,7 @@ module SomeModule {
 
     [Fact]
     public void NoUniqueLinesWhenConcatenatingUnrelatedPrograms() {
-      DafnyOptions.Install(new DafnyOptions());
+      DafnyOptions.Install(DafnyOptions.FromArguments());
 
       var regularBoogie = GetBoogie(originalProgram).ToList();
       var renamedBoogie = GetBoogie(renamedProgram).ToList();
@@ -162,10 +162,8 @@ module SomeModule {
 
     [Fact]
     public void EqualProverLogWhenReorderingProgram() {
-      DafnyOptions.Install(new DafnyOptions());
-      DafnyOptions.O.Parse(new[] { "" });
+      DafnyOptions.Install(DafnyOptions.FromArguments());
       DafnyOptions.O.ProcsToCheck.Add("*SomeMethod");
-      ExecutionEngine.printer = new ConsolePrinter(DafnyOptions.O); // For boogie errors
 
       var reorderedProverLog = GetProverLogForProgram(GetBoogie(reorderedProgram));
       var regularProverLog = GetProverLogForProgram(GetBoogie(originalProgram));
@@ -175,10 +173,8 @@ module SomeModule {
     [Fact]
     public void EqualProverLogWhenRenamingProgram() {
 
-      DafnyOptions.Install(new DafnyOptions());
-      DafnyOptions.O.Parse(new[] { "" });
+      DafnyOptions.Install(DafnyOptions.FromArguments());
       DafnyOptions.O.ProcsToCheck.Add("*SomeMethod*");
-      ExecutionEngine.printer = new ConsolePrinter(DafnyOptions.O); // For boogie errors
 
       var renamedProverLog = GetProverLogForProgram(GetBoogie(renamedProgram));
       var regularProverLog = GetProverLogForProgram(GetBoogie(originalProgram));
@@ -188,10 +184,8 @@ module SomeModule {
     [Fact]
     public void EqualProverLogWhenAddingUnrelatedProgram() {
 
-      DafnyOptions.Install(new DafnyOptions());
-      DafnyOptions.O.Parse(new[] { "" });
+      DafnyOptions.Install(DafnyOptions.FromArguments());
       DafnyOptions.O.ProcsToCheck.Add("*SomeMethod");
-      ExecutionEngine.printer = new ConsolePrinter(DafnyOptions.O); // For boogie errors
 
       var renamedProverLog = GetProverLogForProgram(GetBoogie(renamedProgram + originalProgram));
       var regularProverLog = GetProverLogForProgram(GetBoogie(originalProgram));
