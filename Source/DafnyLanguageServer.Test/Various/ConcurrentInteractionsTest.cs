@@ -25,8 +25,6 @@ namespace Microsoft.Dafny.LanguageServer.IntegrationTest.Various {
     private const int MaxTestExecutionTimeMs = 240_000;
     private const int MaxRequestExecutionTimeMs = 180_000;
 
-    private IDictionary<string, string> configuration;
-
     // We do not use the LanguageServerTestBase.cancellationToken here because it has a timeout.
     // Since these tests are slow, we do not use the timeout here.
     private CancellationTokenSource cancellationSource;
@@ -40,16 +38,6 @@ namespace Microsoft.Dafny.LanguageServer.IntegrationTest.Various {
       // We use a custom cancellation token with a higher timeout to clearly identify where the request got stuck.
       cancellationSource = new();
       cancellationSource.CancelAfter(MaxRequestExecutionTimeMs);
-    }
-
-    public async Task SetUp(IDictionary<string, string> configuration) {
-      this.configuration = configuration;
-      await SetUp();
-    }
-    protected override IConfiguration CreateConfiguration() {
-      return configuration == null
-        ? base.CreateConfiguration()
-        : new ConfigurationBuilder().AddInMemoryCollection(configuration).Build();
     }
 
     [TestMethod, Timeout(MaxTestExecutionTimeMs)]
@@ -122,8 +110,8 @@ method Multiply(x: bv10, y: bv10) returns (product: bv10)
       var document = await Documents.GetVerifiedDocumentAsync(documentItem.Uri);
       Assert.IsNotNull(document);
       Assert.AreEqual(documentItem.Version + 11, document.Version);
-      Assert.AreEqual(1, document.Errors.ErrorCount);
-      Assert.AreEqual("assertion might not hold", document.Errors.GetDiagnostics(documentItem.Uri)[0].Message);
+      Assert.AreEqual(1, document.Diagnostics.Count());
+      Assert.AreEqual("assertion might not hold", document.Diagnostics.First().Message);
     }
 
     [TestMethod, Timeout(MaxTestExecutionTimeMs)]
@@ -133,26 +121,23 @@ method Multiply(x: bv10, y: bv10) returns (product: bv10)
       await client.OpenDocumentAndWaitAsync(documentItem, CancellationTokenWithHighTimeout);
       // The original document contains a syntactic error.
       var initialLoadDiagnostics = await diagnosticReceiver.AwaitNextDiagnosticsAsync(CancellationTokenWithHighTimeout, documentItem);
-      await AssertNoDiagnosticsAreComing();
+      await AssertNoDiagnosticsAreComing(CancellationToken);
       Assert.AreEqual(1, initialLoadDiagnostics.Length);
 
       ApplyChange(ref documentItem, new Range((2, 1), (2, 1)), "\n}");
 
       // Wait for resolution diagnostics now, so they don't get cancelled.
-      // After this we still have slow verification diagnostics in the queue.
+      // After this we still have never completing verification diagnostics in the queue.
       var parseErrorFixedDiagnostics = await diagnosticReceiver.AwaitNextDiagnosticsAsync(CancellationTokenWithHighTimeout, documentItem);
       Assert.AreEqual(0, parseErrorFixedDiagnostics.Length);
 
       // Cancel the slow verification and start a fast verification
       ApplyChange(ref documentItem, new Range((0, 0), (3, 1)), "function GetConstant(): int ensures false { 1 }");
 
-      var parseErrorStillFixedDiagnostics = await diagnosticReceiver.AwaitNextDiagnosticsAsync(CancellationTokenWithHighTimeout, documentItem);
-      Assert.AreEqual(0, parseErrorStillFixedDiagnostics.Length);
-
       var verificationDiagnostics = await diagnosticReceiver.AwaitNextDiagnosticsAsync(CancellationTokenWithHighTimeout, documentItem);
       Assert.AreEqual(1, verificationDiagnostics.Length);
 
-      await AssertNoDiagnosticsAreComing();
+      await AssertNoDiagnosticsAreComing(CancellationToken);
     }
 
     /// <summary>
@@ -179,7 +164,7 @@ method Multiply(x: bv10, y: bv10) returns (product: bv10)
       var verificationDiagnostics = await diagnosticReceiver.AwaitNextDiagnosticsAsync(CancellationToken, documentItem);
       Assert.AreEqual(0, verificationDiagnostics.Length);
 
-      await AssertNoDiagnosticsAreComing();
+      await AssertNoDiagnosticsAreComing(CancellationToken);
     }
 
     [TestMethod, Timeout(MaxTestExecutionTimeMs)]
@@ -188,7 +173,7 @@ method Multiply(x: bv10, y: bv10) returns (product: bv10)
       // exclusive to themselves. This "stress test" ensures that loading multiple documents at once is possible.
       // To be more specific, this test should ensure that there is no state discarded/overriden between the three steps within
       // the Dafny Compiler itself.
-      int documentsToLoadConcurrently = 100;
+      int documentsToLoadConcurrently = 50;
       var source = @"
 method Multiply(x: int, y: int) returns (product: int)
   requires y >= 0 && x >= 0
@@ -209,14 +194,14 @@ method Multiply(x: int, y: int) returns (product: int)
         loadingDocuments.Add(documentItem);
       }
       for (int i = 0; i < documentsToLoadConcurrently; i++) {
-        var report = await diagnosticReceiver.AwaitVerificationDiagnosticsAsync(CancellationTokenWithHighTimeout);
+        var report = await GetLastVerificationDiagnostics(loadingDocuments[i], CancellationTokenWithHighTimeout);
         Assert.AreEqual(0, report.Length);
       }
 
       foreach (var loadingDocument in loadingDocuments) {
         await Documents.CloseDocumentAsync(loadingDocument);
       }
-      await AssertNoDiagnosticsAreComing();
+      await AssertNoDiagnosticsAreComing(CancellationToken);
     }
   }
 }

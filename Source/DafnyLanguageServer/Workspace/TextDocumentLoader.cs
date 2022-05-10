@@ -148,13 +148,13 @@ namespace Microsoft.Dafny.LanguageServer.Workspace {
     }
 
     private async Task<DafnyDocument> VerifyInternalAsync(DafnyDocument document, CancellationToken cancellationToken) {
-      notificationPublisher.SendStatusNotification(document.Text, CompilationStatus.VerificationStarted);
-      var progressReporter = new VerificationProgressReporter(document.Text, notificationPublisher);
+      notificationPublisher.SendStatusNotification(document.TextDocumentItem, CompilationStatus.VerificationStarted);
+      var progressReporter = new VerificationProgressReporter(document.TextDocumentItem, notificationPublisher);
       var verificationResult = await verifier.VerifyAsync(document.Program, progressReporter, cancellationToken);
       var compilationStatusAfterVerification = verificationResult.Verified
         ? CompilationStatus.VerificationSucceeded
         : CompilationStatus.VerificationFailed;
-      notificationPublisher.SendStatusNotification(document.Text, compilationStatusAfterVerification);
+      notificationPublisher.SendStatusNotification(document.TextDocumentItem, compilationStatusAfterVerification);
       logger.LogDebug($"Finished verification with {document.Errors.ErrorCount} errors.");
       return document with {
         OldVerificationDiagnostics = new List<Diagnostic>(),

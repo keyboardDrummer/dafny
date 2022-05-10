@@ -136,7 +136,7 @@ namespace Microsoft.Dafny.LanguageServer.Workspace {
       var oldDocument = await oldDocumentTask;
 #pragma warning restore VSTHRD003
       // We do not pass the cancellation token to the text change processor because the text has to be kept in sync with the LSP client.
-      var updatedText = textChangeProcessor.ApplyChange(oldDocument.Text, documentChange, CancellationToken.None);
+      var updatedText = textChangeProcessor.ApplyChange(oldDocument.TextDocumentItem, documentChange, CancellationToken.None);
       var oldVerificationDiagnostics =
         oldDocument.Errors.GetDiagnostics(oldDocument.Uri).Where(d => d.Source == MessageSource.Verifier.ToString()).
           Concat(oldDocument.OldVerificationDiagnostics).ToList();
@@ -162,7 +162,7 @@ namespace Microsoft.Dafny.LanguageServer.Workspace {
         // to re-locate symbols that were resolved previously.
         logger.LogTrace("document loading canceled, applying migration");
         return oldDocument with {
-          Text = updatedText,
+          TextDocumentItem = updatedText,
           SymbolTable = relocator.RelocateSymbols(oldDocument.SymbolTable, documentChange, CancellationToken.None),
           SerializedCounterExamples = null,
           LoadCanceled = true,
