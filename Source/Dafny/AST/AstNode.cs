@@ -20,12 +20,14 @@ public abstract class AstNode {
 public record SyntaxFromTokens(IToken Start, IToken End) : AstNodeSyntax {
   public Range Range => new Range(new Position(Start.pos), new Position(End.pos));
   public IReadOnlyList<string> Trivia => new string[] { }; // TODO traverse from Start.next to End and collect trivia.
+  public Uri File => new Uri(Start.filename);
   public IToken ToBoogieToken => Start;
 }
 
 public record SyntaxFromToken(IToken Token) : AstNodeSyntax {
   public Range Range => new Range(new Position(Token.pos), new Position(Token.pos + Token.val.Length));
   public IReadOnlyList<string> Trivia => new string[] { }; // TODO use leading an trailing trivia
+  public Uri File => new Uri(Token.filename);
   public IToken ToBoogieToken => Token;
 }
 
@@ -36,6 +38,10 @@ public record Range(Position Start, Position End);
 public interface AstNodeSyntax {
   Range Range { get; }
   IReadOnlyList<string> Trivia { get; }
+
+  Uri File { get; }
+
+  FileRange FileRange => new FileRange(Range, File);
 
   Boogie.IToken ToBoogieToken { get; }
 }

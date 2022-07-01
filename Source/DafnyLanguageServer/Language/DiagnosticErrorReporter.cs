@@ -1,6 +1,6 @@
 using Microsoft.Boogie;
 using Microsoft.Dafny.LanguageServer.Util;
-using OmniSharp.Extensions.LanguageServer.Protocol;
+using Lsp = OmniSharp.Extensions.LanguageServer.Protocol;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using System;
 using System.Collections.Generic;
@@ -14,8 +14,8 @@ namespace Microsoft.Dafny.LanguageServer.Language {
     private const string RelatedLocationCategory = "Related location";
     private const string RelatedLocationMessage = RelatedLocationCategory;
 
-    private readonly DocumentUri entryDocumentUri;
-    private readonly Dictionary<DocumentUri, List<Diagnostic>> diagnostics = new();
+    private readonly Lsp.DocumentUri entryDocumentUri;
+    private readonly Dictionary<Lsp.DocumentUri, List<Diagnostic>> diagnostics = new();
     private readonly Dictionary<DiagnosticSeverity, int> counts = new();
     private readonly Dictionary<DiagnosticSeverity, int> countsNotVerificationOrCompiler = new();
     private readonly ReaderWriterLockSlim rwLock = new();
@@ -27,13 +27,13 @@ namespace Microsoft.Dafny.LanguageServer.Language {
     /// <remarks>
     /// The uri of the entry document is necessary to report general compiler errors as part of this document.
     /// </remarks>
-    public DiagnosticErrorReporter(DocumentUri entryDocumentUri) {
+    public DiagnosticErrorReporter(Lsp.DocumentUri entryDocumentUri) {
       this.entryDocumentUri = entryDocumentUri;
     }
 
-    public IReadOnlyDictionary<DocumentUri, List<Diagnostic>> AllDiagnostics => diagnostics;
+    public IReadOnlyDictionary<Lsp.DocumentUri, List<Diagnostic>> AllDiagnostics => diagnostics;
 
-    public IReadOnlyList<Diagnostic> GetDiagnostics(DocumentUri documentUri) {
+    public IReadOnlyList<Diagnostic> GetDiagnostics(Lsp.DocumentUri documentUri) {
       rwLock.EnterReadLock();
       try {
         // For untitled documents, the URI needs to have a "untitled" scheme
@@ -94,9 +94,23 @@ namespace Microsoft.Dafny.LanguageServer.Language {
       }
     }
 
-    private static Location CreateLocation(IToken token) {
+    // public static Lsp.Position GetLspPosition(Position position) {
+    //   return new Lsp.Range(
+    //     range.,
+    //     ToLspPosition(other.line, other.col + other.val.Length)
+    //   );
+    // }
+    //
+    // public static Lsp.Range GetLspRange(Range range) {
+    //   return new Lsp.Range(
+    //     range.,
+    //     ToLspPosition(other.line, other.col + other.val.Length)
+    //   );
+    // }
+
+    private static Location CreateLocation(FileRange fileRange) {
       return new Location {
-        Range = token.GetLspRange(),
+        Range = fileRange.Range,
 
         // During parsing, we store absolute paths to make reconstructing the Uri easier
         // https://github.com/dafny-lang/dafny/blob/06b498ee73c74660c61042bb752207df13930376/Source/DafnyLanguageServer/Language/DafnyLangParser.cs#L59 
@@ -104,12 +118,12 @@ namespace Microsoft.Dafny.LanguageServer.Language {
       };
     }
 
-    public override bool Message(MessageSource source, ErrorLevel level, IToken tok, string msg) {
+    public override bool Message(MessageSource source, ErrorLevel level, FileRange fileRange, string msg) {
       if (ErrorsOnly && level != ErrorLevel.Error) {
         return false;
       }
       var relatedInformation = new List<DiagnosticRelatedInformation>();
-      if (tok is NestedToken nestedToken) {
+      if (fileRange is NestedToken nestedToken) {
         relatedInformation.AddRange(
           CreateDiagnosticRelatedInformationFor(
             nestedToken.Inner, nestedToken.Message ?? "Related location")
@@ -118,11 +132,11 @@ namespace Microsoft.Dafny.LanguageServer.Language {
       var item = new Diagnostic {
         Severity = ToSeverity(level),
         Message = msg,
-        Range = tok.GetLspRange(),
+        Range = fileRange.GetLspRange(),
         Source = source.ToString(),
         RelatedInformation = relatedInformation,
       };
-      AddDiagnosticForFile(item, source, GetDocumentUriOrDefault(tok));
+      AddDiagnosticForFile(item, source, GetDocumentUriOrDefault(fileRange));
       return true;
     }
 
@@ -146,7 +160,7 @@ namespace Microsoft.Dafny.LanguageServer.Language {
       }
     }
 
-    private void AddDiagnosticForFile(Diagnostic item, MessageSource messageSource, DocumentUri documentUri) {
+    private void AddDiagnosticForFile(Diagnostic item, MessageSource messageSource, Lsp.DocumentUri documentUri) {
       rwLock.EnterWriteLock();
       try {
         var severity = item.Severity!.Value; // All our diagnostics have a severity.
@@ -162,7 +176,7 @@ namespace Microsoft.Dafny.LanguageServer.Language {
       }
     }
 
-    private DocumentUri GetDocumentUriOrDefault(IToken token) {
+    private Lsp.DocumentUri GetDocumentUriOrDefault(IToken token) {
       return token.filename == null
         ? entryDocumentUri
         : token.GetDocumentUri();

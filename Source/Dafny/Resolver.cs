@@ -17999,10 +17999,10 @@ namespace Microsoft.Dafny {
       public IToken FirstCollectedToken = Token.NoToken;
       public bool Collected = false;
 
-      public override bool Message(MessageSource source, ErrorLevel level, IToken tok, string msg) {
+      public override bool Message(MessageSource source, ErrorLevel level, FileRange fileRange, string msg) {
         if (!Collected && level == ErrorLevel.Error) {
           FirstCollectedMessage = msg;
-          FirstCollectedToken = tok;
+          FirstCollectedToken = fileRange;
           Collected = true;
         }
         return true;
