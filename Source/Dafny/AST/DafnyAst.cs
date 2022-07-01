@@ -85,16 +85,15 @@ namespace Microsoft.Dafny {
     }
   }
 
-  public class Include : IComparable {
-    public readonly IToken tok;
+  public class Include : AstNode, IComparable {
     public string IncluderFilename { get; }
     public string IncludedFilename { get; }
     public string CanonicalPath { get; }
     public bool CompileIncludedCode { get; }
     public bool ErrorReported;
 
-    public Include(IToken tok, string includer, string theFilename, bool compileIncludedCode) {
-      this.tok = tok;
+    public Include(AstNodeSyntax syntax, string includer, string theFilename, bool compileIncludedCode)
+      : base(syntax) {
       this.IncluderFilename = includer;
       this.IncludedFilename = theFilename;
       this.CanonicalPath = DafnyFile.Canonicalize(theFilename);
@@ -110,6 +109,8 @@ namespace Microsoft.Dafny {
         throw new NotImplementedException();
       }
     }
+
+    public override IEnumerable<AstNode> Children => Enumerable.Empty<AstNode>();
   }
 
   /// <summary>

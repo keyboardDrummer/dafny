@@ -104,6 +104,10 @@ bool IsAssumeTypeKeyword(IToken la) {
   return la.kind == _assume || la.kind == _assert || la.kind == _expect;
 }
 
+public static AstNodeSyntax SyntaxFromStartToken(IToken startToken) {
+  return new SyntaxFromTokens(startToken, t);
+}
+
 ///<summary>
 /// Parses top-level things (modules, classes, datatypes, class members) from "filename"
 /// and appends them in appropriate form to "module".
@@ -947,7 +951,7 @@ Dafny
                                                string basePath = Path.GetDirectoryName(parsedFile);
                                                includedFile = Path.Combine(basePath, includedFile);
                                              }
-                                             defaultModule.Includes.Add(new Include(t, parsedFile, includedFile, theCompileThisFile));
+                                             defaultModule.Includes.Add(new Include(SyntaxFromStartToken(t), parsedFile, includedFile, theCompileThisFile));
                                            }
                                         .)
   }
