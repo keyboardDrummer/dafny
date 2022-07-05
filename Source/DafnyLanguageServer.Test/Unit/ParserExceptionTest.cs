@@ -41,7 +41,7 @@ namespace Microsoft.Dafny.LanguageServer.IntegrationTest.Unit {
     private class ParserExceptionSimulatingErrorReporter : ErrorReporter {
       private int numberOfErrors;
       public string LastMessage = "";
-      public override bool Message(MessageSource source, ErrorLevel level, FileRange fileRange, string msg) {
+      public override bool Message(MessageSource source, ErrorLevel level, ReportingLocation location, string msg) {
         if (level != ErrorLevel.Error) {
           return false;
         }
@@ -51,7 +51,7 @@ namespace Microsoft.Dafny.LanguageServer.IntegrationTest.Unit {
           throw new Exception("Simulated parser internal error");
         }
 
-        LastMessage = ErrorToString(level, fileRange, msg);
+        LastMessage = ErrorToString(level, location.ToString(), msg);
         return true;
       }
 

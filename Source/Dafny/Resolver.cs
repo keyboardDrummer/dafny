@@ -17996,13 +17996,13 @@ namespace Microsoft.Dafny {
   public class SubsetConstraintGhostChecker : ProgramTraverser {
     public class FirstErrorCollector : ErrorReporter {
       public string FirstCollectedMessage = "";
-      public IToken FirstCollectedToken = Token.NoToken;
+      public ReportingLocation FirstCollectedLocation = null;
       public bool Collected = false;
 
-      public override bool Message(MessageSource source, ErrorLevel level, FileRange fileRange, string msg) {
+      public override bool Message(MessageSource source, ErrorLevel level, ReportingLocation location, string msg) {
         if (!Collected && level == ErrorLevel.Error) {
           FirstCollectedMessage = msg;
-          FirstCollectedToken = fileRange;
+          FirstCollectedLocation = location;
           Collected = true;
         }
         return true;
@@ -18080,13 +18080,13 @@ namespace Microsoft.Dafny {
             }
 
             if (!constraintIsCompilable) {
-              IToken finalToken = boundVar.tok;
+              ReportingLocation finalToken = new ReportingLocationFromToken(boundVar.tok);
               if (constraint.tok.line != 0) {
                 var errorCollector = new FirstErrorCollector();
                 ExpressionTester.CheckIsCompilable(this.resolver, errorCollector, constraint,
                   new CodeContextWrapper(subsetTypeDecl, true));
                 if (errorCollector.Collected) {
-                  finalToken = new NestedToken(finalToken, errorCollector.FirstCollectedToken,
+                  finalToken = new LocationWithRelatedOnes(finalToken, errorCollector.FirstCollectedLocation,
                     "The constraint is not compilable because " + errorCollector.FirstCollectedMessage
                   );
                 }

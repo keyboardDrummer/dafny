@@ -104,7 +104,7 @@ bool IsAssumeTypeKeyword(IToken la) {
   return la.kind == _assume || la.kind == _assert || la.kind == _expect;
 }
 
-public static AstNodeSyntax SyntaxFromStartToken(IToken startToken) {
+public AstNodeSyntax SyntaxFromStartToken(IToken startToken) {
   return new SyntaxFromTokens(startToken, t);
 }
 

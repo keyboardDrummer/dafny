@@ -394,8 +394,8 @@ method Multiply(x: int, y: int) returns (product: int
 
     [TestMethod]
     public async Task OpeningDocumentThatIncludesNonExistentDocumentReportsParserErrorAtInclude() {
-      var source = "include \"doesNotExist.dfy\"";
-      var documentItem = CreateTestDocument(source, Path.Combine(Directory.GetCurrentDirectory(), "Synchronization/TestFiles/test.dfy"));
+      var source = "include \"doesNotExist.\"";
+      var documentItem = CreateTestDocument(source, Path.Combine(Directory.GetCurrentDirectory(), "Synchronization/TestFiles/test."));
       await client.OpenDocumentAndWaitAsync(documentItem, CancellationToken);
       var diagnostics = await diagnosticsReceiver.AwaitNextDiagnosticsAsync(CancellationToken);
       Assert.AreEqual(1, diagnostics.Length);
@@ -407,8 +407,8 @@ method Multiply(x: int, y: int) returns (product: int
 
     [TestMethod]
     public async Task OpeningDocumentThatIncludesDocumentWithSyntaxErrorsReportsParserErrorAtInclude() {
-      var source = "include \"syntaxError.dfy\"";
-      var documentItem = CreateTestDocument(source, Path.Combine(Directory.GetCurrentDirectory(), "Synchronization/TestFiles/test.dfy"));
+      var source = "include \"syntaxError.\"";
+      var documentItem = CreateTestDocument(source, Path.Combine(Directory.GetCurrentDirectory(), "Synchronization/TestFiles/test."));
       await client.OpenDocumentAndWaitAsync(documentItem, CancellationToken);
       var diagnostics = await diagnosticsReceiver.AwaitNextDiagnosticsAsync(CancellationToken);
       Assert.AreEqual(1, diagnostics.Length);
@@ -420,8 +420,8 @@ method Multiply(x: int, y: int) returns (product: int
 
     [TestMethod]
     public async Task OpeningDocumentThatIncludesDocumentWithSemanticErrorsReportsResolverErrorAtInclude() {
-      var source = "include \"syntaxError.dfy\"";
-      var documentItem = CreateTestDocument(source, Path.Combine(Directory.GetCurrentDirectory(), "Synchronization/TestFiles/test.dfy"));
+      var source = "include \"syntaxError.\"";
+      var documentItem = CreateTestDocument(source, Path.Combine(Directory.GetCurrentDirectory(), "Synchronization/TestFiles/test."));
       await client.OpenDocumentAndWaitAsync(documentItem, CancellationToken);
       var diagnostics = await diagnosticsReceiver.AwaitNextDiagnosticsAsync(CancellationToken);
       Assert.AreEqual(1, diagnostics.Length);
@@ -433,8 +433,8 @@ method Multiply(x: int, y: int) returns (product: int
 
     [TestMethod]
     public async Task OpeningDocumentWithSemanticErrorsInIncludeReportsResolverErrorAtIncludeStatement() {
-      var source = "include \"semanticError.dfy\"";
-      var documentItem = CreateTestDocument(source, Path.Combine(Directory.GetCurrentDirectory(), "Synchronization/TestFiles/test.dfy"));
+      var source = "include \"semanticError.\"";
+      var documentItem = CreateTestDocument(source, Path.Combine(Directory.GetCurrentDirectory(), "Synchronization/TestFiles/test."));
       await client.OpenDocumentAndWaitAsync(documentItem, CancellationToken);
       var diagnostics = await diagnosticsReceiver.AwaitNextDiagnosticsAsync(CancellationToken);
       Assert.AreEqual(1, diagnostics.Length);
@@ -560,7 +560,7 @@ method t10() { assert false; }".TrimStart();
         { $"{VerifierOptions.Section}:{nameof(VerifierOptions.VcsCores)}", "4" }
       });
       for (int i = 0; i < 10; i++) {
-        var documentItem = CreateTestDocument(source, $"test_{i}.dfy");
+        var documentItem = CreateTestDocument(source, $"test_{i}.");
         client.OpenDocument(documentItem);
         var diagnostics = await GetLastDiagnostics(documentItem, cancellationToken);
         Assert.AreEqual(5, diagnostics.Length);

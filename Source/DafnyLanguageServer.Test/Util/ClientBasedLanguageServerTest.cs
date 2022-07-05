@@ -110,7 +110,7 @@ public class ClientBasedLanguageServerTest : DafnyLanguageServerTestBase {
 
       }
     }
-    var verificationDocumentItem = CreateTestDocument("method Foo() { assert false; }", $"verification{fileIndex++}.dfy");
+    var verificationDocumentItem = CreateTestDocument("method Foo() { assert false; }", $"verification{fileIndex++}.");
     await client.OpenDocumentAndWaitAsync(verificationDocumentItem, CancellationToken.None);
     var statusReport = await verificationStatusReceiver.AwaitNextNotificationAsync(cancellationToken);
     Assert.AreEqual(verificationDocumentItem.Uri, statusReport.Uri);
@@ -127,7 +127,7 @@ public class ClientBasedLanguageServerTest : DafnyLanguageServerTestBase {
 
       }
     }
-    var verificationDocumentItem = CreateTestDocument(@"class X {does not parse", $"verification{fileIndex++}.dfy");
+    var verificationDocumentItem = CreateTestDocument(@"class X {does not parse", $"verification{fileIndex++}.");
     await client.OpenDocumentAndWaitAsync(verificationDocumentItem, CancellationToken.None);
     var resolutionReport = await diagnosticsReceiver.AwaitNextNotificationAsync(cancellationToken);
     Assert.AreEqual(verificationDocumentItem.Uri, resolutionReport.Uri,
@@ -149,7 +149,7 @@ public class ClientBasedLanguageServerTest : DafnyLanguageServerTestBase {
 
       }
     }
-    var verificationDocumentItem = CreateTestDocument("class X {does not parse", $"verification{fileIndex++}.dfy");
+    var verificationDocumentItem = CreateTestDocument("class X {does not parse", $"verification{fileIndex++}.");
     await client.OpenDocumentAndWaitAsync(verificationDocumentItem, CancellationToken.None);
     var resolutionReport = await diagnosticsReceiver.AwaitNextNotificationAsync(cancellationToken);
     Assert.AreEqual(verificationDocumentItem.Uri, resolutionReport.Uri,

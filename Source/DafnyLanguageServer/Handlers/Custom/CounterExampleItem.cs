@@ -3,10 +3,10 @@ using System.Collections.Generic;
 
 namespace Microsoft.Dafny.LanguageServer.Handlers.Custom {
   public class CounterExampleItem {
-    public Position Position { get; }
+    public DfyPosition Position { get; }
     public IDictionary<string, string> Variables { get; }
 
-    public CounterExampleItem(Position position, IDictionary<string, string> variables) {
+    public CounterExampleItem(DfyPosition position, IDictionary<string, string> variables) {
       Position = position;
       Variables = variables;
     }

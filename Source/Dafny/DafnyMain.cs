@@ -251,7 +251,7 @@ namespace Microsoft.Dafny {
           return $"{errorCount} parse errors detected in {fn}";
         }
       } catch (IOException e) {
-        IToken tok = include == null ? Token.NoToken : include.tok;
+        FileRange tok = include?.Syntax?.FileRange;
         errs.SemErr(tok, "Unable to open included file");
         return $"Error opening file \"{fn}\": {e.Message}";
       }

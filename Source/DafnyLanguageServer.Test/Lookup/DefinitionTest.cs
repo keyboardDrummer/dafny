@@ -70,17 +70,17 @@ method DoIt() {
     [TestMethod]
     public async Task DefinitionOfFunctionInvocationOfFunctionDeclaredInForeignDocumentReturnsLocation() {
       var source = @"
-include ""foreign.dfy""
+include ""foreign.""
 
 method DoIt() returns (x: int) {
   var a := new A();
   return a.GetX();
 }".TrimStart();
-      var documentItem = CreateTestDocument(source, Path.Combine(Directory.GetCurrentDirectory(), "Lookup/TestFiles/test.dfy"));
+      var documentItem = CreateTestDocument(source, Path.Combine(Directory.GetCurrentDirectory(), "Lookup/TestFiles/test."));
       await client.OpenDocumentAndWaitAsync(documentItem, CancellationToken);
       var definition = (await RequestDefinition(documentItem, (4, 13)).AsTask()).Single();
       var location = definition.Location;
-      Assert.AreEqual(DocumentUri.FromFileSystemPath(Path.Combine(Directory.GetCurrentDirectory(), "Lookup/TestFiles/foreign.dfy")), location.Uri);
+      Assert.AreEqual(DocumentUri.FromFileSystemPath(Path.Combine(Directory.GetCurrentDirectory(), "Lookup/TestFiles/foreign.")), location.Uri);
       Assert.AreEqual(new Range((5, 18), (5, 22)), location.Range);
     }
 
@@ -180,17 +180,17 @@ class Test {
     [TestMethod]
     public async Task DefinitionInConstructorInvocationOfUserDefinedTypeOfForeignFileReturnsLinkToForeignFile() {
       var source = @"
-include ""foreign.dfy""
+include ""foreign.""
 
 method DoIt() returns (x: int) {
   var a := new A();
   return a.GetX();
 }".TrimStart();
-      var documentItem = CreateTestDocument(source, Path.Combine(Directory.GetCurrentDirectory(), "Lookup/TestFiles/test.dfy"));
+      var documentItem = CreateTestDocument(source, Path.Combine(Directory.GetCurrentDirectory(), "Lookup/TestFiles/test."));
       await client.OpenDocumentAndWaitAsync(documentItem, CancellationToken);
       var definition = (await RequestDefinition(documentItem, (3, 15)).AsTask()).Single();
       var location = definition.Location;
-      Assert.AreEqual(DocumentUri.FromFileSystemPath(Path.Combine(Directory.GetCurrentDirectory(), "Lookup/TestFiles/foreign.dfy")), location.Uri);
+      Assert.AreEqual(DocumentUri.FromFileSystemPath(Path.Combine(Directory.GetCurrentDirectory(), "Lookup/TestFiles/foreign.")), location.Uri);
       Assert.AreEqual(new Range((0, 6), (0, 7)), location.Range);
     }
   }

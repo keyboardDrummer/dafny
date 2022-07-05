@@ -143,7 +143,7 @@ method Multiply(x: bv10, y: bv10) returns (product: bv10)
 
       var functionWithResolutionError = "function GetConstant(): int { x }\n";
       var slowToResolveSource = functionWithResolutionError + string.Join("\n", Enumerable.Range(0, 1000).Select(CreateCorrectFunction));
-      var documentItem = CreateTestDocument(slowToResolveSource, "veryLongDocument.dfy");
+      var documentItem = CreateTestDocument(slowToResolveSource, "veryLongDocument.");
       client.OpenDocument(documentItem);
 
       // Change but keep a resolution error, cancel previous diagnostics
@@ -183,7 +183,7 @@ method Multiply(x: int, y: int) returns (product: int)
 }".TrimStart();
       var loadingDocuments = new List<TextDocumentItem>();
       for (int i = 0; i < documentsToLoadConcurrently; i++) {
-        var documentItem = CreateTestDocument(source, $"test_{i}.dfy");
+        var documentItem = CreateTestDocument(source, $"test_{i}.");
         client.OpenDocument(documentItem);
         loadingDocuments.Add(documentItem);
       }

@@ -340,7 +340,7 @@ namespace Microsoft.Dafny.Triggers {
 
       if (msg.Length > 0) {
         var msgStr = msg.ToString().TrimEnd("\r\n ".ToCharArray());
-        reporter.Message(MessageSource.Rewriter, errorLevel, reportingToken, msgStr);
+        reporter.Message(MessageSource.Rewriter, errorLevel, new ReportingLocationFromToken(reportingToken), msgStr);
       }
     }
 

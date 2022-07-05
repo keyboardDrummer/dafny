@@ -1,5 +1,4 @@
 ﻿using System.Threading;
-using AstNode = System.Object;
 
 namespace Microsoft.Dafny.LanguageServer.Language.Symbols {
   /// <summary>
@@ -11,7 +10,7 @@ namespace Microsoft.Dafny.LanguageServer.Language.Symbols {
     /// <summary>
     /// Gets the syntax node of the AST> that declared this symbol.
     /// </summary>
-    AstNode Node { get; }
+    object Node { get; }
 
     /// <summary>
     /// Gets the text representation of the symbol.

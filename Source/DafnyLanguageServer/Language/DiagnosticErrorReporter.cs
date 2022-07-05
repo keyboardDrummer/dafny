@@ -2,6 +2,7 @@ using Microsoft.Boogie;
 using Microsoft.Dafny.LanguageServer.Util;
 using Lsp = OmniSharp.Extensions.LanguageServer.Protocol;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using Omni = OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -56,7 +57,7 @@ namespace Microsoft.Dafny.LanguageServer.Language {
       var relatedInformation = new List<DiagnosticRelatedInformation>();
       foreach (var auxiliaryInformation in error.Aux) {
         if (auxiliaryInformation.Category == RelatedLocationCategory) {
-          relatedInformation.AddRange(CreateDiagnosticRelatedInformationFor(auxiliaryInformation.Tok, auxiliaryInformation.Msg));
+          relatedInformation.AddRange(CreateDiagnosticRelatedInformationFor(new ReportingLocationFromToken(auxiliaryInformation.Tok), auxiliaryInformation.Msg));
         } else {
           // The execution trace is an additional auxiliary which identifies itself with
           // line=0 and character=0. These positions cause errors when exposing them, Furthermore,
@@ -82,12 +83,12 @@ namespace Microsoft.Dafny.LanguageServer.Language {
       );
     }
 
-    private static IEnumerable<DiagnosticRelatedInformation> CreateDiagnosticRelatedInformationFor(IToken token, string message) {
+    private static IEnumerable<DiagnosticRelatedInformation> CreateDiagnosticRelatedInformationFor(ReportingLocation token, string message) {
       yield return new DiagnosticRelatedInformation {
         Message = message,
         Location = CreateLocation(token)
       };
-      if (token is NestedToken nestedToken) {
+      if (token is LocationWithRelatedOnes nestedToken) {
         foreach (var nestedInformation in CreateDiagnosticRelatedInformationFor(nestedToken.Inner, RelatedLocationMessage)) {
           yield return nestedInformation;
         }
@@ -108,35 +109,46 @@ namespace Microsoft.Dafny.LanguageServer.Language {
     //   );
     // }
 
-    private static Location CreateLocation(FileRange fileRange) {
+    private static Omni.Position FromPosition(DfyPosition position) {
+      return new Omni.Position(position.Row, position.Column);
+    }
+    private static Location CreateLocation(ReportingLocation location) {
+      var fileRange = location.FileRange;
       return new Location {
-        Range = fileRange.Range,
+        Range = FromRange(fileRange.Range),
 
         // During parsing, we store absolute paths to make reconstructing the Uri easier
-        // https://github.com/dafny-lang/dafny/blob/06b498ee73c74660c61042bb752207df13930376/Source/DafnyLanguageServer/Language/DafnyLangParser.cs#L59 
-        Uri = token.GetDocumentUri()
+        // https://github.com/dafny-lang/dafny/blob/06b498ee73c74660c61042bb752207df13930376/Source/DafnyLanguageServer/Language/DafnyLangParser.cs#L59
+        Uri = fileRange.File
       };
     }
 
-    public override bool Message(MessageSource source, ErrorLevel level, FileRange fileRange, string msg) {
+    private static Omni.Range FromRange(DfyRange range)
+    {
+      return new Omni.Range(FromPosition(range.Start), FromPosition(range.End));
+    }
+
+    public override bool Message(MessageSource source, ErrorLevel level, ReportingLocation location, string msg) {
       if (ErrorsOnly && level != ErrorLevel.Error) {
         return false;
       }
       var relatedInformation = new List<DiagnosticRelatedInformation>();
-      if (fileRange is NestedToken nestedToken) {
+      if (location is LocationWithRelatedOnes nestedToken) {
         relatedInformation.AddRange(
           CreateDiagnosticRelatedInformationFor(
-            nestedToken.Inner, nestedToken.Message ?? "Related location")
+            nestedToken.Inner, nestedToken.InnerMessage ?? "Related location")
         );
       }
+
+      var fileRange = location.FileRange;
       var item = new Diagnostic {
         Severity = ToSeverity(level),
         Message = msg,
-        Range = fileRange.GetLspRange(),
+        Range = FromRange(fileRange.Range),
         Source = source.ToString(),
         RelatedInformation = relatedInformation,
       };
-      AddDiagnosticForFile(item, source, GetDocumentUriOrDefault(fileRange));
+      AddDiagnosticForFile(item, source, fileRange.File);
       return true;
     }
 

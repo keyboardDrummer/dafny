@@ -55,13 +55,13 @@ method Abs(x: int) returns (y: int)
   assert x > 2; // Hover #3 on the '>'
   return x;
 }
-", "testFile.dfy", CompilationStatus.VerificationFailed);
+", "testFile.", CompilationStatus.VerificationFailed);
       // When hovering the postcondition, it should display the position of the failing path
       await AssertHoverMatches(documentItem, (2, 15),
         @"[Error:](???) A postcondition might not hold on this return path.  
 This is assertion #1 of 2 in method Abs  
 Resource usage: ??? RU  
-Related location: testFile.dfy(6, 5)"
+Related location: testFile.(6, 5)"
       );
       // When hovering the failing path, it does not display the position of the failing postcondition
       // because the IDE extension already does it.
@@ -90,7 +90,7 @@ method {:vcs_split_on_every_assert} f(x: int) {
   assert x >= 2; // Hover #1
   assert x >= 1; // Hover #2
 }
-", "testfile.dfy", CompilationStatus.VerificationFailed);
+", "testfile.", CompilationStatus.VerificationFailed);
       await AssertHoverMatches(documentItem, (1, 12),
         @"[Error:](???) assertion might not hold  
 This is the only assertion in [batch](???) #2 of 3 in method f  
@@ -123,7 +123,7 @@ function f(x: int): int {
   assert x >= 1;
   x
 }
-", "testfile.dfy", CompilationStatus.VerificationFailed);
+", "testfile.", CompilationStatus.VerificationFailed);
       await AssertHoverMatches(documentItem, (2, 12),
         @"???Success??? assertion always holds  
 This is assertion #2 of 2 in [batch](???) #1 of 2 in function f  
@@ -149,7 +149,7 @@ This is assertion #1 of 2 in [batch](???) #2 of 2 in function f
       var documentItem = await GetDocumentItem(@"
 method f(x: int) {
   print x;
-}", "testfile.dfy", CompilationStatus.VerificationSucceeded);
+}", "testfile.", CompilationStatus.VerificationSucceeded);
       await Task.Delay(100); // Just time for the diagnostics to be updated
       await AssertHoverMatches(documentItem, (0, 7),
         @"**Verification performance metrics for method f**:
@@ -166,7 +166,7 @@ No assertions."
       var documentItem = await GetDocumentItem(@"
 method f(x: int) {
   assert false;
-}", "testfile1.dfy", CompilationStatus.VerificationFailed);
+}", "testfile1.", CompilationStatus.VerificationFailed);
       await Task.Delay(100); // Just time for the diagnostics to be updated
       await AssertHoverMatches(documentItem, (0, 7),
         @"**Verification performance metrics for method f**:
@@ -183,7 +183,7 @@ method f(x: int) {
 method f(x: int) {
   assert false;
   assert false;
-}", "testfile2.dfy", CompilationStatus.VerificationFailed);
+}", "testfile2.", CompilationStatus.VerificationFailed);
       await Task.Delay(100); // Just time for the diagnostics to be updated
       await AssertHoverMatches(documentItem, (0, 7),
         @"**Verification performance metrics for method f**:
@@ -210,7 +210,7 @@ lemma {:rlimit 12000} SquareRoot2NotRational(p: nat, q: nat)
     }
   }
   assert {:split_here} true;
-} ", "testfileSlow.dfy", CompilationStatus.VerificationFailed);
+} ", "testfileSlow.", CompilationStatus.VerificationFailed);
       await Task.Delay(100); // Just time for the diagnostics to be updated
       await AssertHoverMatches(documentItem, (0, 22),
         @"**Verification performance metrics for method SquareRoot2NotRational**:

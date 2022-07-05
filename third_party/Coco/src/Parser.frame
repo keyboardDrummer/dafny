@@ -162,11 +162,18 @@ public class Errors {
     return s;
   }
 
+  public void SemErr(ReportingLocation location, string msg) {  // semantic errors
+    Contract.Requires(location != null);
+    Contract.Requires(msg != null);
+    ErrorCount++;
+    Reporting.Error(MessageSource.Parser, location, msg);
+  }
+
   public void SemErr(IToken tok, string msg) {  // semantic errors
     Contract.Requires(tok != null);
     Contract.Requires(msg != null);
     ErrorCount++;
-    Reporting.Error(MessageSource.Parser, tok, msg);
+    Reporting.Error(MessageSource.Parser, new ReportingLocationFromToken(tok), msg);
   }
 
   public void SemErr(string filename, int line, int col, string msg) {
