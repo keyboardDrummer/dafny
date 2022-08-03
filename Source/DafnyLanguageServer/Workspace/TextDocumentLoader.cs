@@ -134,9 +134,11 @@ namespace Microsoft.Dafny.LanguageServer.Workspace {
       loaded.VerificationTasks = verificationTasks;
       var implementations = verificationTasks.Select(t => t.Implementation).ToHashSet();
 
-      var subscription = verifier.BatchCompletions.ObserveOn(loaded.UpdateScheduler).Where(c =>
-        implementations.Contains(c.Implementation)).Subscribe(progressReporter.ReportAssertionBatchResult);
-      cancellationToken.Register(() => subscription.Dispose());
+      if (VerifierOptions.GutterStatus) {
+        var subscription = verifier.BatchCompletions.ObserveOn(loaded.UpdateScheduler).Where(c =>
+          implementations.Contains(c.Implementation)).Subscribe(progressReporter.ReportAssertionBatchResult);
+        cancellationToken.Register(() => subscription.Dispose());
+      }
       loaded.GutterProgressReporter = progressReporter;
     }
 
