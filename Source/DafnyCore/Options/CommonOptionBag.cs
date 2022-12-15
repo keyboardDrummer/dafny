@@ -6,6 +6,9 @@ namespace Microsoft.Dafny;
 
 public class CommonOptionBag {
 
+  public static readonly Option<bool> WarnDeprecated = new("--warn-deprecated", () => true, @"
+Produce a warning for any code that is using deprecated Dafny language features. Deprecated features will be removed in a later release.");
+
   public static readonly Option<bool> OptimizeErasableDatatypeWrapper = new("--optimize-erasable-datatype-wrapper", () => true, @"
 false - Include all non-ghost datatype constructors in the compiled code
 true - In the compiled target code, transform any non-extern
@@ -120,6 +123,9 @@ true - The char type represents any Unicode scalar value.".TrimStart());
     "Include the Dafny runtime as source in the target language.");
 
   static CommonOptionBag() {
+    DafnyOptions.RegisterLegacyBinding(WarnDeprecated, (options, value) => {
+      options.DeprecationNoise = value ? 1 : 0;
+    });
     DafnyOptions.RegisterLegacyBinding(IncludeRuntime, (options, value) => {
       options.UseRuntimeLib = !value;
     });

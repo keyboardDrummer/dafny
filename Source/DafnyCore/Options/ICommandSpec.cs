@@ -62,6 +62,7 @@ public interface ICommandSpec {
     PrintStmt.TrackPrintEffectsOption,
     CommonOptionBag.DisableNonLinearArithmetic,
     CommonOptionBag.UnicodeCharacters,
+    CommonOptionBag.WarnDeprecated
   });
 
   IEnumerable<Option> Options { get; }
