@@ -10067,7 +10067,7 @@ namespace Microsoft.Dafny {
           var A2 = etran2.TrExpr(e.E1);
           var B2 = etran2.TrExpr(e.E2);
           var needsTokenAdjust = TrSplitNeedsTokenAdjustment(expr);
-          var tok = needsTokenAdjust ? new ForceCheckToken(expr.tok) : expr.tok;
+          var tok = expr.tok; //needsTokenAdjust ? new ForceCheckToken(expr.tok) : expr.tok;
           Bpl.Expr layer = etran.layerInterCluster.LayerN((int)FuelSetting.FuelAmount.HIGH);
           Bpl.Expr eqComponents = Bpl.Expr.True;
           foreach (var c in CoPrefixEquality(tok, codecl, e1type.TypeArgs, e2type.TypeArgs, kMinusOne, layer, A2, B2, true)) {
