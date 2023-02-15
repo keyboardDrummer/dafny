@@ -38,11 +38,6 @@ jobs:
             z3: z3-4.8.5-x64-win
             chmod: false
             coverage: false
-          - os: macos-latest
-            suffix: osx
-            z3: z3-4.8.5-x64-osx-10.14.2
-            chmod: true
-            coverage: false
     env:
       solutionPath: Source/Dafny.sln
       z3BaseUri: https://github.com/Z3Prover/z3/releases/download/Z3-4.8.5
