@@ -8,12 +8,12 @@ namespace Microsoft.Dafny;
 
 public class BuiltIns {
   public DafnyOptions Options { get; }
-  public readonly ModuleDefinition SystemModule = new ModuleDefinition(RangeToken.NoToken, new Name("_System"), new List<IToken>(), false, false, null, null, null, true, true, true);
-  readonly Dictionary<int, ClassDecl> arrayTypeDecls = new Dictionary<int, ClassDecl>();
-  public readonly Dictionary<int, ArrowTypeDecl> ArrowTypeDecls = new Dictionary<int, ArrowTypeDecl>();
-  public readonly Dictionary<int, SubsetTypeDecl> PartialArrowTypeDecls = new Dictionary<int, SubsetTypeDecl>();  // same keys as arrowTypeDecl
-  public readonly Dictionary<int, SubsetTypeDecl> TotalArrowTypeDecls = new Dictionary<int, SubsetTypeDecl>();  // same keys as arrowTypeDecl
-  readonly Dictionary<List<bool>, TupleTypeDecl> tupleTypeDecls = new Dictionary<List<bool>, TupleTypeDecl>(new Dafny.IEnumerableComparer<bool>());
+  public readonly ModuleDefinition SystemModule = new(RangeToken.NoToken, new Name("_System"), new List<IToken>(), false, false, null, null, null, true, true, true);
+  readonly Dictionary<int, ClassDecl> arrayTypeDecls = new();
+  public readonly Dictionary<int, ArrowTypeDecl> ArrowTypeDecls = new();
+  public readonly Dictionary<int, SubsetTypeDecl> PartialArrowTypeDecls = new();  // same keys as arrowTypeDecl
+  public readonly Dictionary<int, SubsetTypeDecl> TotalArrowTypeDecls = new();  // same keys as arrowTypeDecl
+  readonly Dictionary<List<bool>, TupleTypeDecl> tupleTypeDecls = new(new Dafny.IEnumerableComparer<bool>());
   public int MaxNonGhostTupleSizeUsed { get; private set; }
   public IToken MaxNonGhostTupleSizeToken { get; private set; }
   public readonly ISet<int> Bitwidths = new HashSet<int>();
@@ -76,22 +76,34 @@ public class BuiltIns {
 
     var arrayName = ArrayClassName(dims);
     if (useClassNameType) {
-      arrayName = arrayName + "?";
+      arrayName += "?";
     }
-    if (allowCreationOfNewClass && !arrayTypeDecls.ContainsKey(dims)) {
-      ArrayClassDecl arrayClass = new ArrayClassDecl(dims, SystemModule, DontCompile());
-      for (int d = 0; d < dims; d++) {
-        string name = dims == 1 ? "Length" : "Length" + d;
-        Field len = new SpecialField(RangeToken.NoToken, name, SpecialField.ID.ArrayLength, dims == 1 ? null : (object)d, false, false, false, Type.Int, null);
-        len.EnclosingClass = arrayClass;  // resolve here
-        arrayClass.Members.Add(len);
-      }
-      arrayTypeDecls.Add(dims, arrayClass);
-      SystemModule.TopLevelDecls.Add(arrayClass);
-      CreateArrowTypeDecl(dims);  // also create an arrow type with this arity, since it may be used in an initializing expression for the array
+    if (allowCreationOfNewClass) {
+      CreateArrayClass(dims);
     }
-    UserDefinedType udt = new UserDefinedType(tok, arrayName, optTypeArgs);
-    return udt;
+
+    return new UserDefinedType(tok, arrayName, optTypeArgs);
+  }
+
+  public void CreateArrayClass(int dims)
+  {
+    if (arrayTypeDecls.ContainsKey(dims)) {
+      return;
+    }
+    
+    var arrayClass = new ArrayClassDecl(dims, SystemModule, DontCompile());
+    for (int d = 0; d < dims; d++)
+    {
+      string name = dims == 1 ? "Length" : "Length" + d;
+      Field len = new SpecialField(RangeToken.NoToken, name, SpecialField.ID.ArrayLength,
+        dims == 1 ? null : (object)d, false, false, false, Type.Int, null);
+      len.EnclosingClass = arrayClass; // resolve here
+      arrayClass.Members.Add(len);
+    }
+
+    arrayTypeDecls.Add(dims, arrayClass);
+    SystemModule.TopLevelDecls.Add(arrayClass);
+    CreateArrowTypeDecl(dims); // also create an arrow type with this arity, since it may be used in an initializing expression for the array
   }
 
   public static string ArrayClassName(int dims) {
@@ -121,14 +133,14 @@ public class BuiltIns {
         : new TypeParameter(RangeToken.NoToken, new Name("R"), TypeParameter.TPVarianceSyntax.Covariant_Strict));
     var tys = tps.ConvertAll(tp => (Type)(new UserDefinedType(tp)));
 
-    Function createMember(string name, Type resultType, Function readsFunction = null) {
+    Function CreateMember(string name, Type resultType, Function readsFunction = null) {
       var args = Util.Map(Enumerable.Range(0, arity), i => new Formal(tok, "x" + i, tys[i], true, false, null));
       var argExprs = args.ConvertAll(a =>
         (Expression)new IdentifierExpr(tok, a.Name) { Var = a, Type = a.Type });
       var readsIS = new FunctionCallExpr(tok, "reads", new ImplicitThisExpr(tok), tok, tok, argExprs) {
         Type = new SetType(true, ObjectQ()),
       };
-      var readsFrame = new List<FrameExpression> { new FrameExpression(tok, readsIS, null) };
+      var readsFrame = new List<FrameExpression> { new(tok, readsIS, null) };
       var function = new Function(RangeToken.NoToken, new Name(name), false, true, false,
         new List<TypeParameter>(), args, null, resultType,
         new List<AttributedExpression>(), readsFrame, new List<AttributedExpression>(),
@@ -140,8 +152,8 @@ public class BuiltIns {
       return function;
     }
 
-    var reads = createMember("reads", new SetType(true, ObjectQ()), null);
-    var req = createMember("requires", Type.Bool, reads);
+    var reads = CreateMember("reads", new SetType(true, ObjectQ()), null);
+    var req = CreateMember("requires", Type.Bool, reads);
 
     var arrowDecl = new ArrowTypeDecl(tps, req, reads, SystemModule, DontCompile());
     ArrowTypeDecls.Add(arity, arrowDecl);

@@ -2,10 +2,7 @@
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.Dafny.LanguageServer.Language;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Microsoft.Dafny.LanguageServer.Workspace {
   /// <summary>
