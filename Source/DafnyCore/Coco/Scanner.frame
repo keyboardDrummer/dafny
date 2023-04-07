@@ -340,15 +340,12 @@ public class Scanner {
   }
 
 //  [NotDelayed]
-  public Scanner (Stream/*!*/ s, Errors/*!*/ errorHandler, string/*!*/ fullFilename, string/*!*/ fileName, int lineNumber = 1, bool useBaseName = false, Token firstToken = null) : base() {
+  public Scanner (Stream/*!*/ s, Errors/*!*/ errorHandler, string/*!*/ fullFilename, string/*!*/ fileName, int lineNumber = 1, bool useBaseName = false) : base() {
     Contract.Requires(s != null);
     Contract.Requires(errorHandler != null);
     Contract.Requires(fileName != null);
-    if(firstToken.Filename == null || firstToken.Filename == "") {
-      firstToken.Filename = fullFilename;
-    }
-    pt = tokens = firstToken ?? new Token();  // first token is a dummy
-    t = firstToken ?? new Token(); // dummy because t is a non-null field
+    pt = tokens = new Token();  // first token is a dummy
+    t = new Token(); // dummy because t is a non-null field
     this._buffer = new Buffer(s, true);
     this.errorHandler = errorHandler;
     this.FullFilename = fullFilename;

@@ -187,7 +187,10 @@ public static Parser SetupParser(string/*!*/ s, string/*!*/ fullFilename, string
   } else {
     firstToken = new Token(); // It's an included file
   }
-  Scanner scanner = new Scanner(ms, errors, fullFilename, filename, firstToken: firstToken);
+    if(firstToken.Filename == null || firstToken.Filename == "") {
+      firstToken.Filename = fullFilename;
+    }
+  Scanner scanner = new Scanner(ms, errors, fullFilename, filename);
   return new Parser(scanner, errors, include, module, builtIns, verifyThisFile, compileThisFile);
 }
 
