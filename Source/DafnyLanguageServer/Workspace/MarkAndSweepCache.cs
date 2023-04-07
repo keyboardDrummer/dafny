@@ -64,7 +64,7 @@ class ReplayingErrorReporter : ErrorReporter {
 }
 
 record ParseKey(IDictionary<object, object> ParseRelatedOptions, string FileContents, Uri DocumentUri);
-record ParseResult(IReadOnlyList<ModuleDefinition> Modules, ReplayingErrorReporter Errors, BuiltIns BuiltIns);
+record ParseResult(IReadOnlyList<Uri> Includes, IReadOnlyList<ModuleDefinition> Modules, ReplayingErrorReporter Errors, BuiltIns BuiltIns);
 
 class CachedParser {
   public void Bla() {
