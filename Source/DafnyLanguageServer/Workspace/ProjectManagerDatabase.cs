@@ -1,9 +1,11 @@
-﻿using OmniSharp.Extensions.LanguageServer.Protocol;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+﻿using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
+
+using System.IO;
+using System.Threading.Tasks;
+using Microsoft.Boogie;
 
 namespace Microsoft.Dafny.LanguageServer.Workspace {
   /// <summary>
@@ -13,8 +15,9 @@ namespace Microsoft.Dafny.LanguageServer.Workspace {
 
     private readonly IServiceProvider services;
 
-    private readonly Dictionary<DocumentUri, ProjectManager> documents = new();
+    private readonly Dictionary<Uri, ProjectManager> managersByProject = new();
     private readonly LanguageServerFilesystem fileSystem;
+    private readonly VerificationResultCache verificationCache = new();
 
     public ProjectManagerDatabase(IServiceProvider services) {
       this.services = services;
@@ -22,60 +25,133 @@ namespace Microsoft.Dafny.LanguageServer.Workspace {
     }
 
     public void OpenDocument(TextDocumentItem document) {
-      var identifier = new VersionedTextDocumentIdentifier {
-        Version = document.Version!.Value,
-        Uri = document.Uri
-      };
       fileSystem.OpenDocument(document);
-      documents.Add(document.Uri, new ProjectManager(services, identifier));
+
+      var projectManager = GetProjectManager(document, true, false)!;
+      projectManager.OpenDocument(document.Uri.ToUri());
+    }
+
+    private DafnyProject GetProject(TextDocumentIdentifier document) {
+      return FindProjectFile(document.Uri.ToUri()) ?? ImplicitProject(document);
+    }
+
+    public static DafnyProject ImplicitProject(TextDocumentIdentifier documentItem) {
+      var implicitProject = new DafnyProject {
+        Includes = new[] { documentItem.Uri.GetFileSystemPath() },
+        Uri = documentItem.Uri.ToUri(),
+        UnsavedRootFile = documentItem.Uri.ToUri()
+      };
+      return implicitProject;
+    }
+
+    private DafnyProject? FindProjectFile(Uri uri) {
+
+      DafnyProject? projectFile = null;
+
+      var folder = Path.GetDirectoryName(uri.LocalPath);
+      while (!string.IsNullOrEmpty(folder)) {
+        var configFileUri = new Uri(Path.Combine(folder, "dfyconfig.toml"));
+        // TODO add temporal caching of configFileUri -> DafnyProject?
+        if (fileSystem.Exists(configFileUri)) {
+          projectFile = OpenProject(configFileUri);
+          if (projectFile != null) {
+            break;
+          }
+        }
+
+        folder = Path.GetDirectoryName(folder);
+      }
+
+      return projectFile;
+    }
+
+    private DafnyProject? OpenProject(Uri configFileUri) {
+      var errorWriter = TextWriter.Null;
+      var outputWriter = TextWriter.Null;
+      return DafnyProject.Open(fileSystem, configFileUri, outputWriter, errorWriter);
     }
 
     public void UpdateDocument(DidChangeTextDocumentParams documentChange) {
       fileSystem.UpdateDocument(documentChange);
       var documentUri = documentChange.TextDocument.Uri;
-      if (!documents.TryGetValue(documentUri, out var state)) {
+      var manager = GetProjectManager(documentUri, false, false);
+      if (manager == null) {
         throw new ArgumentException($"the document {documentUri} was not loaded before");
       }
 
-      state.UpdateDocument(documentChange);
+      manager.UpdateDocument(documentChange);
     }
 
     public void SaveDocument(TextDocumentIdentifier documentId) {
-      if (!documents.TryGetValue(documentId.Uri, out var documentState)) {
+      var manager = GetProjectManager(documentId, false, false);
+      if (manager == null) {
         throw new ArgumentException($"the document {documentId.Uri} was not loaded before");
       }
 
-      documentState.Save();
+      manager.Save(documentId);
     }
 
     public async Task<bool> CloseDocumentAsync(TextDocumentIdentifier documentId) {
       fileSystem.CloseDocument(documentId);
-      if (documents.Remove(documentId.Uri, out var state)) {
-        await state.CloseAsync();
-        return true;
+      var manager = GetProjectManager(documentId, false, false);
+      if (manager == null) {
+        return false;
       }
-      return false;
+
+      if (await manager.CloseDocument()) {
+        managersByProject.Remove(manager.Project.Uri);
+      }
+      return true;
     }
 
     public Task<IdeState?> GetResolvedDocumentAsync(TextDocumentIdentifier documentId) {
-      if (documents.TryGetValue(documentId.Uri, out var state)) {
-        return state.GetSnapshotAfterResolutionAsync()!;
+      var manager = GetProjectManager(documentId, false, true);
+      if (manager != null) {
+        return manager.GetSnapshotAfterResolutionAsync()!;
       }
+
       return Task.FromResult<IdeState?>(null);
     }
 
     public Task<CompilationAfterParsing?> GetLastDocumentAsync(TextDocumentIdentifier documentId) {
-      if (documents.TryGetValue(documentId.Uri, out var databaseEntry)) {
-        return databaseEntry.GetLastDocumentAsync()!;
+      var manager = GetProjectManager(documentId, false, true);
+      if (manager != null) {
+        return manager.GetLastDocumentAsync()!;
       }
+
       return Task.FromResult<CompilationAfterParsing?>(null);
     }
 
     public ProjectManager? GetProjectManager(TextDocumentIdentifier documentId) {
-      return documents.GetValueOrDefault(documentId.Uri);
+      return GetProjectManager(documentId, false, true);
     }
 
-    public IEnumerable<ProjectManager> Managers => documents.Values;
+    // TODO add test where the project changes during a nonOpen/Change but like a code navigation
+    public ProjectManager? GetProjectManager(TextDocumentIdentifier documentId, 
+      bool createOnDemand, bool startIfMigrated) {
+      var project = GetProject(documentId);
+      var projectManager = managersByProject.GetValueOrDefault(project.Uri);
 
+      if (projectManager != null) {
+        if (!projectManager.Project.Equals(project)) {
+          var _= projectManager.CloseAsync();
+          projectManager.Migrate(project);
+          if (startIfMigrated) {
+            projectManager.StartCompilation();
+          }
+        }
+      } else {
+        if (createOnDemand) {
+          projectManager = new ProjectManager(services, verificationCache, project);
+        } else {
+          return null;
+        }
+      }
+
+      managersByProject[project.Uri] = projectManager;
+      return projectManager;
+    }
+
+    public IEnumerable<ProjectManager> Managers => managersByProject.Values;
   }
 }

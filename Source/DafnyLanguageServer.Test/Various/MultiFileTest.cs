@@ -8,6 +8,7 @@ using Xunit;
 
 namespace Microsoft.Dafny.LanguageServer.IntegrationTest.Various {
 
+  // TODO merge with MultipleFilesTest ???
   public class MultiFileTest : DafnyLanguageServerTestBase, IAsyncLifetime {
     private static readonly string TestFilePath = Path.Combine(Directory.GetCurrentDirectory(), "Various", "TestFiles", "testFile.dfy");
 
@@ -35,7 +36,7 @@ method Test() {
       await client.OpenDocumentAndWaitAsync(documentItem, CancellationToken);
       var document = await Projects.GetResolvedDocumentAsync(documentItem.Uri);
       Assert.NotNull(document);
-      Assert.True(!document.Diagnostics.Any());
+      Assert.True(!document.GetDiagnostics().Any());
     }
 
     // https://github.com/dafny-lang/language-server-csharp/issues/40
@@ -52,7 +53,7 @@ method Test() {
       await client.OpenDocumentAndWaitAsync(documentItem, CancellationToken);
       var document = await Projects.GetLastDocumentAsync(documentItem.Uri);
       Assert.NotNull(document);
-      Assert.Single(document.AllFileDiagnostics);
+      Assert.Single(document.GetDiagnostics(documentItem.Uri.ToUri()));
     }
 
     public MultiFileTest(ITestOutputHelper output) : base(output) {

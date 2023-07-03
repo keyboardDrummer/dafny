@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reactive.Threading.Tasks;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Boogie;
 using Microsoft.Dafny.LanguageServer.IntegrationTest.Extensions;
 using Microsoft.Dafny.LanguageServer.Workspace;
 using Microsoft.Dafny.LanguageServer.Workspace.Notifications;
@@ -44,6 +45,24 @@ public class ClientBasedLanguageServerTest : DafnyLanguageServerTestBase, IAsync
     }
   }
 
+  public async Task<IList<FileVerificationStatus>> WaitUntilCompletedForUris(int uriCount, CancellationToken cancellationToken) {
+    var result = new List<FileVerificationStatus>();
+    var donePerUri = new Dictionary<Uri, bool>();
+    while (true) {
+
+      if (donePerUri.Count == uriCount && donePerUri.Values.All(x => x)) {
+        break;
+      }
+
+      var foundStatus = await verificationStatusReceiver.AwaitNextNotificationAsync(cancellationToken);
+      donePerUri[foundStatus.Uri.ToUri()] =
+        foundStatus.NamedVerifiables.All(n => n.Status >= PublishedVerificationStatus.Error);
+      result.Add(foundStatus);
+    }
+
+    return result;
+  }
+
   public async Task<IEnumerable<DocumentSymbol>> RequestDocumentSymbol(TextDocumentItem documentItem) {
     var things = await client.RequestDocumentSymbol(
       new DocumentSymbolParams {
@@ -55,17 +74,26 @@ public class ClientBasedLanguageServerTest : DafnyLanguageServerTestBase, IAsync
     return things.Select(t => t.DocumentSymbol!);
   }
 
-  public async Task<Diagnostic[]> GetLastDiagnostics(TextDocumentItem documentItem, CancellationToken cancellationToken) {
+  public async Task<PublishDiagnosticsParams> GetLastDiagnosticsParams(TextDocumentItem documentItem, CancellationToken cancellationToken) {
     await client.WaitForNotificationCompletionAsync(documentItem.Uri, cancellationToken);
-    var document = (await Projects.GetLastDocumentAsync(documentItem))!;
-    Assert.NotNull(document);
-    Assert.Equal(documentItem.Version, document.Version);
-    Diagnostic[] result;
-    do {
-      result = await diagnosticsReceiver.AwaitNextDiagnosticsAsync(cancellationToken);
-    } while (!document!.AllFileDiagnostics.Select(d => d.ToLspDiagnostic()).SequenceEqual(result));
+    var compilation = (await Projects.GetLastDocumentAsync(documentItem))!;
+    Assert.NotNull(compilation);
+    Assert.True(documentItem.Version <= compilation.Version);
+    var expectedDiagnostics = compilation.GetDiagnostics(documentItem.Uri.ToUri()).Select(d => d.ToLspDiagnostic()).ToList();
+    PublishDiagnosticsParams result;
+    while (true) {
+      result = await diagnosticsReceiver.AwaitNextNotificationAsync(cancellationToken);
+      if (result.Uri == documentItem.Uri && result.Diagnostics.SequenceEqual(expectedDiagnostics)) {
+        break;
+      }
+    }
 
     return result;
+  }
+
+  public async Task<Diagnostic[]> GetLastDiagnostics(TextDocumentItem documentItem, CancellationToken cancellationToken) {
+    var paramsResult = await GetLastDiagnosticsParams(documentItem, CancellationToken);
+    return paramsResult.Diagnostics.ToArray();
   }
 
   public virtual Task InitializeAsync() {
@@ -175,7 +203,7 @@ public class ClientBasedLanguageServerTest : DafnyLanguageServerTestBase, IAsync
   }
 
   protected async Task AssertNoResolutionErrors(TextDocumentItem documentItem) {
-    var resolutionDiagnostics = (await Projects.GetResolvedDocumentAsync(documentItem))!.Diagnostics.ToList();
+    var resolutionDiagnostics = (await Projects.GetResolvedDocumentAsync(documentItem))!.GetDiagnostics()[documentItem.Uri.ToUri()].ToList();
     var resolutionErrors = resolutionDiagnostics.Count(d => d.Severity == DiagnosticSeverity.Error);
     if (0 != resolutionErrors) {
       await Console.Out.WriteAsync(string.Join("\n", resolutionDiagnostics.Where(d => d.Severity == DiagnosticSeverity.Error).Select(d => d.ToString())));
@@ -189,6 +217,17 @@ public class ClientBasedLanguageServerTest : DafnyLanguageServerTestBase, IAsync
     Assert.Equal(1, nextNotification.NamedVerifiables.Count);
     return nextNotification.NamedVerifiables.Single().Status;
   }
+
+  protected Task<LocationOrLocationLinks> RequestDefinition(TextDocumentItem documentItem, Position position) {
+    return client.RequestDefinition(
+      new DefinitionParams {
+        TextDocument = documentItem.Uri,
+        Position = position
+      },
+      CancellationToken
+    ).AsTask();
+  }
+
 
   public ClientBasedLanguageServerTest(ITestOutputHelper output) : base(output) {
   }
