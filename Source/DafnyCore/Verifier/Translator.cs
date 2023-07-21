@@ -37,6 +37,52 @@ namespace Microsoft.Dafny {
     // TODO(wuestholz): Enable this once Dafny's recommended Z3 version includes changeset 0592e765744497a089c42021990740f303901e67.
     public bool UseOptimizationInZ3 { get; set; }
 
+    // optimizing translation
+    readonly ISet<MemberDecl> referencedMembers = new HashSet<MemberDecl>();
+
+    FuelContext fuelContext = null;
+    IsAllocContext isAllocContext = null;
+    Program program;
+
+    private Bpl.Program sink;
+    private VisibilityScope currentScope;
+    private VisibilityScope verificationScope;
+    private Dictionary<Declaration, Bpl.Function> declarationMapping = new();
+
+    readonly PredefinedDecls predef;
+
+    private TranslatorFlags flags;
+
+    // translation state
+    readonly Dictionary<TopLevelDecl/*!*/, Bpl.Constant/*!*/>/*!*/ classes = new Dictionary<TopLevelDecl/*!*/, Bpl.Constant/*!*/>();
+    readonly Dictionary<TopLevelDecl, string>/*!*/ classConstants = new Dictionary<TopLevelDecl, string>();
+    readonly Dictionary<Function, string> functionHandles = new Dictionary<Function, string>();
+    readonly List<FuelConstant> functionFuel = new List<FuelConstant>();
+    readonly Dictionary<Function, Bpl.Expr> functionReveals = new();
+    readonly Dictionary<Field/*!*/, Bpl.Constant/*!*/>/*!*/ fields = new Dictionary<Field/*!*/, Bpl.Constant/*!*/>();
+    readonly Dictionary<Field/*!*/, Bpl.Function/*!*/>/*!*/ fieldFunctions = new Dictionary<Field/*!*/, Bpl.Function/*!*/>();
+    readonly Dictionary<string, Bpl.Constant> fieldConstants = new Dictionary<string, Constant>();
+    readonly Dictionary<string, Bpl.Constant> tytagConstants = new Dictionary<string, Constant>();
+
+    Dictionary<LetExpr, LetSuchThatExprInfo> letSuchThatExprInfo = new Dictionary<LetExpr, LetSuchThatExprInfo>();
+    private Declaration currentDeclaration;
+    ModuleDefinition currentModule = null;  // the module whose members are currently being translated
+    ModuleDefinition forModule = null;  // the root module
+    ICallable codeContext = null;  // the method/iterator whose implementation is currently being translated or the function whose specification is being checked for well-formedness
+    Bpl.LocalVariable yieldCountVariable = null;  // non-null when an iterator body is being translated
+    bool inBodyInitContext = false;  // true during the translation of the .BodyInit portion of a divided constructor body
+    readonly Dictionary<string, Bpl.IdentifierExpr> definiteAssignmentTrackers = new Dictionary<string, Bpl.IdentifierExpr>();
+    bool assertAsAssume = false; // generate assume statements instead of assert statements
+    Func<IToken, bool> assertionOnlyFilter = null; // generate assume statements instead of assert statements if not targeted by {:only}
+    public enum StmtType { NONE, ASSERT, ASSUME };
+    public StmtType stmtContext = StmtType.NONE;  // the Statement that is currently being translated
+    public bool adjustFuelForExists = true;  // fuel need to be adjusted for exists based on whether exists is in assert or assume stmt.
+
+    public readonly FreshIdGenerator defaultIdGenerator = new FreshIdGenerator();
+    Dictionary<string, Bpl.IdentifierExpr> _tmpIEs = new Dictionary<string, Bpl.IdentifierExpr>();
+
+    public int assertionCount = 0;
+
     void AddOtherDefinition(Bpl.Declaration declaration, Axiom axiom) {
 
       switch (declaration) {
@@ -83,6 +129,9 @@ namespace Microsoft.Dafny {
       }
     }
 
+    private bool InsertChecksums { get { return flags.InsertChecksums; } }
+    private string UniqueIdPrefix { get { return flags.UniqueIdPrefix; } }
+
     public void SetReporter(ErrorReporter reporter) {
       this.reporter = reporter;
     }
@@ -105,29 +154,11 @@ namespace Microsoft.Dafny {
 
     }
 
-    // translation state
-    readonly Dictionary<TopLevelDecl/*!*/, Bpl.Constant/*!*/>/*!*/ classes = new Dictionary<TopLevelDecl/*!*/, Bpl.Constant/*!*/>();
-    readonly Dictionary<TopLevelDecl, string>/*!*/ classConstants = new Dictionary<TopLevelDecl, string>();
-    readonly Dictionary<Function, string> functionHandles = new Dictionary<Function, string>();
-    readonly List<FuelConstant> functionFuel = new List<FuelConstant>();
-    readonly Dictionary<Function, Bpl.Expr> functionReveals = new();
-    readonly Dictionary<Field/*!*/, Bpl.Constant/*!*/>/*!*/ fields = new Dictionary<Field/*!*/, Bpl.Constant/*!*/>();
-    readonly Dictionary<Field/*!*/, Bpl.Function/*!*/>/*!*/ fieldFunctions = new Dictionary<Field/*!*/, Bpl.Function/*!*/>();
-    readonly Dictionary<string, Bpl.Constant> fieldConstants = new Dictionary<string, Constant>();
-    readonly Dictionary<string, Bpl.Constant> tytagConstants = new Dictionary<string, Constant>();
-
-    // optimizing translation
-    readonly ISet<MemberDecl> referencedMembers = new HashSet<MemberDecl>();
-
     public void AddReferencedMember(MemberDecl m) {
       if (m is Method && !InVerificationScope(m)) {
         referencedMembers.Add(m);
       }
     }
-
-    FuelContext fuelContext = null;
-    IsAllocContext isAllocContext = null;
-    Program program;
 
     [ContractInvariantMethod]
     void ObjectInvariant() {
@@ -191,17 +222,6 @@ namespace Microsoft.Dafny {
       Contract.Requires(d is Declaration);
       return InVerificationScope((Declaration)d);
     }
-
-    private Bpl.Program sink;
-    private VisibilityScope currentScope;
-    private VisibilityScope verificationScope;
-    private Dictionary<Declaration, Bpl.Function> declarationMapping = new();
-
-    readonly PredefinedDecls predef;
-
-    private TranslatorFlags flags;
-    private bool InsertChecksums { get { return flags.InsertChecksums; } }
-    private string UniqueIdPrefix { get { return flags.UniqueIdPrefix; } }
 
     internal class PredefinedDecls {
       public readonly Bpl.Type CharType;
@@ -3202,20 +3222,6 @@ namespace Microsoft.Dafny {
       return BplAnd(lower, upper);
     }
 
-    ModuleDefinition currentModule = null;  // the module whose members are currently being translated
-    ModuleDefinition forModule = null;  // the root module
-    ICallable codeContext = null;  // the method/iterator whose implementation is currently being translated or the function whose specification is being checked for well-formedness
-    Bpl.LocalVariable yieldCountVariable = null;  // non-null when an iterator body is being translated
-    bool inBodyInitContext = false;  // true during the translation of the .BodyInit portion of a divided constructor body
-    readonly Dictionary<string, Bpl.IdentifierExpr> definiteAssignmentTrackers = new Dictionary<string, Bpl.IdentifierExpr>();
-    bool assertAsAssume = false; // generate assume statements instead of assert statements
-    Func<IToken, bool> assertionOnlyFilter = null; // generate assume statements instead of assert statements if not targeted by {:only}
-    public enum StmtType { NONE, ASSERT, ASSUME };
-    public StmtType stmtContext = StmtType.NONE;  // the Statement that is currently being translated
-    public bool adjustFuelForExists = true;  // fuel need to be adjusted for exists based on whether exists is in assert or assume stmt.
-
-    public readonly FreshIdGenerator defaultIdGenerator = new FreshIdGenerator();
-
     public FreshIdGenerator CurrentIdGenerator {
       get {
         var decl = codeContext as Declaration;
@@ -3225,10 +3231,6 @@ namespace Microsoft.Dafny {
         return defaultIdGenerator;
       }
     }
-
-    Dictionary<string, Bpl.IdentifierExpr> _tmpIEs = new Dictionary<string, Bpl.IdentifierExpr>();
-
-    public int assertionCount = 0;
 
     Bpl.IdentifierExpr GetTmpVar_IdExpr(Bpl.IToken tok, string name, Bpl.Type ty, List<Variable> locals)  // local variable that's shared between statements that need it
     {
@@ -9573,8 +9575,6 @@ namespace Microsoft.Dafny {
         }
       }
     }
-    Dictionary<LetExpr, LetSuchThatExprInfo> letSuchThatExprInfo = new Dictionary<LetExpr, LetSuchThatExprInfo>();
-    private Declaration currentDeclaration;
 
     // ----- Expression ---------------------------------------------------------------------------
 
