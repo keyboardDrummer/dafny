@@ -1374,6 +1374,8 @@ namespace Microsoft.Dafny.Compilers {
     public void Compile(Program program, ConcreteSyntaxTree wrx) {
       Contract.Requires(program != null);
 
+      CheckDuplicateModuleNames(program);
+      
       EmitHeader(program, wrx);
       EmitBuiltInDecls(program.SystemModuleManager, wrx);
       var temp = new List<ModuleDefinition>();
@@ -1538,7 +1540,35 @@ namespace Microsoft.Dafny.Compilers {
       }
       EmitFooter(program, wrx);
     }
+    
+    /// <summary>
+    /// Check that now two modules that are being compiled have the same CompileName.
+    ///
+    /// This could happen if they are given the same name using the 'extern' declaration modifier.
+    /// </summary>
+    /// <param name="program">The Dafny program being compiled.</param>
+    private void CheckDuplicateModuleNames(Program program) {
+      // Check that none of the modules have the same CompileName.
+      Dictionary<string, ModuleDefinition> compileNameMap = new Dictionary<string, ModuleDefinition>();
+      foreach (ModuleDefinition m in program.CompileModules) {
+        var compileIt = true;
+        Attributes.ContainsBool(m.Attributes, "compile", ref compileIt);
+        if (m.IsAbstract || !compileIt) {
+          // the purpose of an abstract module is to skip compilation
+          continue;
+        }
 
+        string compileName = m.GetCompileName(Options);
+        if (compileNameMap.TryGetValue(compileName, out var priorModDef)) {
+          Reporter.Error(MessageSource.Resolver, m.tok,
+            "modules '{0}' and '{1}' both have CompileName '{2}'",
+            priorModDef.tok.val, m.tok.val, compileName);
+        } else {
+          compileNameMap.Add(compileName, m);
+        }
+      }
+    }
+    
     public ISet<(ModuleDefinition, string)> DeclaredDatatypes { get; } = new HashSet<(ModuleDefinition, string)>();
 
     protected class NullClassWriter : IClassWriter {

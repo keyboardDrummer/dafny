@@ -73,8 +73,6 @@ public class ProgramResolver {
 
     Type.DisableScopes();
 
-    CheckDuplicateModuleNames(Program);
-
     foreach (var rewriter in compilation.Rewriters) {
       cancellationToken.ThrowIfCancellationRequested();
       rewriter.PostResolve(Program);
@@ -168,34 +166,6 @@ public class ProgramResolver {
       if (md is LiteralModuleDecl literalModuleDecl) {
         var mdef = literalModuleDecl.ModuleDef;
         mdef.Height = withIndex.Second;
-      }
-    }
-  }
-
-  /// <summary>
-  /// Check that now two modules that are being compiled have the same CompileName.
-  ///
-  /// This could happen if they are given the same name using the 'extern' declaration modifier.
-  /// </summary>
-  /// <param name="program">The Dafny program being compiled.</param>
-  private void CheckDuplicateModuleNames(Program program) {
-    // Check that none of the modules have the same CompileName.
-    Dictionary<string, ModuleDefinition> compileNameMap = new Dictionary<string, ModuleDefinition>();
-    foreach (ModuleDefinition m in program.CompileModules) {
-      var compileIt = true;
-      Attributes.ContainsBool(m.Attributes, "compile", ref compileIt);
-      if (m.IsAbstract || !compileIt) {
-        // the purpose of an abstract module is to skip compilation
-        continue;
-      }
-
-      string compileName = m.GetCompileName(Options);
-      if (compileNameMap.TryGetValue(compileName, out var priorModDef)) {
-        Reporter.Error(MessageSource.Resolver, m.tok,
-          "modules '{0}' and '{1}' both have CompileName '{2}'",
-          priorModDef.tok.val, m.tok.val, compileName);
-      } else {
-        compileNameMap.Add(compileName, m);
       }
     }
   }
