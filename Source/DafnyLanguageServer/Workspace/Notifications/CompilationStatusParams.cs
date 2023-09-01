@@ -18,7 +18,7 @@ namespace Microsoft.Dafny.LanguageServer.Workspace.Notifications {
     /// <summary>
     /// Gets the version of the document.
     /// </summary>
-    public int? Version { get; init; }
+    public int Version { get; init; }
 
     /// <summary>
     /// Gets the status of the compilation.

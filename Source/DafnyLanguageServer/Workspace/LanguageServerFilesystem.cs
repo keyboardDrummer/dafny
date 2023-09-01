@@ -108,11 +108,11 @@ public class LanguageServerFilesystem : IFileSystem {
   /// When the client sends file updates, it includes a new version for this file, which we store and return here.
   /// File version are important to the client because it can use them to do client side migration of positions.
   /// </summary>
-  public int? GetVersion(Uri uri) {
+  public int GetVersion(Uri uri) {
     if (openFiles.TryGetValue(uri, out var file)) {
       return file.Version;
     }
 
-    return null;
+    return 1; // The protocol starts counting at 1, which for a file opened from disk means the file is unchanged from disk.
   }
 }
