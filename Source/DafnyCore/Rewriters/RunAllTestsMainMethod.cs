@@ -24,7 +24,7 @@ public class RunAllTestsMainMethod : IRewriter {
   /// Method instead, but for now this is a bit easier. It also allows us to produce
   /// errors much earlier in the pipeline.
   /// </summary>
-  internal override void PreResolve(Program program) {
+  internal override void PreResolve(Program program, List<ModuleDecl> sortedDecls) {
 
     // Verifying the method isn't yet possible since the translation of try/recover statments is not implemented,
     // and would be low-value anyway.

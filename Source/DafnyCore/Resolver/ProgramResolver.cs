@@ -58,11 +58,17 @@ public class ProgramResolver {
     var rewriters = RewriterCollection.GetRewriters(Reporter, Program);
 
     var compilation = Program.Compilation;
+
+    foreach (var kv in moduleDeclarationPointers) {
+      kv.Value(kv.Key);
+    }
+    
     foreach (var rewriter in rewriters) {
       cancellationToken.ThrowIfCancellationRequested();
-      rewriter.PreResolve(Program);
+      rewriter.PreResolve(Program, sortedDecls);
     }
 
+    
     foreach (var decl in sortedDecls) {
       cancellationToken.ThrowIfCancellationRequested();
       var moduleResolutionResult = ResolveModuleDeclaration(compilation, decl);
@@ -88,8 +94,7 @@ public class ProgramResolver {
     classMembers[topLevelDeclWithMembers] = memberDictionary;
   }
 
-  private void ProcessDeclarationResolutionResult(Dictionary<ModuleDecl, Action<ModuleDecl>> moduleDeclarationPointers, ModuleDecl decl,
-    ModuleResolutionResult moduleResolutionResult) {
+  private void ProcessDeclarationResolutionResult(Dictionary<ModuleDecl, Action<ModuleDecl>> moduleDeclarationPointers, ModuleDecl decl, ModuleResolutionResult moduleResolutionResult) {
     moduleDeclarationPointers[decl](moduleResolutionResult.ResolvedDeclaration);
 
     foreach (var sig in moduleResolutionResult.Signatures) {

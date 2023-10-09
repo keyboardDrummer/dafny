@@ -39,9 +39,9 @@ record ErrorPlugin(string AssemblyAndArgument, Exception Exception) : Plugin {
       this.errorPlugin = errorPlugin;
     }
 
-    internal override void PreResolve(Program program) {
+    internal override void PreResolve(Program program, List<ModuleDecl> sortedDecls) {
       program.Reporter.Error(MessageSource.Resolver, Token.NoToken, $"Error while instantiating plugin '{errorPlugin.AssemblyAndArgument}':\n{errorPlugin.Exception}");
-      base.PreResolve(program);
+      base.PreResolve(program, sortedDecls);
     }
   }
 }

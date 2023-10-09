@@ -1,6 +1,7 @@
 // Copyright by the contributors to the Dafny Project
 // SPDX-License-Identifier: MIT
 
+using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using static Microsoft.Dafny.RewriterErrors;
 
@@ -41,7 +42,8 @@ namespace Microsoft.Dafny {
     /// You can then report errors using reporter.Error (see above)
     /// </summary>
     /// <param name="program">The entire program</param>
-    internal virtual void PreResolve(Program program) {
+    /// <param name="sortedDecls"></param>
+    internal virtual void PreResolve(Program program, List<ModuleDecl> sortedDecls) {
       Contract.Requires(program != null);
     }
 

@@ -183,9 +183,17 @@ namespace Microsoft.Dafny {
     private ModuleSignature RefinedSig;  // the intention is to use this field only after a successful PreResolve
     private ModuleSignature refinedSigOpened;
 
-    internal override void PreResolve(ModuleDefinition m) {
-      if (m.RefinementQId?.Decl != null) { // There is a refinement parent and it resolved OK
-        RefinedSig = m.RefinementQId.Sig;
+    internal override void PreResolve(Program program, List<ModuleDecl> sortedDecls) {
+      foreach (var module in sortedDecls.OfType<LiteralModuleDecl>()) {
+        PreResolveModule(module.ModuleDef);
+      }
+    }
+
+    internal void PreResolveModule(ModuleDefinition m) {
+      var refinee = m.RefinementQId?.ResolveTarget(Reporter);
+      if (refinee != null) { // There is a refinement parent and it resolved OK
+        var refineeDef = m.RefinementQId.Def;
+        RefinedSig = refineeDef.RegisterTopLevelDecls(null, true);
 
         Contract.Assert(RefinedSig.ModuleDef != null);
         Contract.Assert(m.RefinementQId.Def == RefinedSig.ModuleDef);
