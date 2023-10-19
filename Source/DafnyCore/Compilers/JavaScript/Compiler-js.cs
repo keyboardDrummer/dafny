@@ -38,7 +38,7 @@ namespace Microsoft.Dafny.Compilers {
 
     string FormatDefaultTypeParameterValue(TopLevelDecl tp) {
       Contract.Requires(tp is TypeParameter || tp is AbstractTypeDecl);
-      return $"_default_{tp.GetCompileName(Options)}";
+      return $"_default_{Declaration.GetCompileName(tp, Options)}";
     }
 
     protected override void EmitHeader(Program program, ConcreteSyntaxTree wr) {
@@ -319,7 +319,7 @@ namespace Microsoft.Dafny.Compilers {
         return null;
       }
 
-      string DtT = dt.GetCompileName(Options);
+      string DtT = Declaration.GetCompileName(dt, Options);
       string DtT_protected = IdProtect(DtT);
       var simplifiedType = DatatypeWrapperEraser.SimplifyType(Options, UserDefinedType.FromTopLevelDecl(dt.tok, dt));
 
@@ -362,7 +362,7 @@ namespace Microsoft.Dafny.Compilers {
         // codatatype:
         //   static create_Ctor0(params) { if ($dt === null) { $dt = new Dt(tag); $dt._d = $dt; } $dt.param0 = param0; ...; return $dt; }
         //   static lazy_Ctor0(initializer) { let dt = new Dt(tag); dt._initializer = initializer; return dt; }
-        wr.Write($"static create_{ctor.GetCompileName(Options)}(");
+        wr.Write($"static create_{Declaration.GetCompileName(ctor, Options)}(");
         wr.Write(typeDescriptors);
         var sep = typeDescriptorComma;
         if (dt is CoDatatypeDecl) {
@@ -386,7 +386,7 @@ namespace Microsoft.Dafny.Compilers {
         }
         w.WriteLine("return $dt;");
         if (dt is CoDatatypeDecl) {
-          wBody = wr.NewNamedBlock("static lazy_{0}(initializer)", ctor.GetCompileName(Options));
+          wBody = wr.NewNamedBlock("static lazy_{0}(initializer)", Declaration.GetCompileName(ctor, Options));
           wBody.WriteLine("let dt = new {0}({1});", DtT_protected, i);
           wBody.WriteLine("dt._initializer = initializer;");
           wBody.WriteLine("return dt;");
@@ -398,7 +398,7 @@ namespace Microsoft.Dafny.Compilers {
       i = 0;
       foreach (var ctor in dt.Ctors.Where(ctor => !ctor.IsGhost)) {
         // get is_Ctor0() { return _D is Dt_Ctor0; }
-        wr.WriteLine("get is_{0}() {{ return this.$tag === {1}; }}", ctor.GetCompileName(Options), i);
+        wr.WriteLine("get is_{0}() {{ return this.$tag === {1}; }}", Declaration.GetCompileName(ctor, Options), i);
         i++;
       }
 
@@ -415,7 +415,7 @@ namespace Microsoft.Dafny.Compilers {
             if (ctor.IsGhost) {
               w.WriteLine("yield {0};", ForcePlaceboValue(UserDefinedType.FromTopLevelDecl(dt.tok, dt), w, dt.tok));
             } else {
-              w.WriteLine("yield {0}.create_{1}({2});", DtT_protected, ctor.GetCompileName(Options), dt is CoDatatypeDecl ? "null" : "");
+              w.WriteLine("yield {0}.create_{1}({2});", DtT_protected, Declaration.GetCompileName(ctor, Options), dt is CoDatatypeDecl ? "null" : "");
             }
           }
         }
@@ -1570,7 +1570,7 @@ namespace Microsoft.Dafny.Compilers {
         Contract.Assert(!cl.EnclosingModuleDefinition.TryToAvoidName); // default module is not marked ":extern"
         return IdProtect(cl.EnclosingModuleDefinition.GetCompileName(Options));
       } else {
-        return IdProtect(cl.EnclosingModuleDefinition.GetCompileName(Options)) + "." + IdProtect(cl.GetCompileName(Options));
+        return IdProtect(cl.EnclosingModuleDefinition.GetCompileName(Options)) + "." + IdProtect(Declaration.GetCompileName(cl, Options));
       }
     }
 
@@ -1589,7 +1589,7 @@ namespace Microsoft.Dafny.Compilers {
 
     void EmitDatatypeValue(DatatypeDecl dt, DatatypeCtor ctor, bool isCoCall, string typeDescriptorArguments, string arguments, ConcreteSyntaxTree wr) {
       var dtName = dt.GetFullCompileName(Options);
-      var ctorName = ctor.GetCompileName(Options);
+      var ctorName = Declaration.GetCompileName(ctor, Options);
 
       var sep = typeDescriptorArguments.Length != 0 && arguments.Length != 0 ? ", " : "";
       if (dt is TupleTypeDecl) {

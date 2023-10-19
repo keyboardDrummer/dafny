@@ -816,9 +816,9 @@ namespace Microsoft.Dafny.Compilers {
       } else if (cl is TraitDecl && useCompanionName) {
         return IdProtect(udt.GetFullCompanionCompileName(Options));
       } else if (cl.EnclosingModuleDefinition.GetCompileName(Options) == ModuleName || cl.EnclosingModuleDefinition.TryToAvoidName) {
-        return IdProtect(cl.GetCompileName(Options));
+        return IdProtect(Declaration.GetCompileName(cl, Options));
       } else {
-        return IdProtect(cl.EnclosingModuleDefinition.GetCompileName(Options)) + "." + IdProtect(cl.GetCompileName(Options));
+        return IdProtect(cl.EnclosingModuleDefinition.GetCompileName(Options)) + "." + IdProtect(Declaration.GetCompileName(cl, Options));
       }
     }
 
@@ -1511,7 +1511,7 @@ namespace Microsoft.Dafny.Compilers {
     }
 
     protected override void EmitConstructorCheck(string source, DatatypeCtor ctor, ConcreteSyntaxTree wr) {
-      wr.Write($"{source}.is_{ctor.GetCompileName(Options)}()");
+      wr.Write($"{source}.is_{Declaration.GetCompileName(ctor, Options)}()");
     }
 
     protected override string TypeName_Companion(Type type, ConcreteSyntaxTree wr, IToken tok, MemberDecl/*?*/ member) {
@@ -1940,7 +1940,7 @@ namespace Microsoft.Dafny.Compilers {
         var wCtorParams = new ConcreteSyntaxTree();
         var wCallArguments = new ConcreteSyntaxTree();
         var typeDescriptorCount = EmitTypeDescriptorsForClass(dt.TypeArgs, dt, null, wCtorParams, wCallArguments, null);
-        wr.Write($"public static{justTypeArgs} {DtT_protected} create_{ctor.GetCompileName(Options)}(");
+        wr.Write($"public static{justTypeArgs} {DtT_protected} create_{Declaration.GetCompileName(ctor, Options)}(");
         wr.Append(wCtorParams);
         var formalCount = WriteFormals(typeDescriptorCount > 0 ? ", " : "", ctor.Formals, wr);
         var sep = typeDescriptorCount > 0 && formalCount > 0 ? ", " : "";
@@ -1951,9 +1951,9 @@ namespace Microsoft.Dafny.Compilers {
       // query properties
       foreach (var ctor in dt.Ctors.Where(ctor => !ctor.IsGhost)) {
         if (dt.IsRecordType) {
-          wr.WriteLine($"public boolean is_{ctor.GetCompileName(Options)}() {{ return true; }}");
+          wr.WriteLine($"public boolean is_{Declaration.GetCompileName(ctor, Options)}() {{ return true; }}");
         } else {
-          wr.WriteLine($"public boolean is_{ctor.GetCompileName(Options)}() {{ return this instanceof {dt.GetCompileName(Options)}_{ctor.GetCompileName(Options)}; }}");
+          wr.WriteLine($"public boolean is_{Declaration.GetCompileName(ctor, Options)}() {{ return this instanceof {Declaration.GetCompileName(dt, Options)}_{Declaration.GetCompileName(ctor, Options)}; }}");
         }
       }
       if (dt is CoDatatypeDecl) {
@@ -1969,7 +1969,7 @@ namespace Microsoft.Dafny.Compilers {
           if (ctor.IsGhost) {
             w.WriteLine("{0}.add({1});", arraylist, ForcePlaceboValue(UserDefinedType.FromTopLevelDecl(dt.tok, dt), w, dt.tok));
           } else {
-            w.WriteLine("{0}.add(new {1}{2}());", arraylist, DtT_protected, dt.IsRecordType ? "" : $"_{ctor.GetCompileName(Options)}");
+            w.WriteLine("{0}.add(new {1}{2}());", arraylist, DtT_protected, dt.IsRecordType ? "" : $"_{Declaration.GetCompileName(ctor, Options)}");
           }
         }
         w.WriteLine($"return {arraylist};");
@@ -1994,10 +1994,10 @@ namespace Microsoft.Dafny.Compilers {
                     continue;
                   }
                   if (compiledConstructorsProcessed < compiledConstructorCount - 1) {
-                    wDtor.WriteLine("if (d instanceof {0}_{1}) {{ return (({0}_{1}{2})d).{3}; }}", dt.GetCompileName(Options),
-                      ctor_i.GetCompileName(Options), DtT_TypeArgs, FieldName(arg, i));
+                    wDtor.WriteLine("if (d instanceof {0}_{1}) {{ return (({0}_{1}{2})d).{3}; }}", Declaration.GetCompileName(dt, Options),
+                      Declaration.GetCompileName(ctor_i, Options), DtT_TypeArgs, FieldName(arg, i));
                   } else {
-                    wDtor.WriteLine($"return (({dt.GetCompileName(Options)}_{ctor_i.GetCompileName(Options)}{DtT_TypeArgs})d).{FieldName(arg, 0)};");
+                    wDtor.WriteLine($"return (({Declaration.GetCompileName(dt, Options)}_{Declaration.GetCompileName(ctor_i, Options)}{DtT_TypeArgs})d).{FieldName(arg, 0)};");
                   }
                   compiledConstructorsProcessed++;
                 }
@@ -2037,29 +2037,29 @@ namespace Microsoft.Dafny.Compilers {
         constructorIndex++;
       }
       if (dt is CoDatatypeDecl) {
-        var filename = $"{ModulePath}/{dt.GetCompileName(Options)}__Lazy.java";
+        var filename = $"{ModulePath}/{Declaration.GetCompileName(dt, Options)}__Lazy.java";
         var wr = wrx.NewFile(filename);
         FileCount += 1;
-        wr.WriteLine($"// Class {dt.GetCompileName(Options)}__Lazy");
-        wr.WriteLine($"// Dafny class {dt.GetCompileName(Options)}__Lazy compiled into Java");
+        wr.WriteLine($"// Class {Declaration.GetCompileName(dt, Options)}__Lazy");
+        wr.WriteLine($"// Dafny class {Declaration.GetCompileName(dt, Options)}__Lazy compiled into Java");
         wr.WriteLine($"package {ModuleName};");
         wr.WriteLine();
         EmitImports(wr, out _);
         wr.WriteLine();
         EmitSuppression(wr); //TODO: Fix implementations so they do not need this suppression
-        var w = wr.NewNamedBlock($"public class {dt.GetCompileName(Options)}__Lazy{typeParams} extends {IdName(dt)}{typeParams}");
-        w.WriteLine($"public interface Computer {{ {dt.GetCompileName(Options)} run(); }}");
+        var w = wr.NewNamedBlock($"public class {Declaration.GetCompileName(dt, Options)}__Lazy{typeParams} extends {IdName(dt)}{typeParams}");
+        w.WriteLine($"public interface Computer {{ {Declaration.GetCompileName(dt, Options)} run(); }}");
         w.WriteLine("Computer c;");
-        w.WriteLine($"{dt.GetCompileName(Options)}{typeParams} d;");
+        w.WriteLine($"{Declaration.GetCompileName(dt, Options)}{typeParams} d;");
 
         var wCtorParams = new ConcreteSyntaxTree();
         var wBaseCallArguments = new ConcreteSyntaxTree();
         var typeDescriptorCount = EmitTypeDescriptorsForClass(dt.TypeArgs, dt, null, wCtorParams, wBaseCallArguments, null);
         var sep = typeDescriptorCount > 0 ? ", " : "";
-        var wCtorBody = w.NewBlock($"public {dt.GetCompileName(Options)}__Lazy({wCtorParams}{sep}Computer c)");
+        var wCtorBody = w.NewBlock($"public {Declaration.GetCompileName(dt, Options)}__Lazy({wCtorParams}{sep}Computer c)");
         wCtorBody.WriteLine($"super({wBaseCallArguments});");
         wCtorBody.WriteLine("this.c = c;");
-        w.WriteLine($"public {dt.GetCompileName(Options)}{typeParams} Get() {{ if (c != null) {{ d = c.run(); c = null; }} return d; }}");
+        w.WriteLine($"public {Declaration.GetCompileName(dt, Options)}{typeParams} Get() {{ if (c != null) {{ d = c.run(); c = null; }} return d; }}");
         w.WriteLine("public String toString() { return Get().toString(); }");
       }
     }
@@ -2101,7 +2101,7 @@ namespace Microsoft.Dafny.Compilers {
       }
       if (dt is CoDatatypeDecl) {
         string typeParams = TypeParameters(dt.TypeArgs);
-        wr.WriteLine($"public {dt.GetCompileName(Options)}{typeParams} Get() {{ return this; }}");
+        wr.WriteLine($"public {Declaration.GetCompileName(dt, Options)}{typeParams} Get() {{ return this; }}");
       }
       // Equals method
       wr.WriteLine();
@@ -2211,7 +2211,7 @@ namespace Microsoft.Dafny.Compilers {
       Contract.Ensures(Contract.Result<string>() != null);
 
       var dt = ctor.EnclosingDatatype;
-      return dt.IsRecordType ? IdName(dt) : dt.GetCompileName(Options) + "_" + ctor.GetCompileName(Options);
+      return dt.IsRecordType ? IdName(dt) : Declaration.GetCompileName(dt, Options) + "_" + Declaration.GetCompileName(ctor, Options);
     }
     string DtCtorName(DatatypeCtor ctor, List<Type> typeArgs, ConcreteSyntaxTree wr) {
       Contract.Requires(ctor != null);
@@ -2232,14 +2232,14 @@ namespace Microsoft.Dafny.Compilers {
         return DafnyTupleClass(tupleDecl.NonGhostDims);
       }
       var dtName = IdProtect(dt.GetFullCompileName(Options));
-      return dt.IsRecordType ? dtName : dtName + "_" + ctor.GetCompileName(Options);
+      return dt.IsRecordType ? dtName : dtName + "_" + Declaration.GetCompileName(ctor, Options);
     }
     string DtCreateName(DatatypeCtor ctor) {
       Contract.Assert(!ctor.IsGhost); // there should never be an occasion to ask for a ghost constructor
       if (ctor.EnclosingDatatype.IsRecordType) {
         return "create";
       }
-      return "create_" + ctor.GetCompileName(Options);
+      return "create_" + Declaration.GetCompileName(ctor, Options);
     }
 
     private string FieldName(Formal formal, int i) {
@@ -2651,7 +2651,7 @@ namespace Microsoft.Dafny.Compilers {
         wr.Write($"{dtName}.{typeParams}{DtCreateName(ctor)}({typeDescriptorArguments}{sep}{arguments})");
       } else {
         var sep0 = typeDescriptorArguments.Length != 0 ? ", " : "";
-        wr.Write($"new {dt.GetCompileName(Options)}__Lazy({typeDescriptorArguments}{sep0}");
+        wr.Write($"new {Declaration.GetCompileName(dt, Options)}__Lazy({typeDescriptorArguments}{sep0}");
         wr.Write("() -> { return ");
         wr.Write($"new {DtCtorName(ctor)}{typeParams}({typeDescriptorArguments}{sep}{arguments})");
         wr.Write("; })");
@@ -3173,7 +3173,7 @@ namespace Microsoft.Dafny.Compilers {
           return FormatDefaultTypeParameterValue(tp);
         }
       } else if (cl is AbstractTypeDecl opaque) {
-        return FormatDefaultTypeParameterValueName(opaque.GetCompileName(Options));
+        return FormatDefaultTypeParameterValueName(Declaration.GetCompileName(opaque, Options));
       } else if (cl is NewtypeDecl) {
         var td = (NewtypeDecl)cl;
         if (td.Witness != null) {

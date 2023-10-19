@@ -84,7 +84,7 @@ Send notifications about the verification status of each line in the program.
               var verificationTree = new TopLevelDeclMemberVerificationTree(
                 "datatype",
                 ctor.Name,
-                ctor.GetCompileName(options),
+                Declaration.GetCompileName(ctor, options),
                 ctor.tok.Filepath,
                 ctor.Tok.Uri,
                 verificationTreeRange,
@@ -158,7 +158,7 @@ Send notifications about the verification status of each line in the program.
           var verificationTree = new TopLevelDeclMemberVerificationTree(
             $"subset type",
             subsetTypeDecl.Name,
-            subsetTypeDecl.GetCompileName(options),
+            Declaration.GetCompileName(subsetTypeDecl, options),
             subsetTypeDecl.tok.Filepath,
             subsetTypeDecl.Tok.Uri,
             verificationTreeRange,

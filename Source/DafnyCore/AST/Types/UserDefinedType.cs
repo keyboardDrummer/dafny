@@ -31,13 +31,13 @@ public class UserDefinedType : NonProxyType, IHasUsages {
   }
 
   string compileName;
-  public string GetCompileName(DafnyOptions options) => compileName ??= ResolvedClass.GetCompileName(options);
+  public string GetCompileName(DafnyOptions options) => compileName ??= Declaration.GetCompileName(ResolvedClass, options);
 
   public string GetFullCompanionCompileName(DafnyOptions options) {
     Contract.Requires(ResolvedClass is TraitDecl || (ResolvedClass is NonNullTypeDecl nntd && nntd.Class is TraitDecl));
     var m = ResolvedClass.EnclosingModuleDefinition;
     var s = m.TryToAvoidName ? "" : m.GetCompileName(options) + ".";
-    return s + "_Companion_" + ResolvedClass.GetCompileName(options);
+    return s + "_Companion_" + Declaration.GetCompileName(ResolvedClass, options);
   }
 
   [FilledInDuringResolution] public TopLevelDecl ResolvedClass;  // if Name denotes a class/datatype/iterator and TypeArgs match the type parameters of that class/datatype/iterator

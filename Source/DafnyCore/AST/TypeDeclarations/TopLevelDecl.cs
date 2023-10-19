@@ -75,7 +75,7 @@ public abstract class TopLevelDecl : Declaration, TypeParameter.ParentType {
     }
 
     return options.Backend.GetCompileName(EnclosingModuleDefinition.TryToAvoidName,
-      EnclosingModuleDefinition.GetCompileName(options), GetCompileName(options));
+      EnclosingModuleDefinition.GetCompileName(options), GetCompileName(this, options));
   }
 
   public TopLevelDecl ViewAsClass {

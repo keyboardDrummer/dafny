@@ -50,7 +50,7 @@ namespace Microsoft.Dafny.Compilers {
     const string DafnyDefaults = $"{DafnyRuntimeModule}.defaults";
     string FormatDefaultTypeParameterValue(TopLevelDecl tp) {
       Contract.Requires(tp is TypeParameter or AbstractTypeDecl);
-      return $"default_{tp.GetCompileName(Options)}";
+      return $"default_{Declaration.GetCompileName(tp, Options)}";
     }
     protected override string StmtTerminator { get => ""; }
     protected override string True { get => "True"; }
@@ -256,7 +256,7 @@ namespace Microsoft.Dafny.Compilers {
         return null;
       }
 
-      var DtT = dt.GetCompileName(Options);
+      var DtT = Declaration.GetCompileName(dt, Options);
 
       var baseClasses = dt.ParentTypeInformation.UniqueParentTraits().Any()
         ? $"({dt.ParentTypeInformation.UniqueParentTraits().Comma(trait => TypeName(trait, wr, dt.tok))})"
@@ -300,7 +300,7 @@ namespace Microsoft.Dafny.Compilers {
         .WriteLine("return not self.__eq__(__o)");
 
       if (dt is CoDatatypeDecl) {
-        var w = wr.NewBlockPy($"class {dt.GetCompileName(Options)}__Lazy({IdName(dt)}):");
+        var w = wr.NewBlockPy($"class {Declaration.GetCompileName(dt, Options)}__Lazy({IdName(dt)}):");
         w.NewBlockPy("def __init__(self, _c):")
           .WriteLine("self._c = _c")
           .WriteLine("self._d = None");
@@ -332,7 +332,7 @@ namespace Microsoft.Dafny.Compilers {
         var argListY = ctor.Destructors.Where(d => !d.IsGhost)
           .Select(d => $"('{IdProtect(d.GetCompileName(Options))}', Any)");
         var argList = argListX.Concat(argListY).Comma();
-        var namedtuple = $"NamedTuple('{IdProtect(ctor.GetCompileName(Options))}', [{argList}])";
+        var namedtuple = $"NamedTuple('{IdProtect(Declaration.GetCompileName(ctor, Options))}', [{argList}])";
         var header = $"class {DtCtorDeclarationName(ctor)}({DtT}, {namedtuple}):";
         var constructor = wr.NewBlockPy(header, close: BlockStyle.Newline);
         DatatypeFieldsAndConstructor(ctor, constructor);
@@ -341,7 +341,7 @@ namespace Microsoft.Dafny.Compilers {
         // def is_Ctor0(self) -> bool:
         //   return isinstance(self, Dt_Ctor0) }
         btw.WriteLine("@property");
-        btw.NewBlockPy($"def is_{ctor.GetCompileName(Options)}(self) -> bool:")
+        btw.NewBlockPy($"def is_{Declaration.GetCompileName(ctor, Options)}(self) -> bool:")
           .WriteLine($"return isinstance(self, {DtCtorDeclarationName(ctor)})");
       }
 
@@ -388,7 +388,7 @@ namespace Microsoft.Dafny.Compilers {
 
     private string DtCtorDeclarationName(DatatypeCtor ctor, bool full = false) {
       var dt = ctor.EnclosingDatatype;
-      return $"{(full ? dt.GetFullCompileName(Options) : dt.GetCompileName(Options))}_{ctor.GetCompileName(Options)}";
+      return $"{(full ? dt.GetFullCompileName(Options) : Declaration.GetCompileName(dt, Options))}_{Declaration.GetCompileName(ctor, Options)}";
     }
 
     protected IClassWriter DeclareType(TopLevelDecl d, SubsetTypeDecl.WKind witnessKind, Expression witness, ConcreteSyntaxTree wr) {
@@ -703,7 +703,7 @@ namespace Microsoft.Dafny.Compilers {
 
     private string FullName(TopLevelDecl decl) {
       var localDefinition = decl.EnclosingModuleDefinition == enclosingModule;
-      return IdProtect(localDefinition ? decl.GetCompileName(Options) : decl.GetFullCompileName(Options));
+      return IdProtect(localDefinition ? Declaration.GetCompileName(decl, Options) : decl.GetFullCompileName(Options));
     }
 
     protected override string TypeInitializationValue(Type type, ConcreteSyntaxTree wr, IToken tok,
@@ -1162,7 +1162,7 @@ namespace Microsoft.Dafny.Compilers {
 
       var cl = udt.ResolvedClass;
       return cl switch {
-        TypeParameter => $"TypeVar(\'{IdProtect(cl.GetCompileName(Options))}\')",
+        TypeParameter => $"TypeVar(\'{IdProtect(Declaration.GetCompileName(cl, Options))}\')",
         ArrayClassDecl => DafnyArrayClass,
         TupleTypeDecl => "tuple",
         _ => FullName(cl)

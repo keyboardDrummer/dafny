@@ -882,7 +882,7 @@ namespace Microsoft.Dafny.Compilers {
     }
     protected virtual string IdName(TopLevelDecl d) {
       Contract.Requires(d != null);
-      return IdProtect(d.GetCompileName(Options));
+      return IdProtect(Declaration.GetCompileName(d, Options));
     }
     protected virtual string IdName(MemberDecl member) {
       Contract.Requires(member != null);
@@ -1171,7 +1171,7 @@ namespace Microsoft.Dafny.Compilers {
     protected abstract ConcreteSyntaxTree EmitBetaRedex(List<string> boundVars, List<Expression> arguments, List<Type> boundTypes,
       Type resultType, IToken resultTok, bool inLetExprBody, ConcreteSyntaxTree wr, ref ConcreteSyntaxTree wStmts);
     protected virtual void EmitConstructorCheck(string source, DatatypeCtor ctor, ConcreteSyntaxTree wr) {
-      wr.Write("{0}.is_{1}", source, ctor.GetCompileName(Options));
+      wr.Write("{0}.is_{1}", source, Declaration.GetCompileName(ctor, Options));
     }
     /// <summary>
     /// EmitDestructor is somewhat similar to following "source" with a call to EmitMemberSelect.
@@ -1469,7 +1469,7 @@ namespace Microsoft.Dafny.Compilers {
         } else if (d is DatatypeDecl) {
           var dt = (DatatypeDecl)d;
 
-          if (!DeclaredDatatypes.Add((module, dt.GetCompileName(Options)))) {
+          if (!DeclaredDatatypes.Add((module, Declaration.GetCompileName(dt, Options)))) {
             continue;
           }
 
@@ -1496,7 +1496,7 @@ namespace Microsoft.Dafny.Compilers {
           }
         } else if (d is TraitDecl trait) {
           // writing the trait
-          var w = CreateTrait(trait.GetCompileName(Options), trait.IsExtern(Options, out _, out _), trait.TypeArgs,
+          var w = CreateTrait(Declaration.GetCompileName(trait, Options), trait.IsExtern(Options, out _, out _), trait.TypeArgs,
             trait, trait.ParentTypeInformation.UniqueParentTraits(), trait.tok, wr);
           CompileClassMembers(program, trait, w);
           w.Finish();
@@ -2487,10 +2487,10 @@ namespace Microsoft.Dafny.Compilers {
         cantChange = Enumerable.Empty<T>();
       }
       IDictionary<string, T> declsByCapName = new Dictionary<string, T>();
-      ISet<string> fixedNames = new HashSet<string>(from decl in cantChange select Capitalize(decl.GetCompileName(Options)));
+      ISet<string> fixedNames = new HashSet<string>(from decl in cantChange select Capitalize(Declaration.GetCompileName(decl, Options)));
 
       foreach (var decl in canChange) {
-        var name = decl.GetCompileName(Options);
+        var name = Declaration.GetCompileName(decl, Options);
         var capName = Capitalize(name);
         if (name == capName) {
           if (fixedNames.Contains(name)) {

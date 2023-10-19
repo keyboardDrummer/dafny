@@ -131,13 +131,13 @@ namespace Microsoft.Dafny.Compilers {
         var wd = wr.NewBlock(String.Format("template <{0}>\nstruct get_default<{1}::{2}{3} >",
           TypeParameters(dt.TypeArgs),
           dt.EnclosingModuleDefinition.GetCompileName(Options),
-          dt.GetCompileName(Options),
+          Declaration.GetCompileName(dt, Options),
           InstantiateTemplate(dt.TypeArgs)), ";");
         var wc = wd.NewBlock(String.Format("static {0}::{1}{2} call()",
           dt.EnclosingModuleDefinition.GetCompileName(Options),
-          dt.GetCompileName(Options),
+          Declaration.GetCompileName(dt, Options),
           InstantiateTemplate(dt.TypeArgs)));
-        wc.WriteLine("return {0}::{1}{2}();", dt.EnclosingModuleDefinition.GetCompileName(Options), dt.GetCompileName(Options), InstantiateTemplate(dt.TypeArgs));
+        wc.WriteLine("return {0}::{1}{2}();", dt.EnclosingModuleDefinition.GetCompileName(Options), Declaration.GetCompileName(dt, Options), InstantiateTemplate(dt.TypeArgs));
       }
 
       // Define default values for each class
@@ -149,7 +149,7 @@ namespace Microsoft.Dafny.Compilers {
     public override void EmitCallToMain(Method mainMethod, string baseName, ConcreteSyntaxTree wr) {
       var w = wr.NewBlock("int main(int argc, char *argv[])");
       var tryWr = w.NewBlock("try");
-      tryWr.WriteLine(string.Format("{0}::{1}::{2}(dafny_get_args(argc, argv));", mainMethod.EnclosingClass.EnclosingModuleDefinition.GetCompileName(Options), mainMethod.EnclosingClass.GetCompileName(Options), mainMethod.Name));
+      tryWr.WriteLine(string.Format("{0}::{1}::{2}(dafny_get_args(argc, argv));", mainMethod.EnclosingClass.EnclosingModuleDefinition.GetCompileName(Options), Declaration.GetCompileName(mainMethod.EnclosingClass, Options), mainMethod.Name));
       var catchWr = w.NewBlock("catch (DafnyHaltException & e)");
       catchWr.WriteLine("std::cout << \"Program halted: \" << e.what() << std::endl;");
     }
@@ -304,7 +304,7 @@ namespace Microsoft.Dafny.Compilers {
       if (inclTemplateArgs) {
         args = InstantiateTemplate(ctor.EnclosingDatatype.TypeArgs);
       }
-      return String.Format("{0}_{1}{2}", IdProtect(ctor.EnclosingDatatype.GetCompileName(Options)), ctor.GetCompileName(Options), args);
+      return String.Format("{0}_{1}{2}", IdProtect(Declaration.GetCompileName(ctor.EnclosingDatatype, Options)), Declaration.GetCompileName(ctor, Options), args);
     }
 
     protected override bool DatatypeDeclarationAndMemberCompilationAreSeparate => false;
@@ -318,7 +318,7 @@ namespace Microsoft.Dafny.Compilers {
 
       this.datatypeDecls.Add(dt);
 
-      string DtT = dt.GetCompileName(Options);
+      string DtT = Declaration.GetCompileName(dt, Options);
       string DtT_protected = IdProtect(DtT);
 
       // Forward declaration of the type
@@ -382,7 +382,7 @@ namespace Microsoft.Dafny.Compilers {
         // Overload the not-comparison operator
         ws.WriteLine("friend bool operator!=(const {0} &left, const {0} &right) {{ return !(left == right); }} ", DtT_protected);
 
-        wdecl.WriteLine("{0}\ninline bool is_{1}(const struct {2}{3} d) {{ (void) d; return true; }}", DeclareTemplate(dt.TypeArgs), ctor.GetCompileName(Options), DtT_protected, InstantiateTemplate(dt.TypeArgs));
+        wdecl.WriteLine("{0}\ninline bool is_{1}(const struct {2}{3} d) {{ (void) d; return true; }}", DeclareTemplate(dt.TypeArgs), Declaration.GetCompileName(ctor, Options), DtT_protected, InstantiateTemplate(dt.TypeArgs));
 
         // Define a custom hasher
         hashWr.WriteLine("template <{0}>", TypeParameters(dt.TypeArgs));
@@ -472,7 +472,7 @@ namespace Microsoft.Dafny.Compilers {
         // Declare static "constructors" for each Dafny constructor
         foreach (var ctor in dt.Ctors) {
           var wc = ws.NewNamedBlock("static {0} create_{1}({2})",
-            DtT_protected, ctor.GetCompileName(Options),
+            DtT_protected, Declaration.GetCompileName(ctor, Options),
             DeclareFormals(ctor.Formals));
           wc.WriteLine("{0}{1} COMPILER_result;", DtT_protected, InstantiateTemplate(dt.TypeArgs));
           wc.WriteLine("{0} COMPILER_result_subStruct;", DatatypeSubStructName(ctor, true));
@@ -734,7 +734,7 @@ namespace Microsoft.Dafny.Compilers {
 
       public ConcreteSyntaxTree/*?*/ CreateFunction(string name, List<TypeArgumentInstantiation>/*?*/ typeArgs,
         List<Formal> formals, Type resultType, IToken tok, bool isStatic, bool createBody, MemberDecl member, bool forBodyInheritance, bool lookasideBody) {
-        return Compiler.CreateFunction(member.EnclosingClass.GetCompileName(Compiler.Options),
+        return Compiler.CreateFunction(Declaration.GetCompileName(member.EnclosingClass, Compiler.Options),
           member.EnclosingClass.TypeArgs, name, typeArgs, formals, resultType, tok, isStatic, createBody, member,
           MethodDeclWriter, MethodWriter, lookasideBody);
       }
@@ -783,7 +783,7 @@ namespace Microsoft.Dafny.Compilers {
 
       wr.Write("{0} {1}{2}::{3}",
         targetReturnTypeReplacement ?? "void",
-        m.EnclosingClass.GetCompileName(Options),
+        Declaration.GetCompileName(m.EnclosingClass, Options),
         InstantiateTemplate(m.EnclosingClass.TypeArgs),
         IdName(m));
 
@@ -875,7 +875,7 @@ namespace Microsoft.Dafny.Compilers {
         w = wdr.NewNamedBlock("{0}{1} init__{2}()", isStatic ? "static " : "", TypeName(resultType, wr, tok), name);
         postfix = String.Format(" init__{0}()", name);
       }
-      DeclareField(cls.GetCompileName(Options), cls.TypeArgs, name, isStatic, isConst, resultType, tok, postfix, wdr, wr);
+      DeclareField(Declaration.GetCompileName(cls, Options), cls.TypeArgs, name, isStatic, isConst, resultType, tok, postfix, wdr, wr);
       //wdr.Write("{0}{1} {2}{3};", isStatic ? "static " : "", TypeName(resultType, wr, tok), name, postfix);
       return w;
     }
@@ -1041,7 +1041,7 @@ namespace Microsoft.Dafny.Compilers {
       } else if (cl is NewtypeDecl) {
         var td = (NewtypeDecl)cl;
         if (td.Witness != null) {
-          return td.EnclosingModuleDefinition.GetCompileName(Options) + "::class_" + td.GetCompileName(Options) + "::Witness";
+          return td.EnclosingModuleDefinition.GetCompileName(Options) + "::class_" + Declaration.GetCompileName(td, Options) + "::Witness";
         } else if (td.NativeType != null) {
           return "0";
         } else {
@@ -1050,7 +1050,7 @@ namespace Microsoft.Dafny.Compilers {
       } else if (cl is SubsetTypeDecl) {
         var td = (SubsetTypeDecl)cl;
         if (td.WitnessKind == SubsetTypeDecl.WKind.Compiled) {
-          return td.EnclosingModuleDefinition.GetCompileName(Options) + "::class_" + td.GetCompileName(Options) + "::Witness";
+          return td.EnclosingModuleDefinition.GetCompileName(Options) + "::class_" + Declaration.GetCompileName(td, Options) + "::Witness";
         } else if (td.WitnessKind == SubsetTypeDecl.WKind.Special) {
           // WKind.Special is only used with -->, ->, and non-null types:
           Contract.Assert(ArrowType.IsPartialArrowTypeName(td.Name) || ArrowType.IsTotalArrowTypeName(td.Name) || td is NonNullTypeDecl);
@@ -1656,7 +1656,7 @@ namespace Microsoft.Dafny.Compilers {
           return "Tuple0"; // Need to special case this, as C++ won't infer the correct type arguments
         }
       } else {
-        return IdProtect(cl.EnclosingModuleDefinition.GetCompileName(Options)) + "::" + IdProtect(cl.GetCompileName(Options));
+        return IdProtect(cl.EnclosingModuleDefinition.GetCompileName(Options)) + "::" + IdProtect(Declaration.GetCompileName(cl, Options));
       }
     }
 
@@ -1670,8 +1670,8 @@ namespace Microsoft.Dafny.Compilers {
 
     void EmitDatatypeValue(DatatypeValue dtv, DatatypeCtor ctor, bool isCoCall, string arguments, ConcreteSyntaxTree wr) {
       var dt = dtv.Ctor.EnclosingDatatype;
-      var dtName = dt.GetCompileName(Options);
-      var ctorName = ctor.GetCompileName(Options);
+      var dtName = Declaration.GetCompileName(dt, Options);
+      var ctorName = Declaration.GetCompileName(ctor, Options);
 
       if (dt is TupleTypeDecl) {
         var tuple = dt as TupleTypeDecl;
@@ -1760,14 +1760,14 @@ namespace Microsoft.Dafny.Compilers {
         // This used to work, but now obj comes in wanting to use TypeName on the class, which results in (std::shared_ptr<_module::MyClass>)::c;
         //return SuffixLvalue(obj, "::{0}", member.CompileName);
         return SimpleLvalue(wr => {
-          wr.Write("{0}::{1}::{2}", IdProtect(member.EnclosingClass.EnclosingModuleDefinition.GetCompileName(Options)), IdProtect(member.EnclosingClass.GetCompileName(Options)), IdProtect(member.GetCompileName(Options)));
+          wr.Write("{0}::{1}::{2}", IdProtect(member.EnclosingClass.EnclosingModuleDefinition.GetCompileName(Options)), IdProtect(Declaration.GetCompileName(member.EnclosingClass, Options)), IdProtect(member.GetCompileName(Options)));
         });
       } else if (member is DatatypeDestructor dtor && dtor.EnclosingClass is TupleTypeDecl) {
         return SuffixLvalue(obj, ".get<{0}>()", dtor.Name);
       } else if (member is SpecialField sf2 && sf2.SpecialId == SpecialField.ID.UseIdParam && sf2.IdParam is string fieldName
                  && fieldName.StartsWith("is_")) {
         // Ugly hack of a check to figure out if this is a datatype query: f.Constructor?
-        return SuffixLvalue(obj, ".is_{0}_{1}()", IdProtect(sf2.EnclosingClass.GetCompileName(Options)), fieldName.Substring(3));
+        return SuffixLvalue(obj, ".is_{0}_{1}()", IdProtect(Declaration.GetCompileName(sf2.EnclosingClass, Options)), fieldName.Substring(3));
       } else if (member is SpecialField sf) {
         GetSpecialFieldInfo(sf.SpecialId, sf.IdParam, objType, out var compiledName, out var preStr, out var postStr);
         if (sf.SpecialId == SpecialField.ID.Keys || sf.SpecialId == SpecialField.ID.Values) {

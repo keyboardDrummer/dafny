@@ -113,13 +113,28 @@ public abstract class Declaration : RangeNode, IAttributeBearingDeclaration, IDe
 
   protected string compileName;
 
-  public virtual string GetCompileName(DafnyOptions options) {
-    if (compileName == null) {
-      IsExtern(options, out _, out compileName);
-      compileName ??= SanitizedName;
+  public static string GetCompileName(Declaration declaration, DafnyOptions options) {
+    
+    if (declaration.compileName == null) {
+      declaration.IsExtern(options, out _, out declaration.compileName);
+      declaration.compileName ??= declaration.SanitizedName;
     }
 
-    return compileName;
+    var result = declaration.compileName;
+    if (declaration is MemberDecl memberDecl) {
+      result = (memberDecl.Name == memberDecl.EnclosingClass.Name ? "_" : "") + result;
+    }
+    
+    if (declaration is Method method) {
+      if (result == Dafny.Compilers.SinglePassCompiler.DefaultNameMain && method.IsStatic && !method.IsEntryPoint) {
+        // for a static method that is named "Main" but is not a legal "Main" method,
+        // change its name.
+        result = method.EnclosingClass.Name + "_" + result;
+      }
+    }
+
+    
+    return result;
   }
 
   public bool IsExtern(DafnyOptions options, out string/*?*/ qualification, out string/*?*/ name) {

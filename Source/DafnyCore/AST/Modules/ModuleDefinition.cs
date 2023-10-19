@@ -810,7 +810,7 @@ public class ModuleDefinition : RangeNode, IAttributeBearingDeclaration, IClonea
 
             // create and add the query "method" (field, really)
             var queryName = ctor.NameNode.Append("?");
-            var query = new DatatypeDiscriminator(ctor.RangeToken, queryName, SpecialField.ID.UseIdParam, "is_" + ctor.GetCompileName(resolver.Options),
+            var query = new DatatypeDiscriminator(ctor.RangeToken, queryName, SpecialField.ID.UseIdParam, "is_" + Declaration.GetCompileName(ctor, resolver.Options),
               ctor.IsGhost, Type.Bool, null);
             query.InheritVisibility(dt);
             query.EnclosingClass = dt; // resolve here

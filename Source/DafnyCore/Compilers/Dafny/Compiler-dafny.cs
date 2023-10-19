@@ -223,11 +223,11 @@ namespace Microsoft.Dafny.Compilers {
               args.Add((DAST.Formal)DAST.Formal.create_Formal(Sequence<Rune>.UnicodeFromString(arg.CompileName), GenType(arg.Type)));
             }
           }
-          ctors.Add((DAST.DatatypeCtor)DAST.DatatypeCtor.create_DatatypeCtor(Sequence<Rune>.UnicodeFromString(ctor.GetCompileName(Options)), Sequence<DAST.Formal>.FromArray(args.ToArray()), ctor.Formals.Count > 0));
+          ctors.Add((DAST.DatatypeCtor)DAST.DatatypeCtor.create_DatatypeCtor(Sequence<Rune>.UnicodeFromString(Declaration.GetCompileName(ctor, Options)), Sequence<DAST.Formal>.FromArray(args.ToArray()), ctor.Formals.Count > 0));
         }
 
         return new ClassWriter(this, builder.Datatype(
-          dt.GetCompileName(Options),
+          Declaration.GetCompileName(dt, Options),
           dt.EnclosingModuleDefinition.GetCompileName(Options),
           typeParams,
           ctors,
@@ -254,7 +254,7 @@ namespace Microsoft.Dafny.Compilers {
           witnessStmts = statementBuf.PopAll();
         }
 
-        return new ClassWriter(this, builder.Newtype(nt.GetCompileName(Options), new(), GenType(nt.BaseType), witnessStmts, witness));
+        return new ClassWriter(this, builder.Newtype(Declaration.GetCompileName(nt, Options), new(), GenType(nt.BaseType), witnessStmts, witness));
       } else {
         throw new InvalidOperationException();
       }
@@ -341,7 +341,7 @@ namespace Microsoft.Dafny.Compilers {
           typeParams.Add((DAST.Type)DAST.Type.create_TypeArg(Sequence<Rune>.UnicodeFromString(tp.Name)));
         }
 
-        builder.Newtype(sst.GetCompileName(Options), typeParams, GenType(erasedType), witnessStmts, witness).Finish();
+        builder.Newtype(Declaration.GetCompileName(sst, Options), typeParams, GenType(erasedType), witnessStmts, witness).Finish();
       } else {
         throw new InvalidOperationException();
       }
@@ -1293,7 +1293,7 @@ namespace Microsoft.Dafny.Compilers {
     private ISequence<ISequence<Rune>> PathFromTopLevel(TopLevelDecl topLevel) {
       List<ISequence<Rune>> path = new();
       path.Add(Sequence<Rune>.UnicodeFromString(topLevel.EnclosingModuleDefinition.GetCompileName(Options)));
-      path.Add(Sequence<Rune>.UnicodeFromString(topLevel.GetCompileName(Options)));
+      path.Add(Sequence<Rune>.UnicodeFromString(Declaration.GetCompileName(topLevel, Options)));
       return Sequence<ISequence<Rune>>.FromArray(path.ToArray());
     }
 
@@ -1474,7 +1474,7 @@ namespace Microsoft.Dafny.Compilers {
           builder.Builder.AddExpr((DAST.Expression)DAST.Expression.create_DatatypeValue(
             dtPath,
             dtTypeArgs,
-            Sequence<Rune>.UnicodeFromString(dtv.Ctor.GetCompileName(Options)),
+            Sequence<Rune>.UnicodeFromString(Declaration.GetCompileName(dtv.Ctor, Options)),
             dtv.Ctor.EnclosingDatatype is CoDatatypeDecl,
             Sequence<_System._ITuple2<ISequence<Rune>, DAST.Expression>>.FromArray(namedContents.ToArray())
           ));
@@ -2134,7 +2134,7 @@ namespace Microsoft.Dafny.Compilers {
         builder.Builder.AddExpr((DAST.Expression)DAST.Expression.create_TypeTest(
           DAST.Expression.create_Ident(Sequence<Rune>.UnicodeFromString(source)),
           PathFromTopLevel(ctor.EnclosingDatatype),
-          Sequence<Rune>.UnicodeFromString(ctor.GetCompileName(Options))
+          Sequence<Rune>.UnicodeFromString(Declaration.GetCompileName(ctor, Options))
         ));
       } else {
         throw new InvalidOperationException();

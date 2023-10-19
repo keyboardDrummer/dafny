@@ -56,10 +56,10 @@ namespace Microsoft.Dafny.Compilers {
         // anything different from the common case (the "else" branch below), then the code emitted will not
         // compile (see github issue #1151). So, to do something a wee bit better, we emit a placebo value. This
         // will only work when the abstract type is in the same module and has no type parameters.
-        return $"default({tp.EnclosingModuleDefinition.GetCompileName(Options) + "." + tp.GetCompileName(Options)})";
+        return $"default({tp.EnclosingModuleDefinition.GetCompileName(Options) + "." + Declaration.GetCompileName(tp, Options)})";
       } else {
         // this is the common case
-        return $"_default_{tp.GetCompileName(Options)}";
+        return $"_default_{Declaration.GetCompileName(tp, Options)}";
       }
     }
 
@@ -430,7 +430,7 @@ namespace Microsoft.Dafny.Compilers {
     }
 
     private string DtTypeName(TopLevelDecl dt, bool typeVariables = true) {
-      var name = "_I" + dt.GetCompileName(Options);
+      var name = "_I" + Declaration.GetCompileName(dt, Options);
       if (typeVariables) { name += TypeParameters(SelectNonGhost(dt, dt.TypeArgs)); }
       return name;
     }
@@ -512,7 +512,7 @@ namespace Microsoft.Dafny.Compilers {
       var simplifiedTypeName = TypeName(simplifiedType, wr, dt.tok);
 
       // ConcreteSyntaxTree for the interface
-      wr.Write($"public interface _I{dt.GetCompileName(Options)}{TypeParameters(nonGhostTypeArgs, true)}");
+      wr.Write($"public interface _I{Declaration.GetCompileName(dt, Options)}{TypeParameters(nonGhostTypeArgs, true)}");
       var superTraits = dt.ParentTypeInformation.UniqueParentTraits();
       if (superTraits.Any()) {
         wr.Write($" : {superTraits.Comma(trait => TypeName(trait, wr, dt.tok))}");
@@ -598,7 +598,7 @@ namespace Microsoft.Dafny.Compilers {
 
         var ctor = dt.Ctors[0];
         var typeDescriptorCount = EmitTypeDescriptorsForClass(dt.TypeArgs, dt, out _, out var wCtorParams, out var wCallArguments, out _);
-        wr.Write($"public static {DtTypeName(dt)} create_{ctor.GetCompileName(Options)}(");
+        wr.Write($"public static {DtTypeName(dt)} create_{Declaration.GetCompileName(ctor, Options)}(");
         wr.Append(wCtorParams);
         var formalCount = WriteFormals(typeDescriptorCount > 0 ? ", " : "", ctor.Formals, wr);
         var sep = typeDescriptorCount > 0 && formalCount > 0 ? ", " : "";
@@ -611,14 +611,14 @@ namespace Microsoft.Dafny.Compilers {
         // omit the is_ property for tuples, since it cannot be used syntactically in the language
       } else {
         foreach (var ctor in dt.Ctors.Where(ctor => !ctor.IsGhost)) {
-          interfaceTree.WriteLine($"bool is_{ctor.GetCompileName(Options)} {{ get; }}");
+          interfaceTree.WriteLine($"bool is_{Declaration.GetCompileName(ctor, Options)} {{ get; }}");
 
           var returnValue = dt.IsRecordType
             // public bool is_Ctor0 { get { return true; } }
             ? "true"
             // public bool is_Ctor0 { get { return this is Dt_Ctor0; } }
-            : $"this is {dt.GetCompileName(Options)}_{ctor.GetCompileName(Options)}{DtT_TypeArgs}";
-          wr.WriteLine($"public bool is_{ctor.GetCompileName(Options)} {{ get {{ return {returnValue}; }} }}");
+            : $"this is {Declaration.GetCompileName(dt, Options)}_{Declaration.GetCompileName(ctor, Options)}{DtT_TypeArgs}";
+          wr.WriteLine($"public bool is_{Declaration.GetCompileName(ctor, Options)} {{ get {{ return {returnValue}; }} }}");
         }
       }
 
@@ -682,7 +682,7 @@ namespace Microsoft.Dafny.Compilers {
 
       var resultType = DatatypeWrapperEraser.GetInnerTypeOfErasableDatatypeWrapper(Options, datatype, out var innerType)
         ? TypeName(innerType.Subst(typeSubstMap), wr, datatype.tok)
-        : "_I" + datatype.GetCompileName(Options) + uTypeArgs;
+        : "_I" + Declaration.GetCompileName(datatype, Options) + uTypeArgs;
       var converters = $"{nonGhostTypeArgs.Comma((_, i) => $"converter{i}")}";
       var lazyClass = $"{datatype.GetFullCompileName(Options)}__Lazy";
       string PrintConverter(TypeParameter tArg, int i) {
@@ -741,7 +741,7 @@ namespace Microsoft.Dafny.Compilers {
             var ret = body;
             //The final constructor is chosen as the default
             if (i + 1 < nonGhostConstructors.Count) {
-              ret = NextBlock($".is_{nonGhostConstructors[i].GetCompileName(Options)}");
+              ret = NextBlock($".is_{Declaration.GetCompileName(nonGhostConstructors[i], Options)}");
             }
             WriteReturn(ret, DtCtorDeclarationName(nonGhostConstructors[i]));
           }
@@ -794,7 +794,7 @@ namespace Microsoft.Dafny.Compilers {
           var sep0 = typeDescriptorCount != 0 ? ", " : "";
           var sep1 = converters.Length != 0 ? ", " : "";
           constructorArgs =
-            $"() => {datatype.GetCompileName(Options)}{typeArgs}.DowncastClone{uTypeArgs}({typeDescriptorArgumentsStrings}{sep0}_this._Get(){sep1}{converters})";
+            $"() => {Declaration.GetCompileName(datatype, Options)}{typeArgs}.DowncastClone{uTypeArgs}({typeDescriptorArgumentsStrings}{sep0}_this._Get(){sep1}{converters})";
         } else {
           var sep0 = typeDescriptorCount != 0 && converters.Length != 0 ? ", " : "";
           constructorArgs = $"() => _Get().DowncastClone{uTypeArgs}({typeDescriptorArgumentsStrings}{sep0}{converters})";
@@ -853,7 +853,7 @@ namespace Microsoft.Dafny.Compilers {
                   if (ctor_i.IsGhost) {
                     continue;
                   }
-                  var type = $"{dt.GetCompileName(Options)}_{ctor_i.GetCompileName(Options)}{DtT_TypeArgs}";
+                  var type = $"{Declaration.GetCompileName(dt, Options)}_{Declaration.GetCompileName(ctor_i, Options)}{DtT_TypeArgs}";
                   // TODO use pattern matching to replace cast.
                   var returnTheValue = $"return (({type})d).{IdProtect(DtorM)};";
                   if (compiledConstructorsProcessed < compiledConstructorCount - 1) {
@@ -944,14 +944,14 @@ namespace Microsoft.Dafny.Compilers {
         //   public override _IDt<T> _Get() { if (c != null) { d = c(); c = null; } return d; }
         //   public override string ToString() { return _Get().ToString(); }
         // }
-        var w = wrx.NewNamedBlock($"public class {dt.GetCompileName(Options)}__Lazy{typeParams} : {IdName(dt)}{typeParams}");
+        var w = wrx.NewNamedBlock($"public class {Declaration.GetCompileName(dt, Options)}__Lazy{typeParams} : {IdName(dt)}{typeParams}");
         w.WriteLine($"public {NeedsNew(dt, "Computer")}delegate {DtTypeName(dt)} Computer();");
         w.WriteLine($"{NeedsNew(dt, "c")}Computer c;");
         w.WriteLine($"{NeedsNew(dt, "d")}{DtTypeName(dt)} d;");
 
         var typeDescriptorCount = EmitTypeDescriptorsForClass(dt.TypeArgs, dt, out _, out var wCtorParams, out var wBaseCallArguments, out _);
         var sep = typeDescriptorCount > 0 ? ", " : "";
-        w.NewBlock($"public {dt.GetCompileName(Options)}__Lazy({wCtorParams}{sep}Computer c) : base({wBaseCallArguments})")
+        w.NewBlock($"public {Declaration.GetCompileName(dt, Options)}__Lazy({wCtorParams}{sep}Computer c) : base({wBaseCallArguments})")
           .WriteLine("this.c = c;");
         CompileDatatypeDowncastClone(dt, w, nonGhostTypeArgs, lazy: true);
         w.WriteLine($"public override {DtTypeName(dt)} _Get() {{ if (c != null) {{ d = c(); c = null; }} return d; }}");
@@ -1140,7 +1140,7 @@ namespace Microsoft.Dafny.Compilers {
       Contract.Ensures(Contract.Result<string>() != null);
 
       var dt = ctor.EnclosingDatatype;
-      return dt.IsRecordType ? IdName(dt) : dt.GetCompileName(Options) + "_" + ctor.GetCompileName(Options);
+      return dt.IsRecordType ? IdName(dt) : Declaration.GetCompileName(dt, Options) + "_" + Declaration.GetCompileName(ctor, Options);
     }
 
     /// <summary>
@@ -1167,7 +1167,7 @@ namespace Microsoft.Dafny.Compilers {
 
       var dt = ctor.EnclosingDatatype;
       var dtName = dt.EnclosingModuleDefinition.TryToAvoidName ? IdName(dt) : dt.GetFullCompileName(Options);
-      return dt.IsRecordType ? dtName : dtName + "_" + ctor.GetCompileName(Options);
+      return dt.IsRecordType ? dtName : dtName + "_" + Declaration.GetCompileName(ctor, Options);
     }
 
     string DtCreateName(DatatypeCtor ctor) {
@@ -1175,7 +1175,7 @@ namespace Microsoft.Dafny.Compilers {
       if (ctor.EnclosingDatatype.IsRecordType) {
         return "create";
       } else {
-        return "create_" + ctor.GetCompileName(Options);
+        return "create_" + Declaration.GetCompileName(ctor, Options);
       }
     }
 
@@ -2430,13 +2430,13 @@ namespace Microsoft.Dafny.Compilers {
       }
 
       if (cl.EnclosingModuleDefinition.TryToAvoidName) {
-        return IdProtect(cl.GetCompileName(Options));
+        return IdProtect(Declaration.GetCompileName(cl, Options));
       }
 
       if (cl.IsExtern(Options, out _, out _)) {
-        return cl.EnclosingModuleDefinition.GetCompileName(Options) + "." + cl.GetCompileName(Options);
+        return cl.EnclosingModuleDefinition.GetCompileName(Options) + "." + Declaration.GetCompileName(cl, Options);
       }
-      return IdProtect(cl.EnclosingModuleDefinition.GetCompileName(Options)) + "." + IdProtect(cl.GetCompileName(Options));
+      return IdProtect(cl.EnclosingModuleDefinition.GetCompileName(Options)) + "." + IdProtect(Declaration.GetCompileName(cl, Options));
     }
 
     protected override void EmitThis(ConcreteSyntaxTree wr, bool callToInheritedMember) {
@@ -2887,7 +2887,7 @@ namespace Microsoft.Dafny.Compilers {
     }
 
     private string DestructorGetterName(Formal dtor, DatatypeCtor ctor, int index) {
-      return $"dtor_{(dtor.HasName ? dtor.CompileName : ctor.GetCompileName(Options) + FieldName(dtor, index))}";
+      return $"dtor_{(dtor.HasName ? dtor.CompileName : Declaration.GetCompileName(ctor, Options) + FieldName(dtor, index))}";
     }
 
     protected override ConcreteSyntaxTree CreateLambda(List<Type> inTypes, IToken tok, List<string> inNames,
