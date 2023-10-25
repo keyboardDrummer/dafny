@@ -1,7 +1,3 @@
-﻿using Microsoft.Dafny.LanguageServer.Language;
-using Microsoft.Dafny.LanguageServer.Language.Symbols;
-using Microsoft.Dafny.LanguageServer.Workspace.Notifications;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -10,11 +6,16 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Boogie;
+using Microsoft.Dafny;
 using Microsoft.Dafny.Compilers;
+using Microsoft.Dafny.LanguageServer.Workspace;
+using Microsoft.Dafny.LanguageServer.Workspace.Notifications;
 using Microsoft.Extensions.Logging;
+using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using Program = Microsoft.Dafny.Program;
 using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
 
-namespace Microsoft.Dafny.LanguageServer.Workspace {
+namespace DafnyCore.Compilations {
   /// <summary>
   /// Text document loader implementation that offloads the whole load procedure on one dedicated
   /// thread with a stack size of 256MB. Since only one thread is used, document loading is implicitely synchronized.
@@ -51,10 +52,6 @@ namespace Microsoft.Dafny.LanguageServer.Workspace {
       ILogger<ITextDocumentLoader> logger
       ) {
       return new TextDocumentLoader(logger, parser, symbolResolver, symbolTableFactory, ghostStateDiagnosticCollector);
-    }
-
-    public IdeState CreateUnloaded(Compilation compilation) {
-      return CreateDocumentWithEmptySymbolTable(compilation, ImmutableDictionary<Uri, IReadOnlyList<Diagnostic>>.Empty);
     }
 
     public async Task<CompilationAfterParsing> ParseAsync(DafnyOptions options, Compilation compilation,
@@ -141,24 +138,6 @@ namespace Microsoft.Dafny.LanguageServer.Workspace {
         verifiables,
         new(),
         new()
-      );
-    }
-
-    private IdeState CreateDocumentWithEmptySymbolTable(Compilation compilation,
-      IReadOnlyDictionary<Uri, IReadOnlyList<Diagnostic>> resolutionDiagnostics) {
-      var dafnyOptions = DafnyOptions.Default;
-      var program = new EmptyNode();
-      return new IdeState(
-        compilation.Version,
-        compilation,
-        program,
-        resolutionDiagnostics,
-        SymbolTable.Empty(),
-        LegacySignatureAndCompletionTable.Empty(dafnyOptions, compilation.Project),
-        ImmutableDictionary<Uri, Dictionary<Range, IdeVerificationResult>>.Empty,
-        Array.Empty<Counterexample>(),
-        ImmutableDictionary<Uri, IReadOnlyList<Range>>.Empty,
-      ImmutableDictionary<Uri, DocumentVerificationTree>.Empty
       );
     }
   }

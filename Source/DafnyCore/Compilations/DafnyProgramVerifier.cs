@@ -1,15 +1,15 @@
-﻿using Microsoft.Boogie;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Boogie;
+using Microsoft.Dafny;
 using Microsoft.Dafny.LanguageServer.Workspace;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using Microsoft.Extensions.Logging;
+using Type = Microsoft.Dafny.Type;
 
-namespace Microsoft.Dafny.LanguageServer.Language {
+namespace DafnyCore.Compilations {
   /// <summary>
   /// dafny-lang based implementation of the program verifier. Since it makes use of static members,
   /// any access is synchronized. Moreover, it ensures that exactly one instance exists over the whole
@@ -42,7 +42,7 @@ namespace Microsoft.Dafny.LanguageServer.Language {
       try {
 
         var program = compilation.Program;
-        var errorReporter = (DiagnosticErrorReporter)program.Reporter;
+        var errorReporter = program.Reporter;
 
         cancellationToken.ThrowIfCancellationRequested();
 

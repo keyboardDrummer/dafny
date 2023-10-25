@@ -25,8 +25,6 @@ public delegate ProjectManager CreateProjectManager(
   VerificationResultCache verificationCache,
   DafnyProject project);
 
-public record FilePosition(Uri Uri, Position Position);
-
 /// <summary>
 /// Handles operation on a single document.
 /// Handles migration of previously published document state

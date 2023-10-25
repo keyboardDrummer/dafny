@@ -1,9 +1,8 @@
-﻿using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using System.Threading;
+using Microsoft.Dafny;
 using Microsoft.Dafny.LanguageServer.Workspace;
-using OmniSharp.Extensions.LanguageServer.Protocol.Document;
 
-namespace Microsoft.Dafny.LanguageServer.Language {
+namespace DafnyCore.Compilations {
   /// <summary>
   /// Interface exposing parse methods to generate a syntax tree out of an arbitrary dafny source.
   /// </summary>
@@ -11,7 +10,6 @@ namespace Microsoft.Dafny.LanguageServer.Language {
   /// Any implementation has to guarantee thread-safety of its public members.
   /// </remarks>
   public interface IDafnyParser {
-    Program Parse(Compilation compilation, ErrorReporter reporter,
-      CancellationToken cancellationToken);
+    Program Parse(Compilation compilation, ErrorReporter reporter, CancellationToken cancellationToken);
   }
 }

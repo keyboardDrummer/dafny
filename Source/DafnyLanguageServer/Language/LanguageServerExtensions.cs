@@ -7,6 +7,7 @@ using OmniSharp.Extensions.LanguageServer.Server;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using DafnyCore.Compilations;
 using Microsoft.Dafny.LanguageServer.Workspace;
 using Microsoft.Dafny.LanguageServer.Workspace.ChangeProcessors;
 

@@ -1,6 +1,7 @@
 using System;
 using Microsoft.Boogie;
 using Microsoft.Dafny.LanguageServer.Workspace;
+using VC;
 
 namespace Microsoft.Dafny.LanguageServer.Language {
   /// <summary>
@@ -17,3 +18,5 @@ namespace Microsoft.Dafny.LanguageServer.Language {
     void SetAllUnvisitedMethodsAsVerified(CompilationAfterResolution compilation, ICanVerify canVerify);
   }
 }
+
+public record AssertionBatchResult(Implementation Implementation, VCResult Result);
