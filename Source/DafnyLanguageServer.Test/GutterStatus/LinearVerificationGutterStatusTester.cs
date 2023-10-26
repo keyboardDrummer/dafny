@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using DafnyCore.Compilations.GutterIcons;
 using Microsoft.Dafny.LanguageServer.IntegrationTest.Extensions;
 using Microsoft.Dafny.LanguageServer.IntegrationTest.Util;
 using Microsoft.Dafny.LanguageServer.Workspace;
@@ -73,7 +74,7 @@ public abstract class LinearVerificationGutterStatusTester : ClientBasedLanguage
         if (line >= statusTrace.Length) {
           renderedCode += "###";
         } else {
-          renderedCode += NotificationPublisher.LineVerificationStatusToString[statusTrace[line]];
+          renderedCode += GutterNotificationPublisher.LineVerificationStatusToString[statusTrace[line]];
         }
       }
 

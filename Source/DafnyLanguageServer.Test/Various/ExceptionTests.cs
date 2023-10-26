@@ -8,7 +8,6 @@ using DafnyCore.Compilations;
 using Microsoft.Boogie;
 using Microsoft.Dafny.LanguageServer.IntegrationTest.Extensions;
 using Microsoft.Dafny.LanguageServer.IntegrationTest.Util;
-using Microsoft.Dafny.LanguageServer.Language;
 using Microsoft.Dafny.LanguageServer.Workspace;
 using Microsoft.Dafny.LanguageServer.Workspace.Notifications;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,7 +15,6 @@ using Microsoft.Extensions.Logging;
 using OmniSharp.Extensions.LanguageServer.Server;
 using Xunit;
 using Xunit.Abstractions;
-using LanguageServerExtensions = Microsoft.Dafny.LanguageServer.Workspace.LanguageServerExtensions;
 using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
 
 namespace Microsoft.Dafny.LanguageServer.IntegrationTest.Various;
@@ -113,10 +111,6 @@ public class ExceptionTests : ClientBasedLanguageServerTest {
     public CrashingLoader(ExceptionTests tests, TextDocumentLoader loader) {
       this.tests = tests;
       this.loader = loader;
-    }
-
-    public IdeState CreateUnloaded(Compilation compilation) {
-      return loader.CreateUnloaded(compilation);
     }
 
     public Task<CompilationAfterParsing> ParseAsync(DafnyOptions options, Compilation compilation,

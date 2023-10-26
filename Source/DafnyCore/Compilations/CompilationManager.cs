@@ -40,12 +40,14 @@ public class CompilationManager : IDisposable {
   private readonly ILogger logger;
   private readonly ITextDocumentLoader documentLoader;
   private readonly IProgramVerifier verifier;
+  
+  // TODO make field deprecated
   private readonly IGutterIconAndHoverVerificationDetailsManager gutterIconManager;
 
   // TODO CompilationManager shouldn't be aware of migration
   private readonly IReadOnlyDictionary<Uri, DocumentVerificationTree> migratedVerificationTrees;
 
-  private TaskCompletionSource started = new();
+  private readonly TaskCompletionSource started = new();
   private readonly EventLoopScheduler verificationUpdateScheduler = new();
   private readonly CancellationTokenSource cancellationSource;
 

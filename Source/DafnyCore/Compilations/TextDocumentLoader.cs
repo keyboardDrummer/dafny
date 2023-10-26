@@ -28,22 +28,13 @@ namespace DafnyCore.Compilations {
     private readonly IDafnyParser parser;
     private readonly ISymbolResolver symbolResolver;
 
-    protected TextDocumentLoader(
+    public TextDocumentLoader(
       ILogger<ITextDocumentLoader> documentLoader,
       IDafnyParser parser,
       ISymbolResolver symbolResolver) {
       this.logger = documentLoader;
       this.parser = parser;
       this.symbolResolver = symbolResolver;
-    }
-
-    public static TextDocumentLoader Create(
-      IDafnyParser parser,
-      ILogger<ITextDocumentLoader> logger,
-      ISymbolResolver symbolResolver
-      ) 
-    {
-      return new TextDocumentLoader(logger, parser, symbolResolver);
     }
 
     public async Task<CompilationAfterParsing> ParseAsync(DafnyOptions options, Compilation compilation,

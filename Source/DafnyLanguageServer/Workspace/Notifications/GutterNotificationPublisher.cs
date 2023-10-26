@@ -9,28 +9,30 @@ using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 
 namespace Microsoft.Dafny.LanguageServer.Workspace.Notifications;
 
-class GutterNotificationPublisher : IGutterNotificationPublisher {
+public class GutterNotificationPublisher : IGutterNotificationPublisher {
   private readonly Dictionary<Uri, VerificationStatusGutter> previouslyPublishedIcons = new();
   private readonly LanguageServerFilesystem filesystem;
   private readonly ILanguageServerFacade languageServer;
   private readonly ILogger<GutterNotificationPublisher> logger;
+  private IdeStateManager ideStateManager;
   
   public GutterNotificationPublisher(
     LanguageServerFilesystem filesystem, 
     ILogger<GutterNotificationPublisher> logger, 
-    ILanguageServerFacade languageServer) 
+    ILanguageServerFacade languageServer, 
+    IdeStateManager ideStateManager) 
   {
     this.filesystem = filesystem;
     this.logger = logger;
     this.languageServer = languageServer;
+    this.ideStateManager = ideStateManager;
   }
   
   public void PublishGutterIcons(Uri uri, CompilationAfterParsing compilation, bool verificationStarted) {
-    IdeState state = compilation.InitialIdeState(compilation, compilation.Program.Reporter.Options);
-    
     if (!compilation.Options.Get(GutterIconAndHoverVerificationDetailsManager.LineVerificationStatus)) {
       return;
     }
+    var state = ideStateManager.InitialIdeState(compilation);
 
     var errors = state.ResolutionDiagnostics.GetOrDefault(uri, Enumerable.Empty<Diagnostic>).
       Where(x => x.Severity == DiagnosticSeverity.Error).ToList();
