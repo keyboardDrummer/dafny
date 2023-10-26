@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using IntervalTree;
-using Microsoft.Boogie;
+using Microsoft.Dafny;
 using Microsoft.Dafny.LanguageServer.Language;
 using OmniSharp.Extensions.LanguageServer.Protocol;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
 
-namespace Microsoft.Dafny.LanguageServer.Workspace;
+namespace DafnyCore.Compilations;
 
 public class SymbolTable {
 
@@ -71,8 +71,8 @@ public class SymbolTable {
 
   public ISet<Location> GetUsages(Uri uri, Position position) {
     if (nodePositions.TryGetValue(uri, out var forFile)) {
-      return forFile.Query(position).
-        SelectMany(node => DeclarationToUsages.GetOrDefault(node, () => (ISet<IDeclarationOrUsage>)new HashSet<IDeclarationOrUsage>())).
+      return Enumerable.
+        SelectMany<IDeclarationOrUsage, IDeclarationOrUsage>(forFile.Query(position), node => DeclarationToUsages.GetOrDefault(node, () => (ISet<IDeclarationOrUsage>)new HashSet<IDeclarationOrUsage>())).
         Select(u => new Location { Uri = u.NameToken.Filepath, Range = u.NameToken.GetLspRange() }).ToHashSet();
     }
     return Sets.Empty<Location>();
@@ -83,7 +83,7 @@ public class SymbolTable {
     return node == null ? null : NodeToLocation(node);
   }
 
-  internal static Location NodeToLocation(IDeclarationOrUsage node) {
+  public static Location NodeToLocation(IDeclarationOrUsage node) {
     return new Location {
       Uri = DocumentUri.From(node.NameToken.Uri),
       Range = node.NameToken.GetLspRange()
@@ -94,8 +94,8 @@ public class SymbolTable {
     if (!nodePositions.TryGetValue(uri, out var forFile)) {
       return null;
     }
-    return forFile.Query(position)
-      .Select(node => UsageToDeclaration.GetOrDefault(node, () => (IDeclarationOrUsage?)null))
+    return Enumerable
+      .Select<IDeclarationOrUsage, IDeclarationOrUsage>(forFile.Query(position), node => UsageToDeclaration.GetOrDefault(node, () => (IDeclarationOrUsage?)null))
       .FirstOrDefault(x => x != null);
   }
 }

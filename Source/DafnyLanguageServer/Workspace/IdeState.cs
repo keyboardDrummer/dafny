@@ -2,11 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
+using DafnyCore.Compilations;
 using Microsoft.Boogie;
 using Microsoft.Dafny.LanguageServer.Language;
 using Microsoft.Dafny.LanguageServer.Language.Symbols;
 using Microsoft.Dafny.LanguageServer.Workspace.ChangeProcessors;
 using Microsoft.Dafny.LanguageServer.Workspace.Notifications;
+using Microsoft.Extensions.Logging;
 using OmniSharp.Extensions.LanguageServer.Protocol;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
@@ -29,13 +32,15 @@ public record IdeState(
   Node Program,
   IReadOnlyDictionary<Uri, IReadOnlyList<Diagnostic>> ResolutionDiagnostics,
   SymbolTable SymbolTable,
-  LegacySignatureAndCompletionTable SignatureAndCompletionTable,
+  Lazy<LegacySignatureAndCompletionTable> LazySignatureAndCompletionTable,
   ImmutableDictionary<Uri, Dictionary<Range, IdeVerificationResult>> VerificationResults,
   IReadOnlyList<Counterexample> Counterexamples,
   IReadOnlyDictionary<Uri, IReadOnlyList<Range>> GhostRanges,
   IReadOnlyDictionary<Uri, DocumentVerificationTree> VerificationTrees
 ) {
 
+  public LegacySignatureAndCompletionTable SignatureAndCompletionTable => LazySignatureAndCompletionTable.Value;
+  
   public IdeState Migrate(Migrator migrator, int version) {
     var migratedVerificationTrees = VerificationTrees.ToDictionary(
       kv => kv.Key, kv =>
@@ -44,8 +49,10 @@ public record IdeState(
     return this with {
       Version = version,
       VerificationResults = MigrateImplementationViews(migrator, VerificationResults),
-      SignatureAndCompletionTable = Compilation.Options.Get(LegacySignatureAndCompletionTable.MigrateSignatureAndCompletionTable)
-        ? migrator.MigrateSymbolTable(SignatureAndCompletionTable) : LegacySignatureAndCompletionTable.Empty(Compilation.Options, Compilation.Project),
+      LazySignatureAndCompletionTable = new Lazy<LegacySignatureAndCompletionTable>(() => 
+        Compilation.Options.Get(LegacySignatureAndCompletionTable.MigrateSignatureAndCompletionTable)
+        ? migrator.MigrateSymbolTable(SignatureAndCompletionTable)
+        : LegacySignatureAndCompletionTable.Empty(Compilation.Options, Compilation.Project)),
       VerificationTrees = migratedVerificationTrees
     };
   }

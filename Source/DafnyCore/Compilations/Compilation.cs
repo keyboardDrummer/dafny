@@ -1,14 +1,8 @@
 ﻿using System;
 using OmniSharp.Extensions.LanguageServer.Protocol;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Dynamic;
 using System.Linq;
 using Microsoft.Boogie;
-using Microsoft.Dafny.LanguageServer.Language.Symbols;
-using Microsoft.Dafny.LanguageServer.Workspace.Notifications;
-using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
 
 namespace Microsoft.Dafny.LanguageServer.Workspace {
 
@@ -41,25 +35,6 @@ namespace Microsoft.Dafny.LanguageServer.Workspace {
 
     public virtual IEnumerable<DafnyDiagnostic> GetDiagnostics(Uri uri) => Enumerable.Empty<DafnyDiagnostic>();
 
-    public IdeState InitialIdeState(Compilation initialCompilation, DafnyOptions options) {
-      var program = new EmptyNode();
-      return ToIdeState(new IdeState(initialCompilation.Version, initialCompilation, program,
-        ImmutableDictionary<Uri, IReadOnlyList<Diagnostic>>.Empty,
-        SymbolTable.Empty(), LegacySignatureAndCompletionTable.Empty(options, initialCompilation.Project), ImmutableDictionary<Uri, Dictionary<Range, IdeVerificationResult>>.Empty,
-        Array.Empty<Counterexample>(),
-        ImmutableDictionary<Uri, IReadOnlyList<Range>>.Empty,
-        initialCompilation.RootUris.ToDictionary(uri => uri, uri => new DocumentVerificationTree(program, uri))
-      ));
-    }
-
-    /// <summary>
-    /// Collects information to present to the IDE
-    /// </summary>
-    public virtual IdeState ToIdeState(IdeState previousState) {
-      return previousState with {
-        Compilation = this
-      };
-    }
   }
 
   public record ImplementationState(IImplementationTask Task, PublishedVerificationStatus Status,
