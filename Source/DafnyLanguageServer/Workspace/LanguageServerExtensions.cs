@@ -24,6 +24,8 @@ namespace Microsoft.Dafny.LanguageServer.Workspace {
     private static IServiceCollection WithDafnyWorkspace(this IServiceCollection services) {
       return services
         .AddSingleton<IProjectDatabase, ProjectManagerDatabase>()
+        .AddSingleton<IdeStateManager>()
+        .AddSingleton<SymbolDeclarationResolver>()
         .AddSingleton<CreateProjectManager>(provider => (scheduler, cache, documentIdentifier) => new ProjectManager(
           provider.GetRequiredService<DafnyOptions>(),
           provider.GetRequiredService<ILogger<ProjectManager>>(),

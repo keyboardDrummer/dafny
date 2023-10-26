@@ -8,8 +8,10 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using DafnyCore.Compilations;
+using DafnyCore.Compilations.GutterIcons;
 using Microsoft.Dafny.LanguageServer.Workspace;
 using Microsoft.Dafny.LanguageServer.Workspace.ChangeProcessors;
+using Microsoft.Dafny.LanguageServer.Workspace.Notifications;
 
 namespace Microsoft.Dafny.LanguageServer.Language {
   /// <summary>
@@ -42,6 +44,7 @@ namespace Microsoft.Dafny.LanguageServer.Language {
             compilation))
         .AddSingleton<IGutterIconAndHoverVerificationDetailsManager, GutterIconAndHoverVerificationDetailsManager>()
         .AddSingleton(CreateVerifier)
+        .AddSingleton<IGutterNotificationPublisher, GutterNotificationPublisher>()
         .AddSingleton<CreateCompilationManager>(serviceProvider => (options, engine, compilation, migratedVerificationTree) => new CompilationManager(
           serviceProvider.GetRequiredService<ILogger<CompilationManager>>(),
           serviceProvider.GetRequiredService<ITextDocumentLoader>(),

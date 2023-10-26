@@ -17,17 +17,15 @@ namespace Microsoft.Dafny.LanguageServer.Language.Symbols {
   public class SymbolTableFactory : ISymbolTableFactory {
     private readonly ILogger logger;
     private readonly ILogger<LegacySignatureAndCompletionTable> loggerSymbolTable;
-    private readonly SymbolDeclarationResolver symbolDeclarationResolver;
 
     public SymbolTableFactory(ILogger<SymbolTableFactory> logger,
-      ILogger<LegacySignatureAndCompletionTable> loggerSymbolTable,
-      SymbolDeclarationResolver symbolDeclarationResolver) {
+      ILogger<LegacySignatureAndCompletionTable> loggerSymbolTable) {
       this.logger = logger;
       this.loggerSymbolTable = loggerSymbolTable;
-      this.symbolDeclarationResolver = symbolDeclarationResolver;
     }
 
     public LegacySignatureAndCompletionTable CreateFrom(Uri uri, Program program, CancellationToken cancellationToken) {
+      var symbolDeclarationResolver = new SymbolDeclarationResolver(logger, cancellationToken);
       var compilationUnit = symbolDeclarationResolver.ProcessProgram(uri, program);
       var declarations = CreateDeclarationDictionary(compilationUnit, cancellationToken);
       var designatorVisitor = new DesignatorVisitor(logger, compilationUnit, declarations, compilationUnit, cancellationToken);
