@@ -12,6 +12,7 @@ using Microsoft.Dafny.Compilers;
 using Microsoft.Dafny.LanguageServer.Workspace;
 using Microsoft.Dafny.LanguageServer.Workspace.Notifications;
 using Microsoft.Extensions.Logging;
+using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Program = Microsoft.Dafny.Program;
 
 namespace DafnyCore.Compilations {
@@ -126,15 +127,15 @@ namespace DafnyCore.Compilations {
         .SelectMany(r => r.GetResolvedDeclarations().Select(declaration =>
           ((IDeclarationOrUsage)r, declaration))).ToList();
 
-      var relevantDafnySymbolKinds = new HashSet<DafnySymbolKind> {
-        DafnySymbolKind.Function,
-        DafnySymbolKind.Class,
-        DafnySymbolKind.Enum,
-        DafnySymbolKind.Method,
-        DafnySymbolKind.EnumMember,
-        DafnySymbolKind.Struct,
-        DafnySymbolKind.Interface,
-        DafnySymbolKind.Namespace,
+      var relevantDafnySymbolKinds = new HashSet<SymbolKind> {
+        SymbolKind.Function,
+        SymbolKind.Class,
+        SymbolKind.Enum,
+        SymbolKind.Method,
+        SymbolKind.EnumMember,
+        SymbolKind.Struct,
+        SymbolKind.Interface,
+        SymbolKind.Namespace,
       };
       // Since these definitions are checked for whether they
       // contain substrings when answering workspace/resolve queries,
