@@ -32,8 +32,7 @@ public class IdeStateManager {
     return UpdateIdeState(new IdeState(initialCompilation.Version, initialCompilation, program,
       ImmutableDictionary<Uri, IReadOnlyList<Diagnostic>>.Empty,
       SymbolTable.Empty(),
-      new Lazy<LegacySignatureAndCompletionTable>(
-        () => LegacySignatureAndCompletionTable.Empty(initialCompilation.Options, initialCompilation.Project)),
+      LegacySignatureAndCompletionTable.Empty(initialCompilation.Options, initialCompilation.Project),
       ImmutableDictionary<Uri, Dictionary<Range, IdeVerificationResult>>.Empty,
       Array.Empty<Counterexample>(),
       ImmutableDictionary<Uri, IReadOnlyList<Range>>.Empty,
@@ -73,10 +72,7 @@ public class IdeStateManager {
 
       result = result with {
         SymbolTable = compilationAfterResolution.SymbolTable ?? previousState.SymbolTable,
-        // Remove the lazy part
-        LazySignatureAndCompletionTable = new Lazy<LegacySignatureAndCompletionTable>(() => {
-          return legacyTable.Resolved ? legacyTable : previousState.SignatureAndCompletionTable;
-        }),
+        SignatureAndCompletionTable = legacyTable.Resolved ? legacyTable : previousState.SignatureAndCompletionTable,
         GhostRanges = computeResolveState ?
           ghostStateDiagnosticCollector.GetGhostStateDiagnostics(legacyTable, cancellationToken)
           : previousState.GhostRanges,

@@ -32,14 +32,12 @@ public record IdeState(
   Node Program,
   IReadOnlyDictionary<Uri, IReadOnlyList<Diagnostic>> ResolutionDiagnostics,
   SymbolTable SymbolTable,
-  Lazy<LegacySignatureAndCompletionTable> LazySignatureAndCompletionTable,
+  LegacySignatureAndCompletionTable SignatureAndCompletionTable,
   ImmutableDictionary<Uri, Dictionary<Range, IdeVerificationResult>> VerificationResults,
   IReadOnlyList<Counterexample> Counterexamples,
   IReadOnlyDictionary<Uri, IReadOnlyList<Range>> GhostRanges,
   IReadOnlyDictionary<Uri, DocumentVerificationTree> VerificationTrees
 ) {
-
-  public LegacySignatureAndCompletionTable SignatureAndCompletionTable => LazySignatureAndCompletionTable.Value;
 
   public IdeState Migrate(Migrator migrator, int version) {
     var migratedVerificationTrees = VerificationTrees.ToDictionary(
@@ -49,10 +47,10 @@ public record IdeState(
     return this with {
       Version = version,
       VerificationResults = MigrateImplementationViews(migrator, VerificationResults),
-      LazySignatureAndCompletionTable = new Lazy<LegacySignatureAndCompletionTable>(() =>
+      SignatureAndCompletionTable = 
         Compilation.Options.Get(LegacySignatureAndCompletionTable.MigrateSignatureAndCompletionTable)
         ? migrator.MigrateSymbolTable(SignatureAndCompletionTable)
-        : LegacySignatureAndCompletionTable.Empty(Compilation.Options, Compilation.Project)),
+        : LegacySignatureAndCompletionTable.Empty(Compilation.Options, Compilation.Project),
       VerificationTrees = migratedVerificationTrees
     };
   }
