@@ -156,7 +156,8 @@ public class Migrator {
       originalSymbolTable.Declarations,
       migratedLocations,
       migratedLookupTrees,
-      false
+      false,
+      true
     );
   }
 

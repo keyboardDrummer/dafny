@@ -44,10 +44,11 @@ public record IdeState(
       kv => kv.Key, kv =>
         (DocumentVerificationTree)migrator.RelocateVerificationTree(kv.Value));
 
+    // TODO why is there no migration of ghost ranges? There seemed to be a ticket about them.
     return this with {
       Version = version,
       VerificationResults = MigrateImplementationViews(migrator, VerificationResults),
-      SignatureAndCompletionTable = 
+      SignatureAndCompletionTable =
         Compilation.Options.Get(LegacySignatureAndCompletionTable.MigrateSignatureAndCompletionTable)
         ? migrator.MigrateSymbolTable(SignatureAndCompletionTable)
         : LegacySignatureAndCompletionTable.Empty(Compilation.Options, Compilation.Project),

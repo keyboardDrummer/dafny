@@ -72,7 +72,7 @@ public class GhostStateDiagnosticCollectorTest {
     source.CancelAfter(TimeSpan.FromSeconds(50));
     var ghostDiagnostics = ghostStateDiagnosticCollector.GetGhostStateDiagnostics(
       new LegacySignatureAndCompletionTable(null!, new CompilationUnit(rootUri, program),
-        null!, null!, ImmutableDictionary<Uri, IIntervalTree<Position, ILocalizableSymbol>>.Empty, true)
+        null!, null!, ImmutableDictionary<Uri, IIntervalTree<Position, ILocalizableSymbol>>.Empty, true, false)
       , source.Token);
     Assert.Empty(ghostDiagnostics);
   }

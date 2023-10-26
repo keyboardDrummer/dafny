@@ -62,19 +62,17 @@ public class IdeStateManager {
     }
 
     if (newCompilation is CompilationAfterResolution compilationAfterResolution) {
-      bool computeResolveState = previousState.Compilation is not CompilationAfterResolution
-                                 || previousState.Version < compilationAfterResolution.Version;
       // TODO do better than CancellationToken.None ?
       var cancellationToken = CancellationToken.None;
-      var legacyTable = computeResolveState
+      var legacyTable = previousState.SignatureAndCompletionTable.Migrated
         ? GetLegacyTable(compilationAfterResolution, cancellationToken)
         : previousState.SignatureAndCompletionTable;
 
       result = result with {
         SymbolTable = compilationAfterResolution.SymbolTable ?? previousState.SymbolTable,
         SignatureAndCompletionTable = legacyTable.Resolved ? legacyTable : previousState.SignatureAndCompletionTable,
-        GhostRanges = computeResolveState ?
-          ghostStateDiagnosticCollector.GetGhostStateDiagnostics(legacyTable, cancellationToken)
+        GhostRanges = previousState.SignatureAndCompletionTable.Migrated
+          ? ghostStateDiagnosticCollector.GetGhostStateDiagnostics(legacyTable, cancellationToken)
           : previousState.GhostRanges,
         Counterexamples = new List<Counterexample>(compilationAfterResolution.Counterexamples),
         ResolutionDiagnostics = compilationAfterResolution.ResolutionDiagnostics.ToDictionary(

@@ -48,7 +48,8 @@ namespace Microsoft.Dafny.LanguageServer.Language.Symbols {
         declarations,
         declarationLocationVisitor.Locations,
         designatorVisitor.SymbolLookup,
-        symbolsResolved
+        symbolsResolved,
+        false
       );
     }
 

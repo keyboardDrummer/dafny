@@ -49,6 +49,8 @@ namespace Microsoft.Dafny.LanguageServer.Language.Symbols {
     /// </summary>
     public bool Resolved { get; }
 
+    public bool Migrated { get; }
+
     private readonly DafnyLangTypeResolver typeResolver;
 
     public static LegacySignatureAndCompletionTable Empty(DafnyOptions options, DafnyProject project) {
@@ -59,7 +61,7 @@ namespace Microsoft.Dafny.LanguageServer.Language.Symbols {
         new Dictionary<object, ILocalizableSymbol>(),
         ImmutableDictionary<Uri, IDictionary<ILegacySymbol, SymbolLocation>>.Empty,
         ImmutableDictionary<Uri, IIntervalTree<Position, ILocalizableSymbol>>.Empty,
-        symbolsResolved: false);
+        symbolsResolved: false, false);
     }
 
     private static readonly ConditionalWeakTable<DafnyOptions, SystemModuleManager> systemModuleManagers = new();
@@ -94,13 +96,13 @@ namespace Microsoft.Dafny.LanguageServer.Language.Symbols {
         IDictionary<AstElement, ILocalizableSymbol> declarations,
         ImmutableDictionary<Uri, IDictionary<ILegacySymbol, SymbolLocation>> locationsPerUri,
         ImmutableDictionary<Uri, IIntervalTree<Position, ILocalizableSymbol>> lookupTreePerUri,
-        bool symbolsResolved
-    ) {
+        bool symbolsResolved, bool migrated) {
       CompilationUnit = compilationUnit;
       Declarations = declarations;
       LocationsPerUri = locationsPerUri;
       LookupTreePerUri = lookupTreePerUri;
       Resolved = symbolsResolved;
+      Migrated = migrated;
       typeResolver = new DafnyLangTypeResolver(declarations);
       logger = iLogger;
     }
