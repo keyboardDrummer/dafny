@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reactive;
 using System.Threading.Tasks;
 using DafnyCore.Compilations;
+using DafnyCore.Generic;
 using Microsoft.Boogie;
 using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
 

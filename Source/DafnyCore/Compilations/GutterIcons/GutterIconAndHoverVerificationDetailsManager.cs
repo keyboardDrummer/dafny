@@ -22,10 +22,10 @@ Send notifications about the verification status of each line in the program.
 
   private readonly DafnyOptions options;
   private readonly ILogger<GutterIconAndHoverVerificationDetailsManager> logger;
-  private readonly INotificationPublisher notificationPublisher;
+  private readonly IGutterNotificationPublisher notificationPublisher;
 
   public GutterIconAndHoverVerificationDetailsManager(ILogger<GutterIconAndHoverVerificationDetailsManager> logger,
-    INotificationPublisher notificationPublisher, DafnyOptions options) {
+    IGutterNotificationPublisher notificationPublisher, DafnyOptions options) {
     this.logger = logger;
     this.notificationPublisher = notificationPublisher;
     this.options = options;
@@ -247,7 +247,7 @@ Send notifications about the verification status of each line in the program.
   public void PublishGutterIcons(CompilationAfterParsing compilation, Uri uri, bool verificationStarted) {
     if (options.Get(LineVerificationStatus)) {
       lock (LockProcessing) {
-        notificationPublisher.PublishGutterIcons(uri, compilation.InitialIdeState(compilation, compilation.Program.Reporter.Options), verificationStarted);
+        notificationPublisher.PublishGutterIcons(uri, compilation, verificationStarted);
       }
     }
   }

@@ -1,12 +1,13 @@
-using OmniSharp.Extensions.LanguageServer.Protocol;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using Microsoft.Dafny;
+using OmniSharp.Extensions.LanguageServer.Protocol;
 using VCGeneration;
 
-namespace Microsoft.Dafny.LanguageServer.Language {
+namespace DafnyCore.Generic {
   public class DiagnosticErrorReporter : ErrorReporter {
     private const MessageSource VerifierMessageSource = MessageSource.Verifier;
     private const string RelatedLocationCategory = "Related location";
@@ -75,7 +76,7 @@ namespace Microsoft.Dafny.LanguageServer.Language {
       );
     }
 
-    public static readonly string PostConditionFailingMessage = new ProofObligationDescription.EnsuresDescription(null, null).FailureDescription;
+    public static readonly string PostConditionFailingMessage = new Microsoft.Dafny.ProofObligationDescription.EnsuresDescription(null, null).FailureDescription;
 
     private static string FormatRelated(string related) {
       return $"Could not prove: {related}";
