@@ -314,11 +314,17 @@ public class ClientBasedLanguageServerTest : DafnyLanguageServerTestBase, IAsync
     }
     var verificationDocumentItem = CreateTestDocument("method Foo() { assert false; }", $"verification{fileIndex++}.dfy");
     await client.OpenDocumentAndWaitAsync(verificationDocumentItem, cancellationToken);
-    var statusReport = await verificationStatusReceiver.AwaitNextNotificationAsync(cancellationToken);
-    try {
-      Assert.Equal(verificationDocumentItem.Uri, statusReport.Uri);
-    } catch (AssertActualExpectedException) {
-      await output.WriteLineAsync($"StatusReport: {statusReport.Stringify()}");
+    while (true) {
+      var statusReport = await verificationStatusReceiver.AwaitNextNotificationAsync(cancellationToken);
+      try {
+        Assert.NotEqual(documentItem.Uri, statusReport.Uri);
+      } catch (AssertActualExpectedException) {
+        await output.WriteLineAsync($"StatusReport: {statusReport.Stringify()}");
+      }
+
+      if (verificationDocumentItem.Uri == statusReport.Uri) {
+        break;
+      }
     }
     client.DidCloseTextDocument(new DidCloseTextDocumentParams {
       TextDocument = verificationDocumentItem

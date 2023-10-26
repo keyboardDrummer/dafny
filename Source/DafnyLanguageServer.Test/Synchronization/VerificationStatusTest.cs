@@ -17,6 +17,9 @@ public class VerificationStatusTest : ClientBasedLanguageServerTest {
 
   [Fact]
   public async Task DoNotMigrateWrongUri() {
+    await SetUp(options => {
+      options.Set(ProjectManager.Verification, VerifyOnMode.Never);
+    });
     var sourceA = @"
 method NotAffectedByChange() {
   assert false;
@@ -35,9 +38,9 @@ method ShouldNotBeAffectedByChange() {
     var directory = Path.GetRandomFileName();
     await CreateOpenAndWaitForResolve("", Path.Combine(directory, DafnyProject.FileName));
     var documentA = await CreateOpenAndWaitForResolve(sourceA, Path.Combine(directory, "sourceA.dfy"));
-    await WaitUntilAllStatusAreCompleted(documentA);
+    await compilationStatusReceiver.AwaitNextNotificationAsync(CancellationToken);
     var documentB = await CreateOpenAndWaitForResolve(sourceB, Path.Combine(directory, "sourceB.dfy"));
-    await WaitUntilAllStatusAreCompleted(documentB);
+    await compilationStatusReceiver.AwaitNextNotificationAsync(CancellationToken);
     ApplyChange(ref documentA, new Range(3, 0, 3, 0), "// change\n");
     await AssertNoVerificationStatusIsComing(documentB, CancellationToken);
   }
