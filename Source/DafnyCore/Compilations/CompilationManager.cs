@@ -40,7 +40,7 @@ public class CompilationManager : IDisposable {
   private readonly ILogger logger;
   private readonly ITextDocumentLoader documentLoader;
   private readonly IProgramVerifier verifier;
-  
+
   // TODO make field deprecated
   private readonly IGutterIconAndHoverVerificationDetailsManager gutterIconManager;
 

@@ -12,8 +12,8 @@ namespace DafnyCore.Compilations {
   /// a dafny document out of it.
   /// </summary>
   public interface ITextDocumentLoader {
-    
-    
+
+
     /// <summary>
     /// Creates a dafny document from the given text document without loading it.
     /// </summary>
@@ -45,7 +45,7 @@ namespace DafnyCore.Compilations {
     //     ImmutableDictionary<Uri, DocumentVerificationTree>.Empty
     //   );
     // }
-    
+
     Task<CompilationAfterParsing> ParseAsync(DafnyOptions options, Compilation compilation,
       IReadOnlyDictionary<Uri, DocumentVerificationTree> migratedVerificationTrees, CancellationToken cancellationToken);
 

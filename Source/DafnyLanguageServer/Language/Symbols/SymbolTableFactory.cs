@@ -19,8 +19,8 @@ namespace Microsoft.Dafny.LanguageServer.Language.Symbols {
     private readonly ILogger<LegacySignatureAndCompletionTable> loggerSymbolTable;
     private readonly SymbolDeclarationResolver symbolDeclarationResolver;
 
-    public SymbolTableFactory(ILogger<SymbolTableFactory> logger, 
-      ILogger<LegacySignatureAndCompletionTable> loggerSymbolTable, 
+    public SymbolTableFactory(ILogger<SymbolTableFactory> logger,
+      ILogger<LegacySignatureAndCompletionTable> loggerSymbolTable,
       SymbolDeclarationResolver symbolDeclarationResolver) {
       this.logger = logger;
       this.loggerSymbolTable = loggerSymbolTable;

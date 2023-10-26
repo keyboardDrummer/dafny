@@ -15,19 +15,18 @@ public class GutterNotificationPublisher : IGutterNotificationPublisher {
   private readonly ILanguageServerFacade languageServer;
   private readonly ILogger<GutterNotificationPublisher> logger;
   private IdeStateManager ideStateManager;
-  
+
   public GutterNotificationPublisher(
-    LanguageServerFilesystem filesystem, 
-    ILogger<GutterNotificationPublisher> logger, 
-    ILanguageServerFacade languageServer, 
-    IdeStateManager ideStateManager) 
-  {
+    LanguageServerFilesystem filesystem,
+    ILogger<GutterNotificationPublisher> logger,
+    ILanguageServerFacade languageServer,
+    IdeStateManager ideStateManager) {
     this.filesystem = filesystem;
     this.logger = logger;
     this.languageServer = languageServer;
     this.ideStateManager = ideStateManager;
   }
-  
+
   public void PublishGutterIcons(Uri uri, CompilationAfterParsing compilation, bool verificationStarted) {
     if (!compilation.Options.Get(GutterIconAndHoverVerificationDetailsManager.LineVerificationStatus)) {
       return;

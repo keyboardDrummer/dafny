@@ -114,7 +114,7 @@ namespace Microsoft.Dafny.LanguageServer.Language {
     public static (int line, int col) ToTokenLineAndCol(this Position position) {
       return (line: position.Line - LineOffset, col: position.Character - ColumnOffset);
     }
-    
+
     public static DafnyPosition ToDafnyPosition(this IToken token) {
       return new DafnyPosition(token.line + BoogieExtensions.LineOffset, token.col + BoogieExtensions.ColumnOffset);
     }

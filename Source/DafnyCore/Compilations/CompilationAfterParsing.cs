@@ -28,7 +28,7 @@ public class CompilationAfterParsing : Compilation {
   public override IEnumerable<DafnyDiagnostic> GetDiagnostics(Uri uri) {
     return ResolutionDiagnostics.GetOrDefault(uri, Enumerable.Empty<DafnyDiagnostic>);
   }
-  
+
   public VerificationTree GetVerificationTree(Uri uri) {
     return VerificationTrees[uri];
   }

@@ -19,8 +19,8 @@ public class IdeStateManager {
   private readonly ISymbolTableFactory symbolTableFactory;
 
   public IdeStateManager(
-    IGhostStateDiagnosticCollector ghostStateDiagnosticCollector, 
-    ITelemetryPublisher telemetryPublisher, 
+    IGhostStateDiagnosticCollector ghostStateDiagnosticCollector,
+    ITelemetryPublisher telemetryPublisher,
     ISymbolTableFactory symbolTableFactory) {
     this.ghostStateDiagnosticCollector = ghostStateDiagnosticCollector;
     this.telemetryPublisher = telemetryPublisher;
@@ -31,7 +31,7 @@ public class IdeStateManager {
     var program = new EmptyNode();
     return UpdateIdeState(new IdeState(initialCompilation.Version, initialCompilation, program,
       ImmutableDictionary<Uri, IReadOnlyList<Diagnostic>>.Empty,
-      SymbolTable.Empty(), 
+      SymbolTable.Empty(),
       new Lazy<LegacySignatureAndCompletionTable>(
         () => LegacySignatureAndCompletionTable.Empty(initialCompilation.Options, initialCompilation.Project)),
       ImmutableDictionary<Uri, Dictionary<Range, IdeVerificationResult>>.Empty,
@@ -47,7 +47,7 @@ public class IdeStateManager {
     };
 
     if (newCompilation is CompilationAfterParsing compilationAfterParsing) {
-      
+
       // We may only use the new diagnostics if they block resolution,
       // otherwise we publish without resolution diagnostics which then appear again, which leads to flickering if the previous state already had these.
       // Since we currently do not separately track parse and resolution diagnostics,
@@ -70,14 +70,14 @@ public class IdeStateManager {
       var legacyTable = computeResolveState
         ? GetLegacyTable(compilationAfterResolution, cancellationToken)
         : previousState.SignatureAndCompletionTable;
-        
+
       result = result with {
         SymbolTable = compilationAfterResolution.SymbolTable ?? previousState.SymbolTable,
         // Remove the lazy part
         LazySignatureAndCompletionTable = new Lazy<LegacySignatureAndCompletionTable>(() => {
           return legacyTable.Resolved ? legacyTable : previousState.SignatureAndCompletionTable;
         }),
-        GhostRanges = computeResolveState ? 
+        GhostRanges = computeResolveState ?
           ghostStateDiagnosticCollector.GetGhostStateDiagnostics(legacyTable, cancellationToken)
           : previousState.GhostRanges,
         Counterexamples = new List<Counterexample>(compilationAfterResolution.Counterexamples),
@@ -91,11 +91,11 @@ public class IdeStateManager {
             l => MergeResults(l.Select(canVerify => MergeVerifiable(compilationAfterResolution, previousState, canVerify)))))
       };
     }
-    
+
     return result;
   }
 
-  static IdeVerificationResult MergeVerifiable(CompilationAfterResolution compilationAfterResolution, 
+  static IdeVerificationResult MergeVerifiable(CompilationAfterResolution compilationAfterResolution,
     IdeState previousState, ICanVerify canVerify) {
     var range = canVerify.NameToken.GetLspRange();
     var previousImplementations =
@@ -149,7 +149,7 @@ public class IdeStateManager {
   static PublishedVerificationStatus Combine(PublishedVerificationStatus first, PublishedVerificationStatus second) {
     return new[] { first, second }.Min();
   }
-  
+
   public const string OutdatedPrefix = "Outdated: ";
   private static IEnumerable<Diagnostic> MarkDiagnosticsAsOutdated(IEnumerable<Diagnostic> diagnostics) {
     return diagnostics.Select(diagnostic => diagnostic with {
@@ -159,7 +159,7 @@ public class IdeStateManager {
         : OutdatedPrefix + diagnostic.Message
     });
   }
-  
+
   private LegacySignatureAndCompletionTable GetLegacyTable(
     CompilationAfterParsing compilation,
     CancellationToken cancellationToken) {

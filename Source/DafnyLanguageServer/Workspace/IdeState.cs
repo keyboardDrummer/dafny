@@ -40,7 +40,7 @@ public record IdeState(
 ) {
 
   public LegacySignatureAndCompletionTable SignatureAndCompletionTable => LazySignatureAndCompletionTable.Value;
-  
+
   public IdeState Migrate(Migrator migrator, int version) {
     var migratedVerificationTrees = VerificationTrees.ToDictionary(
       kv => kv.Key, kv =>
@@ -49,7 +49,7 @@ public record IdeState(
     return this with {
       Version = version,
       VerificationResults = MigrateImplementationViews(migrator, VerificationResults),
-      LazySignatureAndCompletionTable = new Lazy<LegacySignatureAndCompletionTable>(() => 
+      LazySignatureAndCompletionTable = new Lazy<LegacySignatureAndCompletionTable>(() =>
         Compilation.Options.Get(LegacySignatureAndCompletionTable.MigrateSignatureAndCompletionTable)
         ? migrator.MigrateSymbolTable(SignatureAndCompletionTable)
         : LegacySignatureAndCompletionTable.Empty(Compilation.Options, Compilation.Project)),

@@ -83,8 +83,7 @@ Determine when to automatically verify the program. Choose from: Never, OnChange
     CreateIdeStateObserver createIdeStateObserver,
     CustomStackSizePoolTaskScheduler scheduler,
     VerificationResultCache cache,
-    DafnyProject project) 
-  {
+    DafnyProject project) {
     Project = project;
     this.ideStateManager = ideStateManager;
     this.serverOptions = serverOptions;
