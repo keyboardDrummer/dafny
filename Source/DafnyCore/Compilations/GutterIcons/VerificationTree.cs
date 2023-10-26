@@ -280,3 +280,11 @@ public enum LineVerificationStatus {
   // For lines containing resolution or parse errors
   ResolutionError = 500
 }
+
+public record AssertionBatchIndex(int ImplementationIndex, int RelativeIndex);
+
+public record AssertionBatchMetrics(
+  int Time,
+  int ResourceCount,
+  List<TrackedNodeComponent> CoveredIds
+);

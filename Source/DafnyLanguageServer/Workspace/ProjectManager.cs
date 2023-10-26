@@ -55,6 +55,7 @@ Determine when to automatically verify the program. Choose from: Never, OnChange
   private readonly INotificationPublisher notificationPublisher;
   private readonly IGutterIconAndHoverVerificationDetailsManager gutterIconManager;
   private ISymbolTableFactory symbolTableFactory;
+  private readonly IGhostStateDiagnosticCollector ghostStateDiagnosticCollector;
   private readonly ILogger<ProjectManager> logger;
 
   /// <summary>
@@ -86,6 +87,7 @@ Determine when to automatically verify the program. Choose from: Never, OnChange
     IFileSystem fileSystem,
     INotificationPublisher notificationPublisher,
     IGutterIconAndHoverVerificationDetailsManager gutterIconManager,
+    IGhostStateDiagnosticCollector ghostStateDiagnosticCollector,
     ITelemetryPublisher telemetryPublisher, 
     ISymbolTableFactory symbolTableFactory,
     CreateCompilationManager createCompilationManager,
@@ -95,6 +97,7 @@ Determine when to automatically verify the program. Choose from: Never, OnChange
     DafnyProject project) 
   {
     Project = project;
+    this.ghostStateDiagnosticCollector = ghostStateDiagnosticCollector;
     this.telemetryPublisher = telemetryPublisher;
     this.symbolTableFactory = symbolTableFactory;
     this.gutterIconManager = gutterIconManager;
@@ -429,14 +432,23 @@ Determine when to automatically verify the program. Choose from: Never, OnChange
     }
 
     if (newCompilation is CompilationAfterResolution compilationAfterResolution) {
+      bool computeResolveState = previousState.Compilation is not CompilationAfterResolution
+        || previousState.Version < compilationAfterResolution.Version;
+      // TODO do better than CancellationToken.None ?
+      var cancellationToken = CancellationToken.None;
+      var legacyTable = computeResolveState
+        ? GetLegacyTable(compilationAfterResolution.Program, cancellationToken)
+        : previousState.SignatureAndCompletionTable;
+        
       result = result with {
         SymbolTable = compilationAfterResolution.SymbolTable ?? previousState.SymbolTable,
+        // Remove the lazy part
         LazySignatureAndCompletionTable = new Lazy<LegacySignatureAndCompletionTable>(() => {
-          // TODO do better than CancellationToken.None ?
-          var legacyTable = GetLegacyTable(compilationAfterResolution.Program, CancellationToken.None);
           return legacyTable.Resolved ? legacyTable : previousState.SignatureAndCompletionTable;
         }),
-        GhostRanges = compilationAfterResolution.GhostDiagnostics,
+        GhostRanges = computeResolveState ? 
+          ghostStateDiagnosticCollector.GetGhostStateDiagnostics(legacyTable, cancellationToken)
+          : previousState.GhostRanges,
         Counterexamples = new List<Counterexample>(compilationAfterResolution.Counterexamples),
         ResolutionDiagnostics = compilationAfterResolution.ResolutionDiagnostics.ToDictionary(
           kv => kv.Key,

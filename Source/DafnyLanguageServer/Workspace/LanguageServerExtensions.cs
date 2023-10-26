@@ -1,14 +1,10 @@
 ﻿using Microsoft.Dafny.LanguageServer.Language;
 using Microsoft.Dafny.LanguageServer.Language.Symbols;
 using Microsoft.Dafny.LanguageServer.Workspace.ChangeProcessors;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using OmniSharp.Extensions.LanguageServer.Server;
-using System;
-using System.Reactive.Concurrency;
 using DafnyCore.Compilations;
-using Microsoft.Extensions.Options;
 
 namespace Microsoft.Dafny.LanguageServer.Workspace {
   /// <summary>
@@ -35,6 +31,9 @@ namespace Microsoft.Dafny.LanguageServer.Workspace {
           provider.GetRequiredService<IFileSystem>(),
           provider.GetRequiredService<INotificationPublisher>(),
           provider.GetRequiredService<IGutterIconAndHoverVerificationDetailsManager>(),
+          provider.GetRequiredService<IGhostStateDiagnosticCollector>(),
+          provider.GetRequiredService<ITelemetryPublisher>(),
+          provider.GetRequiredService<ISymbolTableFactory>(),
           provider.GetRequiredService<CreateCompilationManager>(),
           provider.GetRequiredService<CreateIdeStateObserver>(),
           scheduler,

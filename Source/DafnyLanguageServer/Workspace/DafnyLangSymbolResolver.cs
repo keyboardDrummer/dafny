@@ -2,6 +2,7 @@ using System;
 using System.CommandLine;
 using System.Threading;
 using DafnyCore.Compilations;
+using Microsoft.Dafny.LanguageServer.Language;
 using Microsoft.Extensions.Logging;
 
 namespace Microsoft.Dafny.LanguageServer.Workspace {
@@ -31,7 +32,7 @@ namespace Microsoft.Dafny.LanguageServer.Workspace {
     }
 
     private readonly ResolutionCache resolutionCache = new();
-    public CompilationUnit ResolveSymbols(DafnyProject project, Program program, CancellationToken cancellationToken) {
+    public void ResolveSymbols(DafnyProject project, Program program, CancellationToken cancellationToken) {
       // TODO The resolution requires mutual exclusion since it sets static variables of classes like Microsoft.Dafny.Type.
       //      Although, the variables are marked "ThreadStatic" - thus it might not be necessary. But there might be
       //      other classes as well.

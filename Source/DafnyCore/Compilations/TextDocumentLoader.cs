@@ -5,15 +5,12 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Boogie;
 using Microsoft.Dafny;
 using Microsoft.Dafny.Compilers;
 using Microsoft.Dafny.LanguageServer.Workspace;
 using Microsoft.Dafny.LanguageServer.Workspace.Notifications;
 using Microsoft.Extensions.Logging;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Program = Microsoft.Dafny.Program;
-using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
 
 namespace DafnyCore.Compilations {
   /// <summary>
@@ -28,26 +25,23 @@ namespace DafnyCore.Compilations {
     private readonly ILogger<ITextDocumentLoader> logger;
     private readonly IDafnyParser parser;
     private readonly ISymbolResolver symbolResolver;
-    private readonly IGhostStateDiagnosticCollector ghostStateDiagnosticCollector;
 
     protected TextDocumentLoader(
       ILogger<ITextDocumentLoader> documentLoader,
       IDafnyParser parser,
-      ISymbolResolver symbolResolver,
-      IGhostStateDiagnosticCollector ghostStateDiagnosticCollector) {
+      ISymbolResolver symbolResolver) {
       this.logger = documentLoader;
       this.parser = parser;
       this.symbolResolver = symbolResolver;
-      this.symbolTableFactory = symbolTableFactory;
-      this.ghostStateDiagnosticCollector = ghostStateDiagnosticCollector;
     }
 
     public static TextDocumentLoader Create(
       IDafnyParser parser,
-      IGhostStateDiagnosticCollector ghostStateDiagnosticCollector,
-      ILogger<ITextDocumentLoader> logger
-      ) {
-      return new TextDocumentLoader(logger, parser, ghostStateDiagnosticCollector);
+      ILogger<ITextDocumentLoader> logger,
+      ISymbolResolver symbolResolver
+      ) 
+    {
+      return new TextDocumentLoader(logger, parser, symbolResolver);
     }
 
     public async Task<CompilationAfterParsing> ParseAsync(DafnyOptions options, Compilation compilation,
@@ -105,14 +99,11 @@ namespace DafnyCore.Compilations {
 
       var project = compilation.Project;
 
-      var compilationUnit = symbolResolver.ResolveSymbols(project, programClone, cancellationToken);
-      var legacySymbolTable = symbolTableFactory.CreateFrom(compilationUnit, cancellationToken);
+      symbolResolver.ResolveSymbols(project, programClone, cancellationToken);
 
       var newSymbolTable = errorReporter.HasErrors
         ? null
         : CreateFrom(programClone, compilation, cancellationToken);
-
-      var ghostDiagnostics = ghostStateDiagnosticCollector.GetGhostStateDiagnostics(legacySymbolTable, cancellationToken);
 
       List<ICanVerify>? verifiables;
       if (errorReporter.HasErrorsUntilResolver) {
@@ -129,8 +120,6 @@ namespace DafnyCore.Compilations {
       return new CompilationAfterResolution(compilationAfterParsingWithProgramClone,
         errorReporter.AllDiagnosticsCopy,
         newSymbolTable,
-        legacySymbolTable,
-        ghostDiagnostics,
         verifiables,
         new(),
         new()

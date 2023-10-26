@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using DafnyCore.Compilations.GutterIcons;
 using JetBrains.Annotations;
 using Microsoft.Dafny.LanguageServer.Plugins;
 using Microsoft.Dafny.LanguageServer.Workspace;

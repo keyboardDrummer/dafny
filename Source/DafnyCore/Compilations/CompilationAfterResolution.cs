@@ -16,21 +16,18 @@ public class CompilationAfterResolution : CompilationAfterParsing {
   public CompilationAfterResolution(CompilationAfterParsing compilationAfterParsing,
     IReadOnlyDictionary<Uri, List<DafnyDiagnostic>> diagnostics,
     SymbolTable? symbolTable,
-    IReadOnlyDictionary<Uri, IReadOnlyList<Range>> ghostDiagnostics,
     IReadOnlyList<ICanVerify>? verifiables,
     LazyConcurrentDictionary<ModuleDefinition, Task<IReadOnlyDictionary<FilePosition, IReadOnlyList<IImplementationTask>>>> translatedModules,
     List<Counterexample> counterexamples
     ) :
     base(compilationAfterParsing, compilationAfterParsing.Program, diagnostics, compilationAfterParsing.VerificationTrees) {
     SymbolTable = symbolTable;
-    GhostDiagnostics = ghostDiagnostics;
     Verifiables = verifiables;
     TranslatedModules = translatedModules;
     Counterexamples = counterexamples;
   }
   public List<Counterexample> Counterexamples { get; set; }
   public SymbolTable? SymbolTable { get; }
-  public IReadOnlyDictionary<Uri, IReadOnlyList<Range>> GhostDiagnostics { get; }
   public IReadOnlyList<ICanVerify>? Verifiables { get; }
   public ConcurrentDictionary<ICanVerify, Unit> VerifyingOrVerifiedSymbols { get; } = new();
   public LazyConcurrentDictionary<ICanVerify, Dictionary<string, ImplementationState>> ImplementationsPerVerifiable { get; } = new();
