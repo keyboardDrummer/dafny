@@ -66,7 +66,8 @@ public class IdeStateManager {
       var cancellationToken = CancellationToken.None;
       
       // TODO Should IDE state have an original and migrated version, so we don't need previousState.SignatureAndCompletionTable.Migrated ?
-      var legacyTable = previousState.SignatureAndCompletionTable.Migrated
+      var computeLegacySymbolTableAndGhostRanges = true; // TODO optimise previousState.SignatureAndCompletionTable.Migrated;
+      var legacyTable = computeLegacySymbolTableAndGhostRanges
         ? GetLegacyTable(compilationAfterResolution, cancellationToken)
         : previousState.SignatureAndCompletionTable;
 
@@ -74,7 +75,7 @@ public class IdeStateManager {
         SymbolTable = compilationAfterResolution.SymbolTable ?? previousState.SymbolTable,
         SignatureAndCompletionTable = legacyTable.Resolved ? legacyTable : previousState.SignatureAndCompletionTable,
         // TODO do we not have a PR where ghost ranges are computed without the legacy table? Let's merge that part.
-        GhostRanges = previousState.SignatureAndCompletionTable.Migrated
+        GhostRanges = computeLegacySymbolTableAndGhostRanges
           ? ghostStateDiagnosticCollector.GetGhostStateDiagnostics(legacyTable, cancellationToken)
           : previousState.GhostRanges,
         Counterexamples = new List<Counterexample>(compilationAfterResolution.Counterexamples),
