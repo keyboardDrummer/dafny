@@ -730,17 +730,26 @@ public class MatchFlattener : IRewriter {
     }
 
     if (bodyPath is ExprPatternPath exprPath) {
-      var cBVar = (BoundVar)var.BoundVar;
-      cBVar.IsGhost = isGhost;
-      var cPat = new CasePattern<BoundVar>(cBVar.Tok, cBVar);
-      cPat.AssembleExpr(new List<Type>());
-      var cPats = new List<CasePattern<BoundVar>>();
-      cPats.Add(cPat);
-      var exprs = new List<Expression>();
-      exprs.Add(expr);
+      var boundVar = (BoundVar)var.BoundVar;
+      List<CasePattern<BoundVar>> casePatterns = new();
+      if (boundVar == null) {
+        var casePattern = new CasePattern<BoundVar>(var.Tok, var.Id,
+          var.Arguments.Cast<IdPattern>().Select(p => new CasePattern<BoundVar>(p.Tok, p.Id, new())).ToList());
+        casePattern.Ctor = var.Ctor;
+        casePattern.AssembleExpr(new List<Type>());
+        casePatterns.Add(casePattern);
+      } else {
+        boundVar.IsGhost = isGhost;
+        var casePattern = new CasePattern<BoundVar>(boundVar.Tok, boundVar);
+        casePattern.AssembleExpr(new List<Type>());
+        casePatterns.Add(casePattern);
+      }
 
-      var letExpr = new LetExpr(cBVar.tok, cPats, exprs, exprPath.Body, true);
-      letExpr.Type = exprPath.Body.Type;
+      var expressions = new List<Expression> { expr };
+
+      var letExpr = new LetExpr(boundVar.tok, casePatterns, expressions, exprPath.Body, true) {
+        Type = exprPath.Body.Type
+      };
       return new ExprPatternPath(exprPath.Tok, exprPath.CaseId, exprPath.Patterns, letExpr, exprPath.Attributes);
     } else {
       throw new InvalidOperationException();

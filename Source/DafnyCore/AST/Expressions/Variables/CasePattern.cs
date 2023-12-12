@@ -20,7 +20,9 @@ public class CasePattern<VT> : TokenNode
 
   [FilledInDuringResolution]
   public DatatypeCtor Ctor;  // finalized by resolution (null if the pattern is a bound variable)
+  [FilledInDuringResolution]
   public VT Var;  // finalized by resolution (null if the pattern is a constructor)  Invariant:  Var != null ==> Arguments == null
+  
   public List<CasePattern<VT>> Arguments;
 
   [FilledInDuringResolution] public Expression Expr;  // an r-value version of the CasePattern;
