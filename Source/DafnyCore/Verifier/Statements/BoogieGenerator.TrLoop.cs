@@ -199,21 +199,6 @@ public partial class BoogieGenerator {
     }
     builder.Add(Bpl.Cmd.SimpleAssign(s.Tok, preLoopHeap, etran.HeapExpr));
 
-
-    var daTrackersMonotonicity = new List<Tuple<Bpl.IdentifierExpr, Bpl.IdentifierExpr>>();
-    var existingLocals = locals.Values.ToList();
-    foreach (var local in existingLocals) {
-      if (!DefiniteAssignmentTrackers.TryGetValue(local.tok, out var dat)) {
-        continue;
-      }
-
-      var name = "preLoop$" + suffix + "$" + dat.Name;
-      var preLoopDat = locals.GetOrCreate(name, () => new Bpl.LocalVariable(dat.tok, new Bpl.TypedIdent(dat.tok, name, dat.Type)));
-      var ie = new Bpl.IdentifierExpr(s.Tok, preLoopDat);
-      daTrackersMonotonicity.Add(new Tuple<Bpl.IdentifierExpr, Bpl.IdentifierExpr>(ie, dat));
-      builder.Add(Cmd.SimpleAssign(s.Tok, ie, dat));
-    }
-
     List<Expr> initDecr = null;
     if (!Contract.Exists(theDecreases, e => e is WildcardExpr)) {
       initDecr = RecordDecreasesValue(theDecreases, builder, locals, etran, "$decr_init$" + suffix);
@@ -286,12 +271,6 @@ public partial class BoogieGenerator {
         fr.Type = Type.Bool;
         invariants.Add(TrAssertCmd(s.Tok, etran.TrExpr(fr)));
       }
-    }
-
-    // include a free invariant that says that all definite-assignment trackers have only become more "true"
-    foreach (var pair in daTrackersMonotonicity) {
-      Bpl.Expr monotonic = BplImp(pair.Item1, pair.Item2);
-      invariants.Add(TrAssumeCmd(s.Tok, monotonic));
     }
 
     // include a free invariant that says that all completed iterations so far have only decreased the termination metric

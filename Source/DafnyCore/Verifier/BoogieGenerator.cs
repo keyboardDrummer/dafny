@@ -1758,14 +1758,14 @@ namespace Microsoft.Dafny {
     Bpl.LocalVariable yieldCountVariable = null;  // non-null when an iterator body is being translated
     bool inBodyInitContext = false;  // true during the translation of the .BodyInit portion of a divided constructor body
 
-    public Dictionary<Bpl.IToken, Bpl.IdentifierExpr> DefiniteAssignmentTrackers { get; } = new();
+    public Dictionary<ISymbol, Bpl.IdentifierExpr> DefiniteAssignmentTrackers { get; } = new();
 
     Func<IToken, bool> assertionOnlyFilter = null; // generate assume statements instead of assert statements if not targeted by {:only}
     public enum StmtType { NONE, ASSERT, ASSUME };
     public StmtType stmtContext = StmtType.NONE;  // the Statement that is currently being translated
     public bool adjustFuelForExists = true;  // fuel need to be adjusted for exists based on whether exists is in assert or assume stmt.
 
-    public readonly VerificationIdGenerator defaultIdGenerator = new VerificationIdGenerator();
+    public readonly VerificationIdGenerator defaultIdGenerator = new();
 
     public VerificationIdGenerator CurrentIdGenerator {
       get {
