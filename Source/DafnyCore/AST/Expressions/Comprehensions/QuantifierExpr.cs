@@ -111,6 +111,8 @@ public abstract class QuantifierExpr : ComprehensionExpr, TypeParameter.ParentTy
   }
 
   public void OldResolve(ModuleResolver resolver, ResolutionContext context) {
+    ResolveGeneric(resolver);
+    
     Contract.Assert(SplitQuantifier == null); // No split quantifiers during resolution
     resolver.Scope.PushMarker();
     foreach (BoundVar v in BoundVars) {
@@ -131,6 +133,13 @@ public abstract class QuantifierExpr : ComprehensionExpr, TypeParameter.ParentTy
     resolver.ResolveAttributes(this, context);
     resolver.Scope.PopMarker();
     Type = Type.Bool;
+  }
+
+  private void ResolveGeneric(INewOrOldResolver resolver)
+  {
+    if (Term is not FunctionCallExpr) {
+      resolver.Reporter.Info(MessageSource.Resolver, Term.tok, "The presence of a quantifier can slow down verification of assertions where it is in scope. Verification performance can be improved by hiding the body of the quantifier in scopes where it is not needed, which can be done by extracting the body into a separate function and hiding that. Consider extracting the body of this quantifier into a separate function.");
+    }
   }
 
   public void NewResolve(PreTypeResolver resolver, ResolutionContext resolutionContext) {
