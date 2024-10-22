@@ -453,7 +453,7 @@ namespace Microsoft.Dafny {
       Constraints = new PreTypeConstraints(this);
     }
 
-    void ScopePushAndReport(IVariable v, string kind, bool assignPreType = true) {
+    public void ScopePushAndReport(IVariable v, string kind, bool assignPreType = true) {
       Contract.Requires(scope != null);
       Contract.Requires(v != null);
       Contract.Requires(kind != null);

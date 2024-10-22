@@ -37,4 +37,6 @@ public interface INewOrOldResolver {
 
   public Expression ResolveDotSuffix(ExprDotName expr, bool allowStaticReferenceToInstance, bool isLastNameSegment, List<ActualBinding> args,
     ResolutionContext resolutionContext, bool allowMethodCall);
+
+  void SetType(Expression expr, Type type);
 }

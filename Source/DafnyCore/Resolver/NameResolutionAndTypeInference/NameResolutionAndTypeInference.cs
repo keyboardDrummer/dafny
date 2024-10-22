@@ -1043,30 +1043,8 @@ namespace Microsoft.Dafny {
       } else if (expr is LetOrFailExpr) {
         var e = (LetOrFailExpr)expr;
         ResolveLetOrFailExpr(e, resolutionContext);
-      } else if (expr is QuantifierExpr) {
-        var e = (QuantifierExpr)expr;
-        Contract.Assert(e.SplitQuantifier == null); // No split quantifiers during resolution
-        int prevErrorCount = reporter.Count(ErrorLevel.Error);
-        scope.PushMarker();
-        foreach (BoundVar v in e.BoundVars) {
-          ScopePushAndReport(scope, v, "bound-variable");
-          var option = new ResolveTypeOption(ResolveTypeOptionEnum.InferTypeProxies);
-          ResolveType(v.tok, v.Type, resolutionContext, option, null);
-        }
-        if (e.Range != null) {
-          ResolveExpression(e.Range, resolutionContext);
-          Contract.Assert(e.Range.Type != null);  // follows from postcondition of ResolveExpression
-          ConstrainTypeExprBool(e.Range, "range of quantifier must be of type bool (instead got {0})");
-        }
-        ResolveExpression(e.Term, resolutionContext);
-        Contract.Assert(e.Term.Type != null);  // follows from postcondition of ResolveExpression
-        ConstrainTypeExprBool(e.Term, "body of quantifier must be of type bool (instead got {0})");
-        // Since the body is more likely to infer the types of the bound variables, resolve it
-        // first (above) and only then resolve the attributes (below).
-        ResolveAttributes(e, resolutionContext);
-        scope.PopMarker();
-        expr.Type = Type.Bool;
-
+      } else if (expr is QuantifierExpr quantifierExpr) {
+        quantifierExpr.OldResolve(this, resolutionContext);
       } else if (expr is SetComprehension) {
         var e = (SetComprehension)expr;
         int prevErrorCount = reporter.Count(ErrorLevel.Error);

@@ -614,27 +614,7 @@ namespace Microsoft.Dafny {
             break;
           }
         case QuantifierExpr quantifierExpr: {
-            var e = quantifierExpr;
-            if (resolutionContext.CodeContext is Function enclosingFunction) {
-              enclosingFunction.ContainsQuantifier = true;
-            }
-            Contract.Assert(e.SplitQuantifier == null); // No split quantifiers during resolution
-            scope.PushMarker();
-            foreach (var v in e.BoundVars) {
-              resolver.ResolveType(v.tok, v.Type, resolutionContext, ResolveTypeOptionEnum.InferTypeProxies, null);
-              ScopePushAndReport(v, "bound-variable", true);
-            }
-            if (e.Range != null) {
-              ResolveExpression(e.Range, resolutionContext);
-              ConstrainTypeExprBool(e.Range, "range of quantifier must be of type bool (instead got {0})");
-            }
-            ResolveExpression(e.Term, resolutionContext);
-            ConstrainTypeExprBool(e.Term, "body of quantifier must be of type bool (instead got {0})");
-            // Since the body is more likely to infer the types of the bound variables, resolve it
-            // first (above) and only then resolve the attributes (below).
-            ResolveAttributes(e, resolutionContext, false);
-            scope.PopMarker();
-            quantifierExpr.PreType = ConstrainResultToBoolFamilyOperator(quantifierExpr.tok, e.WhatKind);
+            quantifierExpr.NewResolve(this, resolutionContext);
             break;
           }
         case SetComprehension comprehension: {
@@ -1034,7 +1014,7 @@ namespace Microsoft.Dafny {
       }
     }
 
-    private PreType ConstrainResultToBoolFamilyOperator(IToken tok, string opString) {
+    public PreType ConstrainResultToBoolFamilyOperator(IToken tok, string opString) {
       var proxyDescription = $"result of {opString} operation";
       return ConstrainResultToBoolFamily(tok, proxyDescription, "type of " + opString + " must be a boolean (got {0})");
     }
